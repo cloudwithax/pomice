@@ -1,6 +1,6 @@
-"""Big poopoo peepee moment"""
+"""Pomice wrapper for Lavalink, made possible by cloudwithax 2021"""
 
-__version__ = "1.0.6.2"
+__version__ = "1.0.1"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
