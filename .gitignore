@@ -1,0 +1,5 @@
+*.pyc
+.git/
+__pycache/
+dist/
+pomice.egg-info/
