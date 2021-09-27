@@ -7,7 +7,7 @@ with open("README.md") as f:
 setuptools.setup(
     name="pomice",
     author="cloudwithax",
-    version="1.0.1",
+    version="1.0.2",
     url="https://github.com/cloudwithax/pomice",
     packages=setuptools.find_packages(),
     license="GPL",

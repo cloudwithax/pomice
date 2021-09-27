@@ -12,7 +12,7 @@ from . import events
 import discord
 from discord import VoiceProtocol, VoiceChannel
 from discord.ext import commands
-from typing import Optional, Any, Union
+from typing import Dict, Optional, Any, Union
 
 
 
@@ -49,18 +49,19 @@ class Player(VoiceProtocol):
     @property
     def position(self):
 
-        if not self.is_playing:
+        if not self.is_playing or not self._current:
             return 0
 
-        if self._paused:
-            return min(self._position, self._current.length)
+        if self.is_paused:
+            return min(self._last_position, self._current.length)
 
-        position = round(self._position + ((time.time() * 1000) - self._last_update))
+        difference = (time.time() * 1000) - self._last_update
+        position = self._last_position + difference
 
-        if position > self._current.length:
+        if position > self.current.length:
             return 0
 
-        return position
+        return min(position, self.current.length)
 
     @property
     def is_connected(self):
@@ -89,10 +90,10 @@ class Player(VoiceProtocol):
 
     async def _update_state(self, data: dict):
 
-        state = data.get('state')
-        self._last_update = state.get('time')
+        state: dict = data.get('state')
+        self._last_update = time.time() * 1000
         self._is_connected = state.get('connected')
-        self._position = state.get('position')
+        self._last_position = state.get('position')
 
     async def _dispatch_voice_update(self) -> None:
 
