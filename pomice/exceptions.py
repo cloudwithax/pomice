@@ -15,12 +15,12 @@ class NodeConnectionFailure(NodeException):
 
 
 class NodeConnectionClosed(NodeException):
-    """The nodes connection is closed."""
+    """The node's connection is closed."""
     pass
 
 
 class NodeNotAvailable(PomiceException):
-    """The node is not currently available."""
+    """The node is currently unavailable."""
     pass
 
 
@@ -43,18 +43,22 @@ class FilterInvalidArgument(PomiceException):
     """An invalid argument was passed to a filter."""
     pass
 
+
 class SpotifyAlbumLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load an album"""
+    """The pomice Spotify client was unable to load an album."""
     pass
+
 
 class SpotifyTrackLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load a track"""
+    """The pomice Spotify client was unable to load a track."""
     pass
+
 
 class SpotifyPlaylistLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load a playlist"""
+    """The pomice Spotify client was unable to load a playlist."""
     pass
 
+
 class InvalidSpotifyClientAuthorization(PomiceException):
-    """No Spotify client authorization was provided in order to use the Spotify track search feature"""
+    """No Spotify client authorization was provided for track searching."""
     pass

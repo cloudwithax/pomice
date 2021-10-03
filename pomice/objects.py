@@ -1,13 +1,20 @@
+from typing import Optional
+
 from discord.ext import commands
 
+
 class Track:
-    """
-    The base track object. Returns critical track information needed to be parsed by Lavalink.
-    You can also pass in commands.Context to get a discord.py Context object by passing in a valid Context object when you search for a track.
+    """The base track object. Returns critical track information needed for parsing by Lavalink.
+       You can also pass in commands.Context to get a discord.py Context object in your track.
     """
 
-    def __init__(self, track_id: str, info: dict, ctx: commands.Context = None, spotify: bool = False):
-
+    def __init__(
+        self,
+        track_id: str,
+        info: dict,
+        ctx: Optional[commands.Context] = None,
+        spotify: bool = False
+    ):
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
@@ -15,9 +22,8 @@ class Track:
         self.title = info.get("title")
         self.author = info.get("author")
         self.length = info.get("length")
-        if ctx:
-            self.ctx: commands.Context = ctx
-            self.requester = self.ctx.author
+        self.ctx = ctx
+        self.requester = self.ctx.author if ctx else None
         self.identifier = info.get("identifier")
         self.uri = info.get("uri")
         self.is_stream = info.get("isStream")
@@ -32,13 +38,18 @@ class Track:
 
 
 class Playlist:
-    """
-    The base playlist object. Returns critcal playlist information like the name of the playlist and what tracks are included to be parsed by Lavalink.
-    You can also pass in commands.Context to get a discord.py Context object by passing in a valid Context object when you search for a track.
+    """The base playlist object.
+       Returns critical playlist information needed for parsing by Lavalink.
+       You can also pass in commands.Context to get a discord.py Context object in your tracks.
     """
 
-    def __init__(self, playlist_info: dict, tracks: list, ctx: commands.Context = None, spotify: bool = False):
-
+    def __init__(
+        self,
+        playlist_info: dict,
+        tracks: list,
+        ctx: Optional[commands.Context] = None,
+        spotify: bool = False
+    ):
         self.playlist_info = playlist_info
         self.tracks_raw = tracks
         self.spotify = spotify
@@ -46,11 +57,15 @@ class Playlist:
         self.name = playlist_info.get("name")
         self.selected_track = playlist_info.get("selectedTrack")
 
-        if self.spotify == True:
+        if self.spotify:
             self.tracks = tracks
         else:
-            self.tracks = [Track(track_id=track["track"], info=track["info"], ctx=ctx) for track in self.tracks_raw]
-        
+            self.tracks = [
+                Track(track_id=track["track"], info=track["info"], ctx=ctx)
+                for track in self.tracks_raw
+            ]
+
+        self.track_count = len(self.tracks)
 
     def __str__(self):
         return self.name
