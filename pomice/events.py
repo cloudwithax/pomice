@@ -3,7 +3,7 @@ from .pool import NodePool
 
 class PomiceEvent:
     """The base class for all events dispatched by a node. 
-       Every event must be formatted within your botäs code as a listener.
+       Every event must be formatted within your bot's code as a listener.
        i.e: If you want to listen for when a track starts, the event would be:
        ```py
        @bot.listen
