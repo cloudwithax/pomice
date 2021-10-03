@@ -59,7 +59,7 @@ class Node:
             self._spotify_client: spotify.Client = spotify.Client(self._spotify_client_id, self._spotify_client_secret)
             self._spotify_http_client: spotify.HTTPClient = spotify.HTTPClient(self._spotify_client_id, self._spotify_client_secret)
 
-        self._bot.add_listener(self._update_handler, "on_socket_event_type")
+        self._bot.add_listener(self._update_handler, "on_socket_response")
 
     def __repr__(self):
         return f"<Pomice.node ws_uri={self._websocket_uri} rest_uri={self._rest_uri} player_count={len(self._players)}>"
