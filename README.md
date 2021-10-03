@@ -106,3 +106,7 @@ What experience do I need?
 Why is it saying "No module named pomice found"?
 
 - You need to [install](#Install) the package before you can use it 
+
+# Contributors
+
+- Thanks to [vveeps](https://github.com/vveeps) for implementing some features I wasn't able to do myself
