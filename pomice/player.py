@@ -42,9 +42,7 @@ class Player(VoiceProtocol):
         self._last_update: int = 0
         self._current_track_id = None
 
-
-        self._session_id: Optional[str] = None
-        self._voice_server_update_data: Optional[dict] = None
+        self._voice_server_update_data = {}
 
 
     def __repr__(self):
@@ -106,28 +104,29 @@ class Player(VoiceProtocol):
         self._is_connected = state.get('connected')
         self._last_position = state.get('position')
 
-    async def _dispatch_voice_update(self) -> None:
-
-        if not self._session_id or not self._voice_server_update_data:
+    async def _dispatch_voice_update(self, voice_data: Dict[str, Any]) -> None:
+        if {'sessionId', 'event'} != self._voice_server_update_data.keys():
             return
 
-        await self._node.send(op='voiceUpdate', sessionId=self._session_id, guildId=str(self._guild.id), event={**self._voice_server_update_data})
+        await self._node.send(
+            op='voiceUpdate',
+            guildId=str(self._guild.id),
+            **voice_data
+        )
 
     async def _voice_server_update(self, data: dict):
+        self._voice_server_update_data.update({'event': data})
+        await self._dispatch_voice_update(self._voice_server_update_data)
 
-        self._voice_server_update_data = data
-        await self._dispatch_voice_update()
-
-        
     async def _voice_state_update(self, data: dict):
-
+        self._voice_server_update_data.update({'sessionId': data.get('session_id')})
         if not (channel_id := data.get('channel_id')):
-            self.channel, self._session_id, self._voice_server_update_data = None
+            self.channel = None
+            self._voice_server_update_data.clear()
             return
 
         self.channel = self._guild.get_channel(int(channel_id))
-        self._session_id = data.get('session_id')
-        await self._dispatch_voice_update()
+        await self._dispatch_voice_update({**self._voice_server_update_data, "event": data})
 
     async def _dispatch_event(self, data: dict):
         event_type = data.get('type')
