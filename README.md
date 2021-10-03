@@ -3,6 +3,12 @@ The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed f
 
 ![](https://img.shields.io/badge/license-GPL-2f2f2f) ![](https://img.shields.io/badge/python-3.8-2f2f2f)
 
+This library is heavily based of off/uses code from the following libraries:
+- [Wavelink](https://github.com/PythonistaGuild/Wavelink)
+- [spotify.py](https://github.com/mental32/spotify.py)
+- [Slate](https://github.com/Axelancerr/slate)
+- [Granitepy](https://github.com/twitch0001/granitepy)
+
 
 # Install
 To install the library, you need the lastest version of pip and minimum Python 3.8
