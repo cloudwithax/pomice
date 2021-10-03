@@ -21,7 +21,6 @@ DEALINGS IN THE SOFTWARE.
 import random
 import time
 
-
 __all__ = [
     'ExponentialBackoff',
     'PomiceStats'
@@ -56,6 +55,7 @@ class ExponentialBackoff:
         self._exp = min(self._exp + 1, self._max)
         return self._randfunc(0, self._base * 2 ** self._exp)
 
+
 class NodeStats:
     """The base class for the node stats object. Gives critcical information on the node, which is updated every minute."""
 
@@ -78,5 +78,3 @@ class NodeStats:
 
     def __repr__(self) -> str:
         return f'<Pomice.NodeStats total_players={self.players_total} playing_active={self.players_active}>'
-
-
