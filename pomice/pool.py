@@ -9,6 +9,7 @@ from discord.ext import commands
 
 
 class NodePool:
+    """The base class for the node poll. This holds all the nodes that are to be used by the bot."""
     
     _nodes: dict = {}
 
@@ -17,11 +18,13 @@ class NodePool:
 
     @property
     def nodes(self):
+        """Property which returns a dict with the node identifier and the Node object."""
         return self._nodes
     
 
     @classmethod
     def get_node(self, *, identifier: str = None) -> Node:
+        """Fetches a node from the node pool using it's identifier. If no identifier is provided, it will choose a node at random."""
         available_nodes = {identifier: node for identifier, node in self._nodes.items()}
         if not available_nodes:
             raise exceptions.NoNodesAvailable('There are no nodes available.')
@@ -33,6 +36,7 @@ class NodePool:
      
     @classmethod
     async def create_node(self, bot: typing.Union[commands.Bot, discord.Client, commands.AutoShardedBot, discord.AutoShardedClient], host: str, port: str, password: str, identifier: str) -> Node:
+        """Creates a Node object to be then added into the node pool. If you like to have Spotify searching capabilites, pass in valid Spotify API credentials."""
         if identifier in self._nodes.keys():
             raise exceptions.NodeCreationError(f"A node with identifier '{identifier}' already exists.")
 

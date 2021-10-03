@@ -22,6 +22,9 @@ from .utils import ExponentialBackoff, NodeStats
 SPOTIFY_URL_REGEX = re.compile(r'https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)')
 
 class Node:
+    """The base class for a node. 
+    This node object represents a Lavalink node. 
+    If you want to enable Spotify searching, pass in a proper Spotify Client ID and Spotify Client Secret"""
     def __init__(self, pool, bot: Union[commands.Bot, discord.Client, commands.AutoShardedBot, discord.AutoShardedClient], host: str, port: int, password: str, identifier: str, spotify_client_id: Optional[str], spotify_client_secret: Optional[str]):
         self._bot = bot
         self._host = host
@@ -63,10 +66,12 @@ class Node:
 
     @property
     def is_connected(self) -> bool:
+        """"Property which returns whether this node is connected or not"""
         return self._websocket is not None and not self._websocket.closed
 
     @property
     async def latency(self):
+        """Property which returns the latency of the node in milliseconds"""
         start_time = time.time()
         await self.send(op="ping")
         end_time = await self._bot.wait_for(f"node_ping")
@@ -74,20 +79,25 @@ class Node:
 
     @property
     async def stats(self):
+        """Property which returns the node stats at any given time. 
+        Typically, accessing this property is rare due to the fact that Lavalink automatically sends updated node stats every minutes."""
         await self.send(op="get-stats")
         node_stats = await self._bot.wait_for(f"node_stats")
         return node_stats
 
     @property
     def players(self):
+        """Property which returns a dict containing the guild ID and the player object."""
         return self._players
 
     @property
     def bot(self):
+        """Property which returns the discord.py Bot object linked to this node"""
         return self._bot
 
     @property
     def pool(self):
+        """Property which returns the node pool this node is apart of."""
         return self._pool
 
     async def _update_handler(self, data: dict):
@@ -154,16 +164,17 @@ class Node:
 
 
     async def send(self, **data):
-
         if not self.available:
             raise exceptions.NodeNotAvailable(f"The node '{self.identifier}' is not currently available.")
 
         await self._websocket.send_str(json.dumps(data))
 
     def get_player(self, guild_id: int):
+        """Takes a guild ID as a parameter. Returns a pomice Player object."""
         return self._players.get(guild_id, None)
 
     async def connect(self): 
+        """Initiates a connection with a Lavalink node and adds it to the node pool."""
         await self._bot.wait_until_ready()
 
         try:
@@ -181,6 +192,7 @@ class Node:
             raise exceptions.NodeConnectionFailure(f"The node '{self.identifier}' failed to connect.")
 
     async def disconnect(self):
+        """Disconnects a connected Lavalink node and removes it from the node pool. This also destroys any players connected to the node."""
         for player in self.players.copy().values():
             await player.destroy()
 
@@ -190,8 +202,16 @@ class Node:
         self._task.cancel()
         
     async def get_tracks(self, query: str, ctx: commands.Context = None):
+        """Fetches tracks from the node's REST api to parse into Lavalink.
+        If you passed in Spotify API credentials, you can also pass in a Spotify URL of a playlist, album or track
+        and it will be parsed accordingly.
+        You can also pass in a discord.py Context object to get a Context object on any track you search.
+        """
 
         if spotify_url_check := SPOTIFY_URL_REGEX.match(query):
+            
+            if not self._spotify_client_id and not self._spotify_client_secret:
+                raise exceptions.InvalidSpotifyClientAuthorization("You did not provide proper Spotify client authorization credentials. If you would like to use the Spotify searching feature, please obtain Spotify API credentials here: https://developer.spotify.com/")
 
             search_type = spotify_url_check.group('type')
             spotify_id = spotify_url_check.group('id')

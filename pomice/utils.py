@@ -57,6 +57,7 @@ class ExponentialBackoff:
         return self._randfunc(0, self._base * 2 ** self._exp)
 
 class NodeStats:
+    """The base class for the node stats object. Gives critcical information on the node, which is updated every minute."""
 
     def __init__(self, data: dict) -> None:
 

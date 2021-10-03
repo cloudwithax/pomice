@@ -1,6 +1,10 @@
 from discord.ext import commands
 
 class Track:
+    """
+    The base track object. Returns critical track information needed to be parsed by Lavalink.
+    You can also pass in commands.Context to get a discord.py Context object by passing in a valid Context object when you search for a track.
+    """
 
     def __init__(self, track_id: str, info: dict, ctx: commands.Context = None):
 
@@ -27,6 +31,10 @@ class Track:
 
 
 class Playlist:
+    """
+    The base playlist object. Returns critcal playlist information like the name of the playlist and what tracks are included to be parsed by Lavalink.
+    You can also pass in commands.Context to get a discord.py Context object by passing in a valid Context object when you search for a track.
+    """
 
     def __init__(self, playlist_info: dict, tracks: list, ctx: commands.Context = None):
 

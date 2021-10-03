@@ -54,3 +54,7 @@ class SpotifyTrackLoadFailed(PomiceException):
 class SpotifyPlaylistLoadFailed(PomiceException):
     """The pomice Spotify client was unable to load a playlist"""
     pass
+
+class InvalidSpotifyClientAuthorization(PomiceException):
+    """No Spotify client authorization was provided in order to use the Spotify track search feature"""
+    pass

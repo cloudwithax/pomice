@@ -8,6 +8,10 @@ class Filter:
 
 
 class Timescale(Filter):
+    """Filter which changes the speed and pitch of a track. Do be warned that this filter is bugged as of the lastest
+        Lavalink dev version due to the filter patch not corresponding with the track time. In short this means that your
+        track will either end prematurely or end later due to this. This is not the library's fault.
+    """
 
     def __init__(self, *, speed: float = 1.0, pitch: float = 1.0, rate: float = 1.0):
         super().__init__()
@@ -32,6 +36,9 @@ class Timescale(Filter):
 
 
 class Karaoke(Filter):
+    """
+    Filter which filters the vocal track from any song and leaves the instrumental. Best for karaoke as the filter implies.
+    """
 
     def __init__(self, *, level: float, mono_level: float, filter_band: float, filter_width: float):
         super().__init__()
@@ -51,6 +58,7 @@ class Karaoke(Filter):
 
 
 class Tremolo(Filter):
+    """Filter which produces a wavering tone in the music, causing it to sound like the music is changing in volume rapidly."""
 
     def __init__(self, *, frequency: float, depth: float):
         super().__init__()
@@ -71,6 +79,7 @@ class Tremolo(Filter):
 
 
 class Vibrato(Filter):
+    """Filter which produces a wavering tone in the music, similar to the Tremolo filter, but changes in pitch rather than volume."""
 
     def __init__(self, *, frequency: float, depth: float):
 
