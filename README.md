@@ -7,6 +7,8 @@ The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed f
 # Install
 To install the library, you need the lastest version of pip and minimum Python 3.8
 
+(Note: This library as of now does not support discord.py 2.0, you must use any version lower than discord.py 1.7.3 for this library to work properly.)
+
 > Stable version
 ```
 pip install pomice
