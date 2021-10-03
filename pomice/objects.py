@@ -36,10 +36,8 @@ class Playlist:
         self.name = playlist_info.get("name")
         self.selected_track = playlist_info.get("selectedTrack")
 
-        if ctx:
-            self.tracks = [Track(track_id=track["track"], info=track["info"], ctx=ctx) for track in self.tracks_raw]
-        else:
-            self.tracks = [Track(track_id=track["track"], info=track["info"]) for track in self.tracks_raw]
+        self.tracks = [Track(track_id=track["track"], info=track["info"], ctx=ctx) for track in self.tracks_raw]
+        
 
     def __str__(self):
         return self.name

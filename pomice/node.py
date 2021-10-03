@@ -1,3 +1,4 @@
+from os import strerror
 import aiohttp
 import discord
 import asyncio
@@ -5,18 +6,23 @@ import typing
 import json
 import socket
 import time
+import re
 
 from discord.ext import commands
 from typing import Optional, Union
 from urllib.parse import quote
+from . import spotify
 from . import events
 from . import exceptions
 from . import objects
 from . import __version__
 from .utils import ExponentialBackoff, NodeStats
 
+
+SPOTIFY_URL_REGEX = re.compile(r'https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)')
+
 class Node:
-    def __init__(self, pool, bot: Union[commands.Bot, discord.Client, commands.AutoShardedBot, discord.AutoShardedClient], host: str, port: int, password: str, identifier: str, **kwargs):
+    def __init__(self, pool, bot: Union[commands.Bot, discord.Client, commands.AutoShardedBot, discord.AutoShardedClient], host: str, port: int, password: str, identifier: str, spotify_client_id: Optional[str], spotify_client_secret: Optional[str]):
         self._bot = bot
         self._host = host
         self._port = port
@@ -42,6 +48,13 @@ class Node:
         }
 
         self._players = {}
+
+        self._spotify_client_id: str = spotify_client_id
+        self._spotify_client_secret: str = spotify_client_secret
+
+        if self._spotify_client_id and self._spotify_client_secret:
+            self._spotify_client: spotify.Client = spotify.Client(self._spotify_client_id, self._spotify_client_secret)
+            self._spotify_http_client: spotify.HTTPClient = spotify.HTTPClient(self._spotify_client_id, self._spotify_client_secret)
 
         self._bot.add_listener(self._update_handler, "on_socket_response")
 
@@ -178,8 +191,61 @@ class Node:
         
     async def get_tracks(self, query: str, ctx: commands.Context = None):
 
-        async with self._session.get(url=f"{self._rest_uri}/loadtracks?identifier={quote(query)}", headers={"Authorization": self._password}) as response:
-            data = await response.json()
+        if spotify_url_check := SPOTIFY_URL_REGEX.match(query):
+
+            search_type = spotify_url_check.group('type')
+            spotify_id = spotify_url_check.group('id')
+            if search_type == "playlist":
+                results: spotify.Playlist = spotify.Playlist(client=self._spotify_client, data=await self._spotify_http_client.get_playlist(spotify_id))
+                try:
+                    search_tracks = await results.get_all_tracks()
+                    tracks = [
+                        objects.Track(
+                                track_id='spotify',
+                                ctx=ctx,
+                                info={'title': track.name or 'Unknown', 'author': ', '.join(artist.name for artist in track.artists) or 'Unknown',
+                                            'length': track.duration or 0, 'identifier': track.id or 'Unknown', 'uri': track.url or 'spotify',
+                                            'isStream': False, 'isSeekable': False, 'position': 0, 'thumbnail': track.images[0].url if track.images else None},
+                                
+                        ) for track in search_tracks
+                    ]
+                    return objects.Playlist(playlist_info={"name": results.name, "selectedTrack": search_tracks[0]}, tracks=tracks, ctx=ctx)
+                except:
+                    raise exceptions.SpotifyPlaylistLoadFailed(f"Unable to find results for {query}")
+            elif search_type == "album":
+                results: spotify.Album = await self._spotify_client.get_album(spotify_id=spotify_id)
+                try:
+                    search_tracks = await results.get_all_tracks()
+                    tracks = [
+                        objects.Track(
+                                track_id='spotify',
+                                ctx=ctx,
+                                info={'title': track.name or 'Unknown', 'author': ', '.join(artist.name for artist in track.artists) or 'Unknown',
+                                            'length': track.duration or 0, 'identifier': track.id or 'Unknown', 'uri': track.url or 'spotify',
+                                            'isStream': False, 'isSeekable': False, 'position': 0, 'thumbnail': track.images[0].url if track.images else None},
+                                
+                        ) for track in search_tracks
+                    ]
+                    
+                    return objects.Playlist(playlist_info={"name": results.name, "selectedTrack": search_tracks[0]}, tracks=tracks, ctx=ctx)
+                except:
+                    raise exceptions.SpotifyAlbumLoadFailed(f"Unable to find results for {query}")
+            elif search_type == 'track':
+                try:
+                    results: spotify.Track = await self._spotify_client.get_track(spotify_id=spotify_id)
+                    return objects.Track(
+                            track_id='spotify',
+                            ctx=ctx,
+                            info={'title': results.name or 'Unknown', 'author': ', '.join(artist.name for artist in results.artists) or 'Unknown',
+                                        'length': results.duration or 0, 'identifier': results.id or 'Unknown', 'uri': results.url or 'spotify',
+                                        'isStream': False, 'isSeekable': False, 'position': 0, 'thumbnail': results.images[0].url if results.images else None},)
+                except:
+                    raise exceptions.SpotifyTrackLoadFailed(f"Unable to find results for {query}")
+ 
+        
+        else:
+            async with self._session.get(url=f"{self._rest_uri}/loadtracks?identifier={quote(query)}", headers={"Authorization": self._password}) as response:
+                data = await response.json()
 
         load_type = data.get("loadType")
 
@@ -193,13 +259,9 @@ class Node:
             return None
 
         elif load_type == "PLAYLIST_LOADED":
-            if ctx:
-                return objects.Playlist(playlist_info=data["playlistInfo"], tracks=data["tracks"], ctx=ctx)
-            else:
-                return objects.Playlist(playlist_info=data["playlistInfo"], tracks=data["tracks"])
-
+            return objects.Playlist(playlist_info=data["playlistInfo"], tracks=data["tracks"], ctx=ctx)
+            
         elif load_type == "SEARCH_RESULT" or load_type == "TRACK_LOADED":
-            if ctx:
-                return [objects.Track(track_id=track["track"], info=track["info"], ctx=ctx) for track in data["tracks"]]
-            else:
-                return [objects.Track(track_id=track["track"], info=track["info"]) for track in data["tracks"]]
+            return [objects.Track(track_id=track["track"], info=track["info"], ctx=ctx) for track in data["tracks"]]
+          
+                

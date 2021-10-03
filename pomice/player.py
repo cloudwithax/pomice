@@ -151,6 +151,8 @@ class Player(VoiceProtocol):
         await self._node.send(op='destroy', guildId=str(self._guild.id))
 
     async def play(self, track: objects.Track, start_position: int = 0):
+        if track.track_id == "spotify":
+            track: objects.Track = await self._node.get_tracks(f"{track.title} {track.author}")
         await self._node.send(op='play', guildId=str(self._guild.id), track=track.track_id, startTime=start_position, endTime=track.length, noReplace=False)
         self._current = track
         return self._current

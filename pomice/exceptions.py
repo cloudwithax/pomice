@@ -42,3 +42,15 @@ class TrackLoadError(PomiceException):
 class FilterInvalidArgument(PomiceException):
     """An invalid argument was passed to a filter."""
     pass
+
+class SpotifyAlbumLoadFailed(PomiceException):
+    """The pomice Spotify client was unable to load an album"""
+    pass
+
+class SpotifyTrackLoadFailed(PomiceException):
+    """The pomice Spotify client was unable to load a track"""
+    pass
+
+class SpotifyPlaylistLoadFailed(PomiceException):
+    """The pomice Spotify client was unable to load a playlist"""
+    pass

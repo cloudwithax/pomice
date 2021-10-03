@@ -77,3 +77,5 @@ class NodeStats:
 
     def __repr__(self) -> str:
         return f'<Pomice.NodeStats total_players={self.players_total} playing_active={self.players_active}>'
+
+
