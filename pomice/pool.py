@@ -36,7 +36,7 @@ class NodePool:
         return available_nodes.get(identifier, None)
      
     @classmethod
-    async def create_node(self, bot: typing.Union[commands.Bot, discord.Client, commands.AutoShardedBot, discord.AutoShardedClient], host: str, port: str, password: str, identifier: str, spotify_client_id: Optional[str], spotify_client_secret: Optional[str]) -> Node:
+    async def create_node(self, bot: typing.Union[commands.Bot, discord.Client, commands.AutoShardedBot, discord.AutoShardedClient], host: str, port: str, password: str, identifier: str, spotify_client_id: Optional[str] = None, spotify_client_secret: Optional[str] = None) -> Node:
         """Creates a Node object to be then added into the node pool. If you like to have Spotify searching capabilites, pass in valid Spotify API credentials."""
         if identifier in self._nodes.keys():
             raise exceptions.NodeCreationError(f"A node with identifier '{identifier}' already exists.")

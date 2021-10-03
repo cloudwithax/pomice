@@ -221,15 +221,16 @@ class Node:
                     search_tracks = await results.get_all_tracks()
                     tracks = [
                         objects.Track(
-                                track_id='spotify',
+                                track_id=track.id,
                                 ctx=ctx,
+                                spotify=True,
                                 info={'title': track.name or 'Unknown', 'author': ', '.join(artist.name for artist in track.artists) or 'Unknown',
                                             'length': track.duration or 0, 'identifier': track.id or 'Unknown', 'uri': track.url or 'spotify',
                                             'isStream': False, 'isSeekable': False, 'position': 0, 'thumbnail': track.images[0].url if track.images else None},
                                 
                         ) for track in search_tracks
                     ]
-                    return objects.Playlist(playlist_info={"name": results.name, "selectedTrack": search_tracks[0]}, tracks=tracks, ctx=ctx)
+                    return objects.Playlist(playlist_info={"name": results.name, "selectedTrack": tracks[0]}, tracks=tracks, ctx=ctx, spotify=True)
                 except:
                     raise exceptions.SpotifyPlaylistLoadFailed(f"Unable to find results for {query}")
             elif search_type == "album":
@@ -238,8 +239,9 @@ class Node:
                     search_tracks = await results.get_all_tracks()
                     tracks = [
                         objects.Track(
-                                track_id='spotify',
+                                track_id=track.id,
                                 ctx=ctx,
+                                spotify=True,
                                 info={'title': track.name or 'Unknown', 'author': ', '.join(artist.name for artist in track.artists) or 'Unknown',
                                             'length': track.duration or 0, 'identifier': track.id or 'Unknown', 'uri': track.url or 'spotify',
                                             'isStream': False, 'isSeekable': False, 'position': 0, 'thumbnail': track.images[0].url if track.images else None},
@@ -247,18 +249,19 @@ class Node:
                         ) for track in search_tracks
                     ]
                     
-                    return objects.Playlist(playlist_info={"name": results.name, "selectedTrack": search_tracks[0]}, tracks=tracks, ctx=ctx)
+                    return objects.Playlist(playlist_info={"name": results.name, "selectedTrack": tracks[0]}, tracks=tracks, ctx=ctx, spotify=True)
                 except:
                     raise exceptions.SpotifyAlbumLoadFailed(f"Unable to find results for {query}")
             elif search_type == 'track':
                 try:
                     results: spotify.Track = await self._spotify_client.get_track(spotify_id=spotify_id)
-                    return objects.Track(
-                            track_id='spotify',
+                    return [objects.Track(
+                            track_id=results.id,
                             ctx=ctx,
+                            spotify=True,
                             info={'title': results.name or 'Unknown', 'author': ', '.join(artist.name for artist in results.artists) or 'Unknown',
                                         'length': results.duration or 0, 'identifier': results.id or 'Unknown', 'uri': results.url or 'spotify',
-                                        'isStream': False, 'isSeekable': False, 'position': 0, 'thumbnail': results.images[0].url if results.images else None},)
+                                        'isStream': False, 'isSeekable': False, 'position': 0, 'thumbnail': results.images[0].url if results.images else None},)]
                 except:
                     raise exceptions.SpotifyTrackLoadFailed(f"Unable to find results for {query}")
  

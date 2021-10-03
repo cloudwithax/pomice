@@ -17,10 +17,6 @@ class SpotifyBase:
     __slots__ = ()
 
     def __new__(cls, client, *_, **__):
-        if not isinstance(client, spotify.Client):
-            raise TypeError(
-                f"{cls!r}: expected client argument to be an instance of `spotify.Client`. Instead got {type(client)}"
-            )
 
         if hasattr(client, "__client_thread__"):
             cls = getattr(  # pylint: disable=self-cls-assignment

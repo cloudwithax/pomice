@@ -6,10 +6,11 @@ class Track:
     You can also pass in commands.Context to get a discord.py Context object by passing in a valid Context object when you search for a track.
     """
 
-    def __init__(self, track_id: str, info: dict, ctx: commands.Context = None):
+    def __init__(self, track_id: str, info: dict, ctx: commands.Context = None, spotify: bool = False):
 
         self.track_id = track_id
         self.info = info
+        self.spotify = spotify
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -36,15 +37,19 @@ class Playlist:
     You can also pass in commands.Context to get a discord.py Context object by passing in a valid Context object when you search for a track.
     """
 
-    def __init__(self, playlist_info: dict, tracks: list, ctx: commands.Context = None):
+    def __init__(self, playlist_info: dict, tracks: list, ctx: commands.Context = None, spotify: bool = False):
 
         self.playlist_info = playlist_info
         self.tracks_raw = tracks
+        self.spotify = spotify
 
         self.name = playlist_info.get("name")
         self.selected_track = playlist_info.get("selectedTrack")
 
-        self.tracks = [Track(track_id=track["track"], info=track["info"], ctx=ctx) for track in self.tracks_raw]
+        if self.spotify == True:
+            self.tracks = tracks
+        else:
+            self.tracks = [Track(track_id=track["track"], info=track["info"], ctx=ctx) for track in self.tracks_raw]
         
 
     def __str__(self):

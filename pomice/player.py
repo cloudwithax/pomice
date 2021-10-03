@@ -168,9 +168,11 @@ class Player(VoiceProtocol):
 
     async def play(self, track: objects.Track, start_position: int = 0):
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
-        if track.track_id == "spotify":
-            track: objects.Track = await self._node.get_tracks(f"{track.title} {track.author}")
-        await self._node.send(op='play', guildId=str(self._guild.id), track=track.track_id, startTime=start_position, endTime=track.length, noReplace=False)
+        if track.spotify == True:
+            spotify_track: objects.Track = await self._node.get_tracks(f"ytmsearch:{track.title} {track.author} audio")
+            await self._node.send(op='play', guildId=str(self._guild.id), track=spotify_track[0].track_id, startTime=start_position, endTime=spotify_track[0].length, noReplace=False)
+        else:
+            await self._node.send(op='play', guildId=str(self._guild.id), track=track.track_id, startTime=start_position, endTime=track.length, noReplace=False)
         self._current = track
         return self._current
 
