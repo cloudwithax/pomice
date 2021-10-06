@@ -286,7 +286,9 @@ class Node:
                         playlist_info={"name": results.name, "selectedTrack": tracks[0]},
                         tracks=tracks,
                         ctx=ctx,
-                        spotify=True
+                        spotify=True,
+                        thumbnail=results.images[0].url,
+                        uri=results.url,
                     )
 
                 except SpotifyException:
@@ -324,7 +326,9 @@ class Node:
                         playlist_info={"name": results.name, "selectedTrack": tracks[0]},
                         tracks=tracks,
                         ctx=ctx,
-                        spotify=True
+                        spotify=True,
+                        thumbnail=results.images[0].url,
+                        uri=results.url,
                     )
 
                 except SpotifyException:

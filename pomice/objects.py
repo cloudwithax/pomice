@@ -57,7 +57,9 @@ class Playlist:
         playlist_info: dict,
         tracks: list,
         ctx: Optional[commands.Context] = None,
-        spotify: bool = False
+        spotify: bool = False,
+        thumbnail: Optional[str] = None,
+        uri: Optional[str] = None,
     ):
         self.playlist_info = playlist_info
         self.tracks_raw = tracks
@@ -65,6 +67,9 @@ class Playlist:
 
         self.name = playlist_info.get("name")
         self.selected_track = playlist_info.get("selectedTrack")
+
+        self._thumbnail = thumbnail
+        self._uri = uri
 
         if self.spotify:
             self.tracks = tracks
@@ -81,3 +86,13 @@ class Playlist:
 
     def __repr__(self):
         return f"<Pomice.playlist name={self.name!r} track_count={len(self.tracks)}>"
+
+    @property
+    def uri(self) -> Optional[str]:
+        """Spotify album/playlist URI, or None if not a Spotify object."""
+        return self._uri
+
+    @property
+    def thumbnail(self) -> Optional[str]:
+        """Spotify album/playlist thumbnail, or None if not a Spotify object."""
+        return self._thumbnail
