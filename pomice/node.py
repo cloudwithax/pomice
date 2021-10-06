@@ -2,15 +2,14 @@ import asyncio
 import json
 import re
 import socket
+import aiohttp
 import time
 from typing import Optional, Type
 from urllib.parse import quote
-
-import aiohttp
-import discord
 from discord.ext import commands
 
-from . import __version__, objects, spotify
+
+from . import __version__, objects, spotify, NodePool
 from .exceptions import (
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
@@ -37,7 +36,7 @@ class Node:
     def __init__(
         self,
         pool,
-        bot: Type[discord.Client],
+        bot: Type[commands.Bot],
         host: str,
         port: int,
         password: str,
@@ -96,7 +95,7 @@ class Node:
         return self._websocket is not None and not self._websocket.closed
 
     @property
-    async def latency(self):
+    async def latency(self) -> int:
         """Property which returns the latency of the node in milliseconds"""
         start_time = time.time()
         await self.send(op="ping")
@@ -104,28 +103,28 @@ class Node:
         return (end_time - start_time) * 1000
 
     @property
-    async def stats(self):
+    async def stats(self) -> NodeStats:
         """Property which returns the node stats."""
         await self.send(op="get-stats")
         node_stats = await self._bot.wait_for("node_stats")
         return node_stats
 
     @property
-    def players(self):
+    def players(self) -> dict:
         """Property which returns a dict containing the guild ID and the player object."""
         return self._players
 
     @property
-    def bot(self):
+    def bot(self) -> commands.Bot:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
     @property
-    def player_count(self):
+    def player_count(self) -> int:
         return len(self.players)
 
     @property
-    def pool(self):
+    def pool(self) -> NodePool:
         """Property which returns the node pool this node is a part of."""
         return self._pool
 
