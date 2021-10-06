@@ -90,11 +90,11 @@ class Player(VoiceProtocol):
             **voice_data
         )
 
-    async def _voice_server_update(self, data: dict):
+    async def on_voice_server_update(self, data: dict):
         self._voice_state.update({"event": data})
         await self._dispatch_voice_update(self._voice_state)
 
-    async def _voice_state_update(self, data: dict):
+    async def on_voice_state_update(self, data: dict):
         self._voice_state.update({"sessionId": data.get("session_id")})
         if not (channel_id := data.get("channel_id")):
             self.channel = None
