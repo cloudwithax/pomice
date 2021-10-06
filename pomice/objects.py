@@ -68,8 +68,8 @@ class Playlist:
         self.name = playlist_info.get("name")
         self.selected_track = playlist_info.get("selectedTrack")
 
-        self.thumbnail = thumbnail
-        self.uri = uri
+        self._thumbnail = thumbnail
+        self._uri = uri
 
         if self.spotify:
             self.tracks = tracks
@@ -90,9 +90,9 @@ class Playlist:
     @property
     def uri(self) -> Optional[str]:
         """Spotify album/playlist URI, or None if not a Spotify object."""
-        return self.uri
+        return self._uri
 
     @property
     def thumbnail(self) -> Optional[str]:
         """Spotify album/playlist thumbnail, or None if not a Spotify object."""
-        return self.thumbnail
+        return self._thumbnail
