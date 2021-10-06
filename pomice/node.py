@@ -139,7 +139,7 @@ class Node:
             guild_id = int(data["d"]["guild_id"])
             try:
                 player = self._players[guild_id]
-                await player._voice_server_update(data["d"])
+                await player.on_voice_server_update(data["d"])
             except KeyError:
                 return
 
@@ -150,7 +150,7 @@ class Node:
             guild_id = int(data["d"]["guild_id"])
             try:
                 player = self._players[guild_id]
-                await player._voice_state_update(data["d"])
+                await player.on_voice_state_update(data["d"])
             except KeyError:
                 return
 
