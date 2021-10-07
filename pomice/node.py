@@ -203,7 +203,6 @@ class Node:
                 self._websocket_uri, headers=self._headers, heartbeat=60
             )
             self._task = self._bot.loop.create_task(self._listen())
-            self._pool._nodes[self._identifier] = self
             self.available = True
             return self
         except aiohttp.WSServerHandshakeError:
