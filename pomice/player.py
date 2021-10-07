@@ -83,7 +83,7 @@ class Player(VoiceProtocol):
         if {"sessionId", "event"} != self._voice_state.keys():
             return
 
-        await self.node.send(
+        await self._node.send(
             op="voiceUpdate",
             guildId=str(self._guild.id),
             **voice_data
@@ -118,7 +118,7 @@ class Player(VoiceProtocol):
         You can also pass in a discord.py Context object to get a
         Context object on any track you search.
         """
-        return await self.node.get_tracks(query, ctx)
+        return await self._node.get_tracks(query, ctx)
 
     async def connect(self, *, timeout: float, reconnect: bool):
         await self._guild.change_voice_state(channel=self.channel)
@@ -128,7 +128,7 @@ class Player(VoiceProtocol):
     async def stop(self):
         """Stops a currently playing track."""
         self.current = None
-        await self.node.send(op="stop", guildId=str(self._guild.id))
+        await self._node.send(op="stop", guildId=str(self._guild.id))
 
     async def disconnect(self, *, force: bool = False):
         await self.stop()
@@ -146,7 +146,7 @@ class Player(VoiceProtocol):
     async def play(self, track: objects.Track, start_position: int = 0) -> objects.Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
-            spotify_track: objects.Track = (await self.node.get_tracks(
+            spotify_track: objects.Track = (await self._node.get_tracks(
                 f"ytmsearch:{track.author} - {track.title}"
             ))[0]
             await self._node.send(
