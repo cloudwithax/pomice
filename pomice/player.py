@@ -5,10 +5,8 @@ import discord
 from discord import VoiceChannel, VoiceProtocol
 from discord.ext import commands
 
-
-from . import events, filters, objects
+from . import events, filters, NodePool, objects
 from .exceptions import TrackInvalidPosition
-from .node import NodePool
 
 
 class Player(VoiceProtocol):
