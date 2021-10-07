@@ -149,7 +149,7 @@ class Player(VoiceProtocol):
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
             spotify_track: objects.Track = (await self.node.get_tracks(
-                f"ytmsearch:{track.title} {track.author}"
+                f"ytmsearch:{track.author} - {track.title}"
             ))[0]
             await self._node.send(
                 op="play",
