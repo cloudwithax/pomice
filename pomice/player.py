@@ -8,7 +8,7 @@ from discord.ext import commands
 
 from . import events, filters, objects
 from .exceptions import TrackInvalidPosition
-from .pool import NodePool
+from .node import NodePool
 
 
 class Player(VoiceProtocol):

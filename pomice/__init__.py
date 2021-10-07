@@ -8,6 +8,5 @@ from .exceptions import *
 from .events import *
 from .filters import *
 from .objects import *
-from .pool import NodePool
-from .node import Node
+from .node import Node, NodePool
 from .player import Player
