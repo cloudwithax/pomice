@@ -1,6 +1,6 @@
 """Pomice wrapper for Lavalink, made possible by cloudwithax 2021"""
 
-__version__ = "1.0.4"
+__version__ = "1.0.5"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
