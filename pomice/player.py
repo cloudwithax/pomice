@@ -23,11 +23,11 @@ class Player(VoiceProtocol):
         self.client = client
         self.bot = client
         self.channel = channel
-        self._guild: discord.Guild = self.channel.guild
+        self.guild: discord.Guild = self.channel.guild
         self._dj: discord.Member = None
 
         self._node = NodePool.get_node()
-        self._current: objects.Track = None
+        self.current: objects.Track = None
         self._filter: filters.Filter = None
         self._volume = 100
         self._paused = False
@@ -41,7 +41,7 @@ class Player(VoiceProtocol):
 
     def __repr__(self):
         return (
-            f"<Pomice.player bot={self.bot} guildId={self._guild.id} "
+            f"<Pomice.player bot={self.bot} guildId={self.guild.id} "
             f"is_connected={self.is_connected} is_playing={self.is_playing}>"
         )
 
@@ -49,7 +49,7 @@ class Player(VoiceProtocol):
     def position(self) -> float:
         """Property which returns the player's position in a track in milliseconds"""
 
-        if not self.is_playing or not self._current:
+        if not self.is_playing or not self.current:
             return 0
 
         if self.is_paused:
@@ -58,15 +58,15 @@ class Player(VoiceProtocol):
         difference = (time.time() * 1000) - self._last_update
         position = self._last_position + difference
 
-        if position > self._current.length:
+        if position > self.current.length:
             return 0
 
-        return min(position, self._current.length)
+        return min(position, self.current.length)
 
     @property
     def is_playing(self) -> bool:
         """Property which returns whether or not the player is actively playing a track."""
-        return self._is_connected and self._current is not None
+        return self._is_connected and self.current is not None
 
     @property
     def is_paused(self) -> bool:
@@ -85,7 +85,7 @@ class Player(VoiceProtocol):
 
         await self._node.send(
             op="voiceUpdate",
-            guildId=str(self._guild.id),
+            guildId=str(self.guild.id),
             **voice_data
         )
 
@@ -100,7 +100,7 @@ class Player(VoiceProtocol):
             self._voice_state.clear()
             return
 
-        self.channel = self._guild.get_channel(int(channel_id))
+        self.channel = self.guild.get_channel(int(channel_id))
         await self._dispatch_voice_update({**self._voice_state, "event": data})
 
     async def _dispatch_event(self, data: dict):
@@ -121,27 +121,27 @@ class Player(VoiceProtocol):
         return await self._node.get_tracks(query, ctx)
 
     async def connect(self, *, timeout: float, reconnect: bool):
-        await self._guild.change_voice_state(channel=self.channel)
-        self._node._players[self._guild.id] = self
+        await self.guild.change_voice_state(channel=self.channel)
+        self._node._players[self.guild.id] = self
         self.is_connected = True
 
     async def stop(self):
         """Stops a currently playing track."""
         self.current = None
-        await self._node.send(op="stop", guildId=str(self._guild.id))
+        await self._node.send(op="stop", guildId=str(self.guild.id))
 
     async def disconnect(self, *, force: bool = False):
         await self.stop()
-        await self._guild.change_voice_state(channel=None)
+        await self.guild.change_voice_state(channel=None)
         self.cleanup()
         self.channel = None
         self._is_connected = False
-        del self._node._players[self._guild.id]
+        del self._node._players[self.guild.id]
 
     async def destroy(self):
         """Disconnects a player and destroys the player instance."""
         await self.disconnect()
-        await self._node.send(op="destroy", guildId=str(self._guild.id))
+        await self._node.send(op="destroy", guildId=str(self.guild.id))
 
     async def play(self, track: objects.Track, start_position: int = 0) -> objects.Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
@@ -151,7 +151,7 @@ class Player(VoiceProtocol):
             ))[0]
             await self._node.send(
                 op="play",
-                guildId=str(self._guild.id),
+                guildId=str(self.guild.id),
                 track=spotify_track.track_id,
                 startTime=start_position,
                 endTime=spotify_track.length,
@@ -160,14 +160,14 @@ class Player(VoiceProtocol):
         else:
             await self._node.send(
                 op="play",
-                guildId=str(self._guild.id),
+                guildId=str(self.guild.id),
                 track=track.track_id,
                 startTime=start_position,
                 endTime=track.length,
                 noReplace=False
             )
-        self._current = track
-        return self._current
+        self.current = track
+        return self.current
 
     async def seek(self, position: float) -> float:
         """Seeks to a position in the currently playing track milliseconds"""
@@ -177,18 +177,18 @@ class Player(VoiceProtocol):
                 f"Seek position must be between 0 and the track length"
             )
 
-        await self._node.send(op="seek", guildId=str(self._guild.id), position=position)
+        await self._node.send(op="seek", guildId=str(self.guild.id), position=position)
         return self._position
 
     async def set_pause(self, pause: bool) -> bool:
         """Sets the pause state of the currently playing track."""
-        await self._node.send(op="pause", guildId=str(self._guild.id), pause=pause)
+        await self._node.send(op="pause", guildId=str(self.guild.id), pause=pause)
         self._paused = pause
         return self._paused
 
     async def set_volume(self, volume: int) -> int:
         """Sets the volume of the player as an integer. Lavalink accepts an amount from 0 to 500."""
-        await self._node.send(op="volume", guildId=str(self._guild.id), volume=volume)
+        await self._node.send(op="volume", guildId=str(self.guild.id), volume=volume)
         self._volume = volume
         return self._volume
 
@@ -196,7 +196,7 @@ class Player(VoiceProtocol):
         """Sets a filter of the player. Takes a pomice.Filter object.
            This will only work if you are using the development version of Lavalink.
         """
-        await self._node.send(op="filters", guildId=str(self._guild.id), **filter.payload)
+        await self._node.send(op="filters", guildId=str(self.guild.id), **filter.payload)
         await self.seek(self.position)
         self._filter = filter
         return filter
