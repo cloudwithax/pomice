@@ -419,11 +419,11 @@ class NodePool:
         return len(self._nodes.values())
 
     @classmethod
-    def get_node(self, *, identifier: str = None) -> Node:
+    def get_node(cls, *, identifier: str = None) -> Node:
         """Fetches a node from the node pool using it's identifier.
            If no identifier is provided, it will choose a node at random.
         """
-        available_nodes = {identifier: node for identifier, node in self._nodes.items()}
+        available_nodes = {identifier: node for identifier, node in cls._nodes.items()}
         if not available_nodes:
             raise NoNodesAvailable('There are no nodes available.')
 
@@ -434,7 +434,7 @@ class NodePool:
 
     @classmethod
     async def create_node(
-        self,
+        cls,
         bot: Type[discord.Client],
         host: str,
         port: str,
@@ -446,15 +446,15 @@ class NodePool:
         """Creates a Node object to be then added into the node pool.
            For Spotify searching capabilites, pass in valid Spotify API credentials.
         """
-        if identifier in self._nodes.keys():
+        if identifier in cls._nodes.keys():
             raise NodeCreationError(f"A node with identifier '{identifier}' already exists.")
 
         node = Node(
-            pool=self, bot=bot, host=host, port=port, password=password,
+            pool=cls, bot=bot, host=host, port=port, password=password,
             identifier=identifier, spotify_client_id=spotify_client_id,
             spotify_client_secret=spotify_client_secret
         )
 
         await node.connect()
-        self._nodes[node._identifier] = node
+        cls._nodes[node._identifier] = node
         return node
