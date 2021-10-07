@@ -1,4 +1,4 @@
-from . import NodePool
+from .node import NodePool
 
 
 class PomiceEvent:

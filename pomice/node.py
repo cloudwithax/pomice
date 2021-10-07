@@ -11,7 +11,7 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-from . import __version__, objects, spotify, NodePool
+from . import __version__, spotify
 from .exceptions import (
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
@@ -23,6 +23,7 @@ from .exceptions import (
     SpotifyTrackLoadFailed,
     TrackLoadError
 )
+from .objects import Playlist, Track
 from .spotify import SpotifyException
 from .utils import ExponentialBackoff, NodeStats
 
@@ -53,7 +54,6 @@ class Node:
         self._port = port
         self._password = password
         self._identifier = identifier
-        self._pool = pool
 
         self._websocket_uri = f"ws://{self._host}:{self._port}"
         self._rest_uri = f"http://{self._host}:{self._port}"
@@ -126,11 +126,6 @@ class Node:
     @property
     def player_count(self) -> int:
         return len(self.players)
-
-    @property
-    def pool(self) -> NodePool:
-        """Property which returns the node pool this node is a part of."""
-        return self._pool
 
     async def _update_handler(self, data: dict):
         await self._bot.wait_until_ready()
@@ -265,7 +260,7 @@ class Node:
                 try:
                     search_tracks = await results.get_all_tracks()
                     tracks = [
-                        objects.Track(
+                        Track(
                             track_id=track.id,
                             ctx=ctx,
                             spotify=True,
@@ -285,7 +280,7 @@ class Node:
                         ) for track in search_tracks
                     ]
 
-                    return objects.Playlist(
+                    return Playlist(
                         playlist_info={"name": results.name, "selectedTrack": tracks[0]},
                         tracks=tracks,
                         ctx=ctx,
@@ -305,7 +300,7 @@ class Node:
                 try:
                     search_tracks = await results.get_all_tracks()
                     tracks = [
-                        objects.Track(
+                        Track(
                             track_id=track.id,
                             ctx=ctx,
                             spotify=True,
@@ -325,7 +320,7 @@ class Node:
                         ) for track in search_tracks
                     ]
 
-                    return objects.Playlist(
+                    return Playlist(
                         playlist_info={"name": results.name, "selectedTrack": tracks[0]},
                         tracks=tracks,
                         ctx=ctx,
@@ -342,7 +337,7 @@ class Node:
                     results = await self._spotify_client.get_track(spotify_id=spotify_id)
 
                     return [
-                        objects.Track(
+                        Track(
                             track_id=results.id,
                             ctx=ctx,
                             spotify=True,
@@ -387,7 +382,7 @@ class Node:
             return None
 
         elif load_type == "PLAYLIST_LOADED":
-            return objects.Playlist(
+            return Playlist(
                 playlist_info=data["playlistInfo"],
                 tracks=data["tracks"],
                 ctx=ctx
@@ -395,7 +390,7 @@ class Node:
 
         elif load_type == "SEARCH_RESULT" or load_type == "TRACK_LOADED":
             return [
-                objects.Track(
+                Track(
                     track_id=track["track"],
                     info=track["info"],
                     ctx=ctx
