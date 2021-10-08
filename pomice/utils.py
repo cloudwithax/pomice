@@ -20,7 +20,6 @@ DEALINGS IN THE SOFTWARE.
 
 import random
 import time
-from typing import Any
 
 __all__ = [
     'ExponentialBackoff',
@@ -79,9 +78,3 @@ class NodeStats:
 
     def __repr__(self) -> str:
         return f'<Pomice.NodeStats total_players={self.players_total} playing_active={self.players_active}>'
-
-
-        
-
-
-        

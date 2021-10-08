@@ -1,23 +1,21 @@
 from enum import Enum
+from typing import Literal
+
 
 class SearchType(Enum):
-    """The base class for the different search types for Pomice. 
+    """The enum for the different search types for Pomice.
     This feature is exclusively for the Spotify search feature of Pomice.
     If you are not using this feature, this class is not necessary.
 
-    SearchType.YTSEARCH searches for a Spotify track using regular Youtube, which is best for all scenarios
+    SearchType.ytsearch searches using regular Youtube, which is best for all scenarios.
 
-    SearchType.YTMSEARCH searches for a Spotify track using YouTube Music, which is best for getting audio-only results.
+    SearchType.ytmsearch searches using YouTube Music, which is best for getting audio-only results.
 
-    SearchType.SCSEARCH searches for a Spotify track using SoundCloud, which is an alternative to YouTube or YouTube Music.
+    SearchType.scsearch searches using SoundCloud, which is an alternative to YouTube or YouTube Music.
     """
-    YTSEARCH = f'ytsearch:{track.artist} - {track.title}'
-    YTMSEARCH = f'ytmsearch:{track.artist} - {track.title}'
-    SCSEARCH = f'scsearch:{track.artist} - {track.title}'
+    ytsearch = "ytsearch"
+    ytmsearch = "ytmsearch"
+    scsearch = "scsearch"
 
-
-
-
-    
-        
-    
+    def __str__(self) -> str:
+        return self.value

@@ -11,8 +11,8 @@ import aiohttp
 import discord
 from discord.ext import commands
 
-
-from . import __version__, spotify, Player, SearchType
+from . import __version__, spotify
+from .enums import SearchType
 from .exceptions import (
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
@@ -25,6 +25,7 @@ from .exceptions import (
     TrackLoadError
 )
 from .objects import Playlist, Track
+from .player import Player
 from .spotify import SpotifyException
 from .utils import ExponentialBackoff, NodeStats
 
@@ -239,7 +240,12 @@ class Node:
         self.available = False
         self._task.cancel()
 
-    async def get_tracks(self, query: str, ctx: commands.Context = None, search_type: SearchType = None):
+    async def get_tracks(
+        self,
+        query: str,
+        ctx: Optional[commands.Context] = None,
+        search_type: SearchType = SearchType.ytsearch
+    ):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
            If you passed in Spotify API credentials, you can also pass in a
@@ -256,10 +262,10 @@ class Node:
                     "please obtain Spotify API credentials here: https://developer.spotify.com/"
                 )
 
-            search_type = spotify_url_check.group("type")
+            spotify_type = spotify_url_check.group("type")
             spotify_id = spotify_url_check.group("id")
 
-            if search_type == "playlist":
+            if spotify_type == "playlist":
                 results = spotify.Playlist(
                     client=self._spotify_client,
                     data=await self._spotify_http_client.get_playlist(spotify_id)
@@ -303,7 +309,7 @@ class Node:
                         f"Unable to find results for {query}"
                     )
 
-            elif search_type == "album":
+            elif spotify_type == "album":
                 results = await self._spotify_client.get_album(spotify_id=spotify_id)
 
                 try:
@@ -342,7 +348,7 @@ class Node:
                 except SpotifyException:
                     raise SpotifyAlbumLoadFailed(f"Unable to find results for {query}")
 
-            elif search_type == 'track':
+            elif spotify_type == 'track':
                 try:
                     results = await self._spotify_client.get_track(spotify_id=spotify_id)
 
@@ -409,6 +415,7 @@ class Node:
                 for track in data["tracks"]
             ]
 
+
 class NodePool:
     """The base class for the node pool.
        This holds all the nodes that are to be used by the bot.
@@ -445,7 +452,7 @@ class NodePool:
     @classmethod
     async def create_node(
         bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]],
-        cls, 
+        cls,
         host: str,
         port: str,
         password: str,

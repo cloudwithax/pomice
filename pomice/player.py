@@ -5,8 +5,11 @@ import discord
 from discord import VoiceChannel, VoiceProtocol, Guild, Member
 from discord.ext import commands
 
-from . import events, filters, NodePool, objects, Node
+from . import events
 from .exceptions import TrackInvalidPosition
+from .filters import Filter
+from .node import Node, NodePool
+from .objects import Track
 
 
 class Player(VoiceProtocol):
@@ -27,8 +30,8 @@ class Player(VoiceProtocol):
         self._dj: discord.Member = None
 
         self._node = NodePool.get_node()
-        self._current: objects.Track = None
-        self._filter: filters.Filter = None
+        self._current: Track = None
+        self._filter: Filter = None
         self._volume = 100
         self._paused = False
         self._is_connected = False
@@ -74,7 +77,7 @@ class Player(VoiceProtocol):
         return self._is_connected and self._paused
 
     @property
-    def current(self) -> objects.Track:
+    def current(self) -> Track:
         """Property which returns the currently playing track"""
         return self._current
 
@@ -99,7 +102,7 @@ class Player(VoiceProtocol):
         return self._dj
 
     @property
-    def filter(self) -> filters.Filter:
+    def filter(self) -> Filter:
         """Property which returns the currently applied filter, if one is applied"""
         return self._filter
 
@@ -107,7 +110,6 @@ class Player(VoiceProtocol):
     def bot(self) -> Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]]:
         """Property which returns the bot associated with this player instance"""
         return self._bot
-
 
     async def _update_state(self, data: dict):
         state: dict = data.get("state")
@@ -179,20 +181,19 @@ class Player(VoiceProtocol):
         await self.disconnect()
         await self._node.send(op="destroy", guildId=str(self.guild.id))
 
-    async def play(self, track: objects.Track, start_position: int = 0) -> objects.Track:
+    async def play(self, track: Track, start_position: int = 0) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
-            search_type = track.search_type or f"ytmsearch:{track.author} - {track.title}"
-            spotify_track: objects.Track = (await self._node.get_tracks(
-                search_type
+            search: Track = (await self._node.get_tracks(
+                f"{track._search_type}:{track.author} - {track.title}"
             ))[0]
-            track.youtube_result = spotify_track
+            track.original = search
             await self._node.send(
                 op="play",
                 guildId=str(self.guild.id),
-                track=spotify_track.track_id,
+                track=search.track_id,
                 startTime=start_position,
-                endTime=spotify_track.length,
+                endTime=search.length,
                 noReplace=False
             )
         else:
@@ -230,7 +231,7 @@ class Player(VoiceProtocol):
         self._volume = volume
         return self._volume
 
-    async def set_filter(self, filter: filters.Filter) -> filters.Filter:
+    async def set_filter(self, filter: Filter) -> Filter:
         """Sets a filter of the player. Takes a pomice.Filter object.
            This will only work if you are using the development version of Lavalink.
         """

@@ -1,7 +1,8 @@
 from typing import Optional
 
-from . import SearchType
 from discord.ext import commands
+
+from .enums import SearchType
 
 
 class Track:
@@ -14,15 +15,15 @@ class Track:
         track_id: str,
         info: dict,
         ctx: Optional[commands.Context] = None,
-        spotify: bool = False
+        spotify: bool = False,
+        search_type: SearchType = SearchType.ytsearch
     ):
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
 
-        if self.spotify:
-            self.youtube_result = None
-            self.search_type: SearchType = None
+        self.original: Optional[Track] = None if self.spotify else self
+        self._search_type = search_type
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -73,10 +74,9 @@ class Playlist:
         self.name = playlist_info.get("name")
         self.selected_track = playlist_info.get("selectedTrack")
 
-        
         self._thumbnail = thumbnail
         self._uri = uri
-        
+
         if self.spotify:
             self.tracks = tracks
 
