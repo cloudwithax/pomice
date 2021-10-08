@@ -4,15 +4,17 @@ import random
 import re
 import socket
 import time
-from typing import Optional, Type, Union
+from typing import Optional, Union
 from urllib.parse import quote
 
 import aiohttp
 import discord
 from discord.ext import commands
 
+from typing import Union, Optional
 
-from . import __version__, spotify, Player, SearchType
+
+from . import __version__, spotify, SearchType
 from .exceptions import (
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
@@ -42,16 +44,17 @@ class Node:
     def __init__(
         self,
         pool,
-        bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]],
+        bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot],
         host: str,
         port: int,
         password: str,
         identifier: str,
+        session: Optional[aiohttp.ClientSession],
         spotify_client_id: Optional[str],
         spotify_client_secret: Optional[str],
-        session: Optional[aiohttp.ClientSession]
+        
     ):
-        self._bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]] = bot
+        self._bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot] = bot
         self._host: str = host
         self._port: int = port
         self._pool: NodePool = pool
@@ -122,7 +125,7 @@ class Node:
         return self._players
 
     @property
-    def bot(self) -> Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]]:
+    def bot(self) -> Union[discord.Client, commands.Bot, commands.AutoShardedBot]:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
@@ -193,13 +196,13 @@ class Node:
             await player._update_state(data)
 
     async def send(self, **data):
-        if not self.available:
+        if not self._available:
             raise NodeNotAvailable(
                 f"The node '{self.identifier}' is not currently available.")
 
         await self._websocket.send_str(json.dumps(data))
 
-    def get_player(self, guild_id: int) -> Player:
+    def get_player(self, guild_id: int):
         """Takes a guild ID as a parameter. Returns a pomice Player object."""
         return self._players.get(guild_id, None)
 
@@ -256,10 +259,10 @@ class Node:
                     "please obtain Spotify API credentials here: https://developer.spotify.com/"
                 )
 
-            search_type = spotify_url_check.group("type")
+            spotify_search_type = spotify_url_check.group("type")
             spotify_id = spotify_url_check.group("id")
 
-            if search_type == "playlist":
+            if spotify_search_type == "playlist":
                 results = spotify.Playlist(
                     client=self._spotify_client,
                     data=await self._spotify_http_client.get_playlist(spotify_id)
@@ -271,7 +274,7 @@ class Node:
                         Track(
                             track_id=track.id,
                             ctx=ctx,
-                            search_type=search_type,
+                            search_type=f"{search_type}{track.artists[0].name} - {track.name}" if search_type else f"ytmsearch:{track.artists[0].name} - {track.name}",
                             spotify=True,
                             info={
                                 "title": track.name or "Unknown",
@@ -303,7 +306,7 @@ class Node:
                         f"Unable to find results for {query}"
                     )
 
-            elif search_type == "album":
+            elif spotify_search_type == "album":
                 results = await self._spotify_client.get_album(spotify_id=spotify_id)
 
                 try:
@@ -312,7 +315,7 @@ class Node:
                         Track(
                             track_id=track.id,
                             ctx=ctx,
-                            search_type=search_type,
+                            search_type=f"{search_type}{track.artists[0].name} - {track.name}" if search_type else f"ytmsearch:{track.artists[0].name} - {track.name}",
                             spotify=True,
                             info={
                                 "title": track.name or "Unknown",
@@ -342,7 +345,7 @@ class Node:
                 except SpotifyException:
                     raise SpotifyAlbumLoadFailed(f"Unable to find results for {query}")
 
-            elif search_type == 'track':
+            elif spotify_search_type == 'track':
                 try:
                     results = await self._spotify_client.get_track(spotify_id=spotify_id)
 
@@ -350,7 +353,7 @@ class Node:
                         Track(
                             track_id=results.id,
                             ctx=ctx,
-                            search_type=search_type,
+                            search_type=f"{search_type}{results.artists[0].name} - {results.name}" if search_type else f"ytmsearch:{results.artists[0].name} - {results.name}",
                             spotify=True,
                             info={
                                 "title": results.name or "Unknown",
@@ -409,6 +412,8 @@ class Node:
                 for track in data["tracks"]
             ]
 
+
+
 class NodePool:
     """The base class for the node pool.
        This holds all the nodes that are to be used by the bot.
@@ -444,14 +449,16 @@ class NodePool:
 
     @classmethod
     async def create_node(
-        bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]],
         cls, 
+        bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot],
         host: str,
         port: str,
         password: str,
         identifier: str,
-        spotify_client_id: Optional[str] = None,
-        spotify_client_secret: Optional[str] = None
+        spotify_client_id: Optional[str],
+        spotify_client_secret: Optional[str],
+        session: Optional[aiohttp.ClientSession] = None,
+        
     ) -> Node:
         """Creates a Node object to be then added into the node pool.
            For Spotify searching capabilites, pass in valid Spotify API credentials.
@@ -460,9 +467,9 @@ class NodePool:
             raise NodeCreationError(f"A node with identifier '{identifier}' already exists.")
 
         node = Node(
-            bot=bot, pool=cls, host=host, port=port, password=password,
+            pool=cls, bot=bot, host=host, port=port, password=password,
             identifier=identifier, spotify_client_id=spotify_client_id,
-            spotify_client_secret=spotify_client_secret
+            session=session, spotify_client_secret=spotify_client_secret
         )
 
         await node.connect()

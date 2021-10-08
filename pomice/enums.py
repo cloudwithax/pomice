@@ -11,9 +11,12 @@ class SearchType(Enum):
 
     SearchType.SCSEARCH searches for a Spotify track using SoundCloud, which is an alternative to YouTube or YouTube Music.
     """
-    YTSEARCH = f'ytsearch:{track.artist} - {track.title}'
-    YTMSEARCH = f'ytmsearch:{track.artist} - {track.title}'
-    SCSEARCH = f'scsearch:{track.artist} - {track.title}'
+    YTSEARCH = 'ytsearch:'
+    YTMSEARCH = 'ytmsearch:'
+    SCSEARCH = 'scsearch:'
+    
+    def __str__(self) -> str:
+        return self.value
 
 
 

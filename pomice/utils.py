@@ -20,7 +20,6 @@ DEALINGS IN THE SOFTWARE.
 
 import random
 import time
-from typing import Any
 
 __all__ = [
     'ExponentialBackoff',

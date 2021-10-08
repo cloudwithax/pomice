@@ -1,3 +1,4 @@
+from re import S
 from typing import Optional
 
 from . import SearchType
@@ -13,16 +14,13 @@ class Track:
         self,
         track_id: str,
         info: dict,
-        ctx: Optional[commands.Context] = None,
+        ctx: Optional[commands.Context],
+        search_type: SearchType = None,
         spotify: bool = False
     ):
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
-
-        if self.spotify:
-            self.youtube_result = None
-            self.search_type: SearchType = None
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -34,6 +32,11 @@ class Track:
         self.is_stream = info.get("isStream")
         self.is_seekable = info.get("isSeekable")
         self.position = info.get("position")
+
+        if self.spotify:
+            self.youtube_result = None
+            if search_type:
+                self.search_type = search_type
 
     def __eq__(self, other):
         if not isinstance(other, Track):

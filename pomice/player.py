@@ -2,10 +2,10 @@ import time
 from typing import Any, Dict, Type, Union
 
 import discord
-from discord import VoiceChannel, VoiceProtocol, Guild, Member
+from discord import VoiceChannel, VoiceProtocol, Guild
 from discord.ext import commands
 
-from . import events, filters, NodePool, objects, Node
+from . import events, filters, NodePool, objects, Node 
 from .exceptions import TrackInvalidPosition
 
 
@@ -24,7 +24,6 @@ class Player(VoiceProtocol):
         self._bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]] = client
         self.channel = channel
         self._guild: discord.Guild = self.channel.guild
-        self._dj: discord.Member = None
 
         self._node = NodePool.get_node()
         self._current: objects.Track = None
@@ -93,10 +92,6 @@ class Player(VoiceProtocol):
         """Property which returns the players current volume"""
         return self._volume
 
-    @property
-    def dj(self) -> Member:
-        """Property which returns the DJ for the player session"""
-        return self._dj
 
     @property
     def filter(self) -> filters.Filter:
@@ -182,10 +177,7 @@ class Player(VoiceProtocol):
     async def play(self, track: objects.Track, start_position: int = 0) -> objects.Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
-            search_type = track.search_type or f"ytmsearch:{track.author} - {track.title}"
-            spotify_track: objects.Track = (await self._node.get_tracks(
-                search_type
-            ))[0]
+            spotify_track: objects.Track = (await self._node.get_tracks(f"{track.search_type}"))[0]
             track.youtube_result = spotify_track
             await self._node.send(
                 op="play",
