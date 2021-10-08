@@ -68,6 +68,11 @@ class Player(VoiceProtocol):
         return self._is_connected and self.current is not None
 
     @property
+    def is_connected(self) -> bool:
+        """Property which returns whether or not the player is connected"""
+        return self._is_connected
+
+    @property
     def is_paused(self) -> bool:
         """Property which returns whether or not the player has a track which is paused or not."""
         return self._is_connected and self._paused
