@@ -1,5 +1,6 @@
 from typing import Optional
 
+from . import SearchType
 from discord.ext import commands
 
 
@@ -18,6 +19,10 @@ class Track:
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
+
+        if self.spotify:
+            self.youtube_result = None
+            self.search_type: SearchType = None
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -68,11 +73,13 @@ class Playlist:
         self.name = playlist_info.get("name")
         self.selected_track = playlist_info.get("selectedTrack")
 
+        
         self._thumbnail = thumbnail
         self._uri = uri
-
+        
         if self.spotify:
             self.tracks = tracks
+
         else:
             self.tracks = [
                 Track(track_id=track["track"], info=track["info"], ctx=ctx)

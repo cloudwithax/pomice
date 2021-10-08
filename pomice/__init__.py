@@ -10,3 +10,4 @@ from .filters import *
 from .node import Node, NodePool
 from .objects import Track, Playlist
 from .player import Player
+from .enums import SearchType

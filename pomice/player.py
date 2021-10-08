@@ -1,11 +1,11 @@
 import time
-from typing import Any, Dict, Type
+from typing import Any, Dict, Type, Union
 
 import discord
-from discord import VoiceChannel, VoiceProtocol
+from discord import VoiceChannel, VoiceProtocol, Guild, Member
 from discord.ext import commands
 
-from . import events, filters, NodePool, objects
+from . import events, filters, NodePool, objects, Node
 from .exceptions import TrackInvalidPosition
 
 
@@ -17,17 +17,17 @@ class Player(VoiceProtocol):
        ```
     """
 
-    def __init__(self, client: Type[commands.Bot], channel: VoiceChannel):
+    def __init__(self, client: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]], channel: VoiceChannel):
         super().__init__(client=client, channel=channel)
 
         self.client = client
-        self.bot = client
+        self._bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]] = client
         self.channel = channel
-        self.guild: discord.Guild = self.channel.guild
+        self._guild: discord.Guild = self.channel.guild
         self._dj: discord.Member = None
 
         self._node = NodePool.get_node()
-        self.current: objects.Track = None
+        self._current: objects.Track = None
         self._filter: filters.Filter = None
         self._volume = 100
         self._paused = False
@@ -73,6 +73,42 @@ class Player(VoiceProtocol):
         """Property which returns whether or not the player has a track which is paused or not."""
         return self._is_connected and self._paused
 
+    @property
+    def current(self) -> objects.Track:
+        """Property which returns the currently playing track"""
+        return self._current
+
+    @property
+    def node(self) -> Node:
+        """Property which returns the node the player is connected to"""
+        return self._node
+
+    @property
+    def guild(self) -> Guild:
+        """Property which returns the guild associated with the player"""
+        return self._guild
+
+    @property
+    def volume(self) -> int:
+        """Property which returns the players current volume"""
+        return self._volume
+
+    @property
+    def dj(self) -> Member:
+        """Property which returns the DJ for the player session"""
+        return self._dj
+
+    @property
+    def filter(self) -> filters.Filter:
+        """Property which returns the currently applied filter, if one is applied"""
+        return self._filter
+
+    @property
+    def bot(self) -> Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]]:
+        """Property which returns the bot associated with this player instance"""
+        return self._bot
+
+
     async def _update_state(self, data: dict):
         state: dict = data.get("state")
         self._last_update = time.time() * 1000
@@ -112,7 +148,7 @@ class Player(VoiceProtocol):
     async def get_tracks(self, query: str, ctx: commands.Context = None):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
-        If you passed in Spotify API credentials, you can also pass in a Spotify URL of a playlist,
+        If you passed in Spotify API credentials when you created the node, you can also pass in a Spotify URL of a playlist,
         album or track and it will be parsed accordingly.
 
         You can also pass in a discord.py Context object to get a
@@ -146,9 +182,11 @@ class Player(VoiceProtocol):
     async def play(self, track: objects.Track, start_position: int = 0) -> objects.Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
+            search_type = track.search_type or f"ytmsearch:{track.author} - {track.title}"
             spotify_track: objects.Track = (await self._node.get_tracks(
-                f"ytmsearch:{track.author} - {track.title}"
+                search_type
             ))[0]
+            track.youtube_result = spotify_track
             await self._node.send(
                 op="play",
                 guildId=str(self.guild.id),
@@ -166,8 +204,8 @@ class Player(VoiceProtocol):
                 endTime=track.length,
                 noReplace=False
             )
-        self.current = track
-        return self.current
+        self._current = track
+        return self._current
 
     async def seek(self, position: float) -> float:
         """Seeks to a position in the currently playing track milliseconds"""

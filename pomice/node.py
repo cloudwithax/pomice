@@ -4,14 +4,15 @@ import random
 import re
 import socket
 import time
-from typing import Optional, Type
+from typing import Optional, Type, Union
 from urllib.parse import quote
 
 import aiohttp
 import discord
 from discord.ext import commands
 
-from . import __version__, spotify
+
+from . import __version__, spotify, Player, SearchType
 from .exceptions import (
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
@@ -41,24 +42,26 @@ class Node:
     def __init__(
         self,
         pool,
-        bot: Type[commands.Bot],
+        bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]],
         host: str,
         port: int,
         password: str,
         identifier: str,
         spotify_client_id: Optional[str],
-        spotify_client_secret: Optional[str]
+        spotify_client_secret: Optional[str],
+        session: Optional[aiohttp.ClientSession]
     ):
-        self._bot = bot
-        self._host = host
-        self._port = port
-        self._password = password
-        self._identifier = identifier
+        self._bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]] = bot
+        self._host: str = host
+        self._port: int = port
+        self._pool: NodePool = pool
+        self._password: str = password
+        self._identifier: str = identifier
 
-        self._websocket_uri = f"ws://{self._host}:{self._port}"
-        self._rest_uri = f"http://{self._host}:{self._port}"
+        self._websocket_uri: str = f"ws://{self._host}:{self._port}"
+        self._rest_uri: str = f"http://{self._host}:{self._port}"
 
-        self._session = aiohttp.ClientSession()
+        self._session: aiohttp.ClientSession = session or aiohttp.ClientSession()
         self._websocket: aiohttp.ClientWebSocketResponse = None
         self._task: asyncio.Task = None
 
@@ -72,10 +75,10 @@ class Node:
             "Client-Name": f"Pomice/{__version__}"
         }
 
-        self._players = {}
+        self._players: dict = {}
 
-        self._spotify_client_id = spotify_client_id
-        self._spotify_client_secret = spotify_client_secret
+        self._spotify_client_id: str = spotify_client_id
+        self._spotify_client_secret: str = spotify_client_secret
 
         if self._spotify_client_id and self._spotify_client_secret:
             self._spotify_client = spotify.Client(
@@ -119,13 +122,19 @@ class Node:
         return self._players
 
     @property
-    def bot(self) -> commands.Bot:
+    def bot(self) -> Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]]:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
     @property
     def player_count(self) -> int:
+        """Property which returns how many players are connected to this node"""
         return len(self.players)
+
+    @property
+    def pool(self):
+        """Property which returns the pool this node is apart of"""
+        return self._pool
 
     async def _update_handler(self, data: dict):
         await self._bot.wait_until_ready()
@@ -190,7 +199,7 @@ class Node:
 
         await self._websocket.send_str(json.dumps(data))
 
-    def get_player(self, guild_id: int):
+    def get_player(self, guild_id: int) -> Player:
         """Takes a guild ID as a parameter. Returns a pomice Player object."""
         return self._players.get(guild_id, None)
 
@@ -203,7 +212,7 @@ class Node:
                 self._websocket_uri, headers=self._headers, heartbeat=60
             )
             self._task = self._bot.loop.create_task(self._listen())
-            self.available = True
+            self._available = True
             return self
         except aiohttp.WSServerHandshakeError:
             raise NodeConnectionFailure(
@@ -230,7 +239,7 @@ class Node:
         self.available = False
         self._task.cancel()
 
-    async def get_tracks(self, query: str, ctx: commands.Context = None):
+    async def get_tracks(self, query: str, ctx: commands.Context = None, search_type: SearchType = None):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
            If you passed in Spotify API credentials, you can also pass in a
@@ -262,6 +271,7 @@ class Node:
                         Track(
                             track_id=track.id,
                             ctx=ctx,
+                            search_type=search_type,
                             spotify=True,
                             info={
                                 "title": track.name or "Unknown",
@@ -302,6 +312,7 @@ class Node:
                         Track(
                             track_id=track.id,
                             ctx=ctx,
+                            search_type=search_type,
                             spotify=True,
                             info={
                                 "title": track.name or "Unknown",
@@ -339,6 +350,7 @@ class Node:
                         Track(
                             track_id=results.id,
                             ctx=ctx,
+                            search_type=search_type,
                             spotify=True,
                             info={
                                 "title": results.name or "Unknown",
@@ -397,7 +409,6 @@ class Node:
                 for track in data["tracks"]
             ]
 
-
 class NodePool:
     """The base class for the node pool.
        This holds all the nodes that are to be used by the bot.
@@ -409,7 +420,7 @@ class NodePool:
         return f"<Pomice.NodePool node_count={self.node_count}>"
 
     @property
-    def nodes(self):
+    def nodes(self) -> dict:
         """Property which returns a dict with the node identifier and the Node object."""
         return self._nodes
 
@@ -433,8 +444,8 @@ class NodePool:
 
     @classmethod
     async def create_node(
-        cls,
-        bot: Type[discord.Client],
+        bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]],
+        cls, 
         host: str,
         port: str,
         password: str,
@@ -449,7 +460,7 @@ class NodePool:
             raise NodeCreationError(f"A node with identifier '{identifier}' already exists.")
 
         node = Node(
-            pool=cls, bot=bot, host=host, port=port, password=password,
+            bot=bot, pool=cls, host=host, port=port, password=password,
             identifier=identifier, spotify_client_id=spotify_client_id,
             spotify_client_secret=spotify_client_secret
         )

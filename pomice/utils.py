@@ -20,6 +20,7 @@ DEALINGS IN THE SOFTWARE.
 
 import random
 import time
+from typing import Any
 
 __all__ = [
     'ExponentialBackoff',
@@ -78,3 +79,30 @@ class NodeStats:
 
     def __repr__(self) -> str:
         return f'<Pomice.NodeStats total_players={self.players_total} playing_active={self.players_active}>'
+
+
+class Queue:
+    """Pomice's very own queue implementation with some added features like:
+            - Toggleable shuffle
+            - Loop queue functionality
+            - Music player style queue, which doesn't remove tracks, allowing for playback of previously played tracks.
+    """
+    def __init__(self) -> None:
+        self._queue = []
+        self._shuffle = False
+        if self._shuffle is True:
+            self._original_queue = []
+        self._looping = False
+
+    def put(self, item: Any):
+        """Puts an item into the queue"""
+        return self._queue.extend(item)
+
+    def remove(self, item: Any):
+        """Removes an item from the queue"""
+        if type(item) == int:
+            return self._queue.remove(self._queue[item])
+        
+
+
+        
