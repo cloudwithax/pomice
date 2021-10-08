@@ -21,7 +21,7 @@ class Player(VoiceProtocol):
         super().__init__(client=client, channel=channel)
 
         self.client = client
-        self._bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]] = client
+        self._bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot] = client
         self.channel = channel
         self._guild: discord.Guild = self.channel.guild
 
@@ -154,11 +154,11 @@ class Player(VoiceProtocol):
     async def connect(self, *, timeout: float, reconnect: bool):
         await self.guild.change_voice_state(channel=self.channel)
         self._node._players[self.guild.id] = self
-        self.is_connected = True
+        self._is_connected = True
 
     async def stop(self):
         """Stops a currently playing track."""
-        self.current = None
+        self._current = None
         await self._node.send(op="stop", guildId=str(self.guild.id))
 
     async def disconnect(self, *, force: bool = False):
