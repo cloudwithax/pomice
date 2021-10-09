@@ -327,7 +327,7 @@ class Node:
                         Track(
                             track_id=track.id,
                             ctx=ctx,
-                            search_type=f"{search_type}{track.artists[0].name} - {track.name}" if search_type else f"ytmsearch:{track.artists[0].name} - {track.name}",
+                            search_type=search_type,
                             spotify=True,
                             info={
                                 "title": track.name or "Unknown",
@@ -365,7 +365,7 @@ class Node:
                         Track(
                             track_id=results.id,
                             ctx=ctx,
-                            search_type=f"{search_type}{results.artists[0].name} - {results.name}" if search_type else f"ytmsearch:{results.artists[0].name} - {results.name}",
+                            search_type=search_type,
                             spotify=True,
                             info={
                                 "title": results.name or "Unknown",
