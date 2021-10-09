@@ -40,6 +40,9 @@ SPOTIFY_URL_REGEX = re.compile(
 DISCORD_MP3_URL_REGEX = re.compile(
     r"https?://cdn.discordapp.com/attachments/(?P<channel_id>[0-9]+)/(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
 )
+URL_REGEX = re.compile(
+    r'https?://(?:www\.)?.+'
+)
 
 
 class Node:
@@ -265,6 +268,10 @@ class Node:
            You can also pass in a discord.py Context object to get a
            Context object on any track you search.
         """
+
+        if not URL_REGEX.match(query):
+            query = f"{search_type}:{query}"
+            
         if spotify_url_check := SPOTIFY_URL_REGEX.match(query):
             if not self._spotify_client_id and not self._spotify_client_secret:
                 raise InvalidSpotifyClientAuthorization(
