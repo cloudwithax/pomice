@@ -269,9 +269,9 @@ class Node:
            Context object on any track you search.
         """
 
-        if not URL_REGEX.match(query):
+        if not URL_REGEX.match(query) and not re.match(r"(?:ytm?|sc)search:", query):
             query = f"{search_type}:{query}"
-            
+
         if spotify_url_check := SPOTIFY_URL_REGEX.match(query):
             if not self._spotify_client_id and not self._spotify_client_secret:
                 raise InvalidSpotifyClientAuthorization(
