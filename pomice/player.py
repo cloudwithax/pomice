@@ -1,9 +1,11 @@
 import time
-from typing import Any, Dict, Type, Union
+from typing import Any, Dict, Optional, Type, Union
 
 import discord
-from discord import VoiceChannel, VoiceProtocol, Guild
+from discord import Client, Guild, VoiceChannel, VoiceProtocol
 from discord.ext import commands
+
+from pomice.enums import SearchType
 
 from . import events
 from .exceptions import TrackInvalidPosition
@@ -20,13 +22,13 @@ class Player(VoiceProtocol):
        ```
     """
 
-    def __init__(self, client: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]], channel: VoiceChannel):
+    def __init__(self, client: Type[Client], channel: VoiceChannel):
         super().__init__(client=client, channel=channel)
 
         self.client = client
-        self._bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot] = client
+        self._bot = client
         self.channel = channel
-        self._guild: discord.Guild = self.channel.guild
+        self._guild: Guild = self.channel.guild
 
         self._node = NodePool.get_node()
         self._current: Track = None
@@ -106,7 +108,7 @@ class Player(VoiceProtocol):
         return self._filter
 
     @property
-    def bot(self) -> Type[discord.Client]:
+    def bot(self) -> Type[Client]:
         """Property which returns the bot associated with this player instance"""
         return self._bot
 
@@ -146,16 +148,23 @@ class Player(VoiceProtocol):
         event = event(data)
         self.bot.dispatch(f"pomice_{event.name}", event)
 
-    async def get_tracks(self, query: str, ctx: commands.Context = None):
+    async def get_tracks(
+        self,
+        query: str,
+        *,
+        ctx: Optional[commands.Context] = None,
+        search_type: SearchType = SearchType.ytsearch
+    ):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
-        If you passed in Spotify API credentials when you created the node, you can also pass in a Spotify URL of a playlist,
-        album or track and it will be parsed accordingly.
+        If you passed in Spotify API credentials when you created the node,
+        you can also pass in a Spotify URL of a playlist, album or track and it will be parsed
+        accordingly.
 
         You can also pass in a discord.py Context object to get a
         Context object on any track you search.
         """
-        return await self._node.get_tracks(query, ctx)
+        return await self._node.get_tracks(query, ctx=ctx, search_type=search_type)
 
     async def connect(self, *, timeout: float, reconnect: bool):
         await self.guild.change_voice_state(channel=self.channel)
@@ -180,7 +189,7 @@ class Player(VoiceProtocol):
         await self.disconnect()
         await self._node.send(op="destroy", guildId=str(self.guild.id))
 
-    async def play(self, track: Track, start_position: int = 0) -> Track:
+    async def play(self, track: Track, *, start_position: int = 0) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
             search: Track = (await self._node.get_tracks(

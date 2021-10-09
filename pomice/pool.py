@@ -50,6 +50,7 @@ class Node:
 
     def __init__(
         self,
+        *,
         pool,
         bot: Type[discord.Client],
         host: str,
@@ -252,6 +253,7 @@ class Node:
     async def get_tracks(
         self,
         query: str,
+        *,
         ctx: Optional[commands.Context] = None,
         search_type: SearchType = SearchType.ytsearch
     ):
@@ -483,6 +485,7 @@ class NodePool:
     @classmethod
     async def create_node(
         cls,
+        *,
         bot: Type[discord.Client],
         host: str,
         port: str,

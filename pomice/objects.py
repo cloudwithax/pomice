@@ -13,6 +13,7 @@ class Track:
 
     def __init__(
         self,
+        *,
         track_id: str,
         info: dict,
         ctx: Optional[commands.Context] = None,
@@ -61,6 +62,7 @@ class Playlist:
 
     def __init__(
         self,
+        *,
         playlist_info: dict,
         tracks: list,
         ctx: Optional[commands.Context] = None,
@@ -80,7 +82,6 @@ class Playlist:
 
         if self.spotify:
             self.tracks = tracks
-
         else:
             self.tracks = [
                 Track(track_id=track["track"], info=track["info"], ctx=ctx)
