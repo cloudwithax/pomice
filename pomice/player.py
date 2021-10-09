@@ -2,7 +2,7 @@ import time
 from typing import Any, Dict, Type, Union
 
 import discord
-from discord import VoiceChannel, VoiceProtocol, Guild, Member
+from discord import VoiceChannel, VoiceProtocol, Guild
 from discord.ext import commands
 
 from . import events
@@ -24,10 +24,9 @@ class Player(VoiceProtocol):
         super().__init__(client=client, channel=channel)
 
         self.client = client
-        self._bot: Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]] = client
+        self._bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot] = client
         self.channel = channel
         self._guild: discord.Guild = self.channel.guild
-        self._dj: discord.Member = None
 
         self._node = NodePool.get_node()
         self._current: Track = None
@@ -72,6 +71,11 @@ class Player(VoiceProtocol):
         return self._is_connected and self.current is not None
 
     @property
+    def is_connected(self) -> bool:
+        """Property which returns whether or not the player is connected"""
+        return self._is_connected
+
+    @property
     def is_paused(self) -> bool:
         """Property which returns whether or not the player has a track which is paused or not."""
         return self._is_connected and self._paused
@@ -95,11 +99,6 @@ class Player(VoiceProtocol):
     def volume(self) -> int:
         """Property which returns the players current volume"""
         return self._volume
-
-    @property
-    def dj(self) -> Member:
-        """Property which returns the DJ for the player session"""
-        return self._dj
 
     @property
     def filter(self) -> Filter:
@@ -161,11 +160,11 @@ class Player(VoiceProtocol):
     async def connect(self, *, timeout: float, reconnect: bool):
         await self.guild.change_voice_state(channel=self.channel)
         self._node._players[self.guild.id] = self
-        self.is_connected = True
+        self._is_connected = True
 
     async def stop(self):
         """Stops a currently playing track."""
-        self.current = None
+        self._current = None
         await self._node.send(op="stop", guildId=str(self.guild.id))
 
     async def disconnect(self, *, force: bool = False):
@@ -184,10 +183,17 @@ class Player(VoiceProtocol):
     async def play(self, track: Track, start_position: int = 0) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
+
+
+<< << << < HEAD
             search: Track = (await self._node.get_tracks(
                 f"{track._search_type}:{track.author} - {track.title}"
             ))[0]
             track.original = search
+== == == =
+            spotify_track: objects.Track = (await self._node.get_tracks(f"{track.search_type}"))[0]
+            track.youtube_result = spotify_track
+>>>>>> > f6a375229831e0e68f0ccc8483ebde284247ee9c
             await self._node.send(
                 op="play",
                 guildId=str(self.guild.id),

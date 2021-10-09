@@ -1,3 +1,4 @@
+from re import S
 from typing import Optional
 
 from discord.ext import commands
@@ -35,6 +36,11 @@ class Track:
         self.is_stream = info.get("isStream")
         self.is_seekable = info.get("isSeekable")
         self.position = info.get("position")
+
+        if self.spotify:
+            self.youtube_result = None
+            if search_type:
+                self.search_type = search_type
 
     def __eq__(self, other):
         if not isinstance(other, Track):
