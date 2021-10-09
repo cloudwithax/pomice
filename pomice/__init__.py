@@ -11,7 +11,7 @@ if discord.__version__ != '2.0.0a':
         "using 'pip install git+https://github.com/Rapptz/discord.py@master'"
     )
 
-__version__ = "1.0.5"
+__version__ = "1.0.6"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
