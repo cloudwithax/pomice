@@ -8,7 +8,7 @@ from discord.ext import commands
 from . import events
 from .exceptions import TrackInvalidPosition
 from .filters import Filter
-from .node import Node, NodePool
+from .pool import Node, NodePool
 from .objects import Track
 
 
@@ -106,7 +106,7 @@ class Player(VoiceProtocol):
         return self._filter
 
     @property
-    def bot(self) -> Type[Union[discord.Client, commands.Bot, commands.AutoShardedBot]]:
+    def bot(self) -> Type[discord.Client]:
         """Property which returns the bot associated with this player instance"""
         return self._bot
 
@@ -183,17 +183,11 @@ class Player(VoiceProtocol):
     async def play(self, track: Track, start_position: int = 0) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
-
-
-<< << << < HEAD
             search: Track = (await self._node.get_tracks(
                 f"{track._search_type}:{track.author} - {track.title}"
             ))[0]
             track.original = search
-== == == =
-            spotify_track: objects.Track = (await self._node.get_tracks(f"{track.search_type}"))[0]
-            track.youtube_result = spotify_track
->>>>>> > f6a375229831e0e68f0ccc8483ebde284247ee9c
+
             await self._node.send(
                 op="play",
                 guildId=str(self.guild.id),

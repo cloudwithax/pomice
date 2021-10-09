@@ -4,7 +4,7 @@ import random
 import re
 import socket
 import time
-from typing import Optional, Type, Union
+from typing import Dict, Optional, Type
 from urllib.parse import quote
 
 import aiohttp
@@ -47,7 +47,7 @@ class Node:
     def __init__(
         self,
         pool,
-        bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot],
+        bot: Type[discord.Client],
         host: str,
         port: int,
         password: str,
@@ -57,17 +57,17 @@ class Node:
         spotify_client_secret: Optional[str],
 
     ):
-        self._bot: Union[discord.Client, commands.Bot, commands.AutoShardedBot] = bot
-        self._host: str = host
-        self._port: int = port
-        self._pool: NodePool = pool
-        self._password: str = password
-        self._identifier: str = identifier
+        self._bot = bot
+        self._host = host
+        self._port = port
+        self._pool = pool
+        self._password = password
+        self._identifier = identifier
 
-        self._websocket_uri: str = f"ws://{self._host}:{self._port}"
-        self._rest_uri: str = f"http://{self._host}:{self._port}"
+        self._websocket_uri = f"ws://{self._host}:{self._port}"
+        self._rest_uri = f"http://{self._host}:{self._port}"
 
-        self._session: aiohttp.ClientSession = session or aiohttp.ClientSession()
+        self._session = session or aiohttp.ClientSession()
         self._websocket: aiohttp.ClientWebSocketResponse = None
         self._task: asyncio.Task = None
 
@@ -81,10 +81,10 @@ class Node:
             "Client-Name": f"Pomice/{__version__}"
         }
 
-        self._players: dict = {}
+        self._players = {}
 
-        self._spotify_client_id: str = spotify_client_id
-        self._spotify_client_secret: str = spotify_client_secret
+        self._spotify_client_id = spotify_client_id
+        self._spotify_client_secret = spotify_client_secret
 
         if self._spotify_client_id and self._spotify_client_secret:
             self._spotify_client = spotify.Client(
@@ -123,12 +123,12 @@ class Node:
         return node_stats
 
     @property
-    def players(self) -> dict:
+    def players(self) -> Dict[int, Player]:
         """Property which returns a dict containing the guild ID and the player object."""
         return self._players
 
     @property
-    def bot(self) -> Union[discord.Client, commands.Bot, commands.AutoShardedBot]:
+    def bot(self) -> Type[discord.Client]:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
@@ -448,13 +448,13 @@ class NodePool:
        This holds all the nodes that are to be used by the bot.
     """
 
-    _nodes: dict = {}
+    _nodes = {}
 
     def __repr__(self):
         return f"<Pomice.NodePool node_count={self.node_count}>"
 
     @property
-    def nodes(self) -> dict:
+    def nodes(self) -> Dict[str, Node]:
         """Property which returns a dict with the node identifier and the Node object."""
         return self._nodes
 
