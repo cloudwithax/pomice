@@ -1,10 +1,12 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import random
 import re
 import socket
 import time
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Type, TYPE_CHECKING
 from urllib.parse import quote
 
 import aiohttp
@@ -25,9 +27,11 @@ from .exceptions import (
     TrackLoadError
 )
 from .objects import Playlist, Track
-from .player import Player
 from .spotify import SpotifyException
 from .utils import ExponentialBackoff, NodeStats
+
+if TYPE_CHECKING:
+    from .player import Player
 
 SPOTIFY_URL_REGEX = re.compile(
     r"https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)"
