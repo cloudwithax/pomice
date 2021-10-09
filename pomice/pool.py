@@ -286,7 +286,7 @@ class Node:
                         Track(
                             track_id=track.id,
                             ctx=ctx,
-                            search_type=f"{search_type}{track.artists[0].name} - {track.name}" if search_type else f"ytmsearch:{track.artists[0].name} - {track.name}",
+                            search_type=search_type,
                             spotify=True,
                             info={
                                 "title": track.name or "Unknown",
