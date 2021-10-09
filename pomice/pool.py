@@ -34,6 +34,10 @@ SPOTIFY_URL_REGEX = re.compile(
     r"https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)"
 )
 
+DISCORD_MP3_URL_REGEX = re.compile(
+    r"https?://cdn.discordapp.com/attachments/(?P<channel_id>[0-9]+)/(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
+)
+
 
 class Node:
     """The base class for a node. 
@@ -373,6 +377,29 @@ class Node:
 
                 except SpotifyException:
                     raise SpotifyTrackLoadFailed(f"Unable to find results for {query}")
+
+        elif discord_url := DISCORD_MP3_URL_REGEX.match(query):
+            async with self._session.get(
+                url=f"{self._rest_uri}/loadtracks?identifier={quote(query)}",
+                headers={"Authorization": self._password}
+            ) as response:
+                data: dict = await response.json()
+
+
+            track: dict = data["tracks"][0]
+            info: dict = track.get('info')
+
+            return [Track(
+                track_id=track['track'], 
+                info={
+                    "title": discord_url.group('file'),
+                    "author": "Unknown",
+                    "length": info.get('length'),
+                    "uri": info.get('uri'),
+                    "position": info.get('position'),
+                    "identifier": info.get('identifier')
+                },
+                ctx=ctx)]
 
         else:
             async with self._session.get(

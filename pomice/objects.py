@@ -16,7 +16,7 @@ class Track:
         info: dict,
         ctx: Optional[commands.Context],
         search_type: SearchType = None,
-        spotify: bool = False
+        spotify: bool = False,
     ):
         self.track_id = track_id
         self.info = info
