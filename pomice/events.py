@@ -82,7 +82,7 @@ class TrackExceptionEvent(PomiceEvent):
         return f"<Pomice.TrackExceptionEvent> error={self.error} exeception={self.exception}"
 
 
-class WebsocketClosedEvent(PomiceEvent):
+class WebSocketClosedEvent(PomiceEvent):
     """Fired when a websocket connection to a node has been closed.
        Returns the reason and the error code.
     """
@@ -99,7 +99,7 @@ class WebsocketClosedEvent(PomiceEvent):
         return f"<Pomice.WebsocketClosedEvent reason={self.reason} code={self.code}>"
 
 
-class WebsocketOpenEvent(PomiceEvent):
+class WebSocketOpenEvent(PomiceEvent):
     """Fired when a websocket connection to a node has been initiated.
        Returns the target and the session SSRC.
     """
