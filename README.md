@@ -58,7 +58,7 @@ class Music(commands.Cog):
     def __init__(self, bot) -> None:
         self.bot = bot
         
-        self.obsidian = pomice.NodePool()
+        self.pomice = pomice.NodePool()
     
     async def start_nodes(self):
         await self.pomice.create_node(bot=self.bot, host='127.0.0.1', port='3030', 
