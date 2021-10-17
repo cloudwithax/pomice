@@ -1,4 +1,7 @@
 # Pomice
+
+![](https://raw.githubusercontent.com/cloudwithax/pomice/main/banner.jpg)
+
 The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed for [discord.py](https://github.com/Rapptz/discord.py)
 
 ![](https://img.shields.io/badge/license-GPL-2f2f2f) ![](https://img.shields.io/badge/python-3.8-2f2f2f) ![](https://img.shields.io/discord/899324069235810315)
