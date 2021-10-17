@@ -75,7 +75,7 @@ class Music(commands.Cog):
         # i.e: player.get_tracks("query", search_type=SearchType.ytmsearch)
         # will search up any keyword results on Youtube Music
 
-        results = player.get_tracks("query")     
+        results = player.get_tracks(f"{search}")     
         
         if not results:
             raise commands.CommandError('No results were found for that search term.')

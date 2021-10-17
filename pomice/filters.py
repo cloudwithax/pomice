@@ -1,9 +1,38 @@
+import collections
 from .exceptions import FilterInvalidArgument
 
 
 class Filter:
     def __init__(self):
         self.payload = None
+
+
+class Equalizer:
+    """
+    Filter which represents a 15 band equalizer.
+    You can adjust the dynamic of the sound using this filter.
+    i.e: Applying a bass boost filter to emphasize the bass in a song.
+    The format for the levels is: List[Tuple[int, float]]
+    """
+    def __init__(self, *, levels: list):
+        super().__init__()
+
+        self.eq = self._factory(self, levels)
+        self.raw = levels
+
+        self.payload = {'equalizer': {'bands': self.eq}}
+
+
+    def _factory(self, levels: list):
+        _dict = collections.defaultdict(int)
+
+        _dict.update(levels)
+        _dict = [{"band": i, "gain": _dict[i]} for i in range(15)]
+
+        return _dict
+
+    def __repr__(self) -> str:
+        return f"<Pomice.EqualizerFilter eq={self.eq} raw={self.raw}>"
 
 
 class Timescale(Filter):
@@ -78,9 +107,11 @@ class Tremolo(Filter):
         super().__init__()
 
         if frequency < 0:
-            raise FilterInvalidArgument("Tremolo frequency must be more than 0.")
+            raise FilterInvalidArgument(
+                "Tremolo frequency must be more than 0.")
         if depth < 0 or depth > 1:
-            raise FilterInvalidArgument("Tremolo depth must be between 0 and 1.")
+            raise FilterInvalidArgument(
+                "Tremolo depth must be between 0 and 1.")
 
         self.frequency = frequency
         self.depth = depth
@@ -101,9 +132,11 @@ class Vibrato(Filter):
 
         super().__init__()
         if frequency < 0 or frequency > 14:
-            raise FilterInvalidArgument("Vibrato frequency must be between 0 and 14.")
+            raise FilterInvalidArgument(
+                "Vibrato frequency must be between 0 and 14.")
         if depth < 0 or depth > 1:
-            raise FilterInvalidArgument("Vibrato depth must be between 0 and 1.")
+            raise FilterInvalidArgument(
+                "Vibrato depth must be between 0 and 1.")
 
         self.frequency = frequency
         self.depth = depth

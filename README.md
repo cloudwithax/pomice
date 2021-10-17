@@ -91,7 +91,7 @@ class Music(commands.Cog):
 
         player = ctx.voice_client        
 
-        results = await player.get_tracks(query=f'ytsearch:{search}')
+        results = await player.get_tracks(query=f'{search}')
         
         if not results:
             raise commands.CommandError('No results were found for that search term.')

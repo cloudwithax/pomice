@@ -8,6 +8,7 @@ import socket
 import time
 from typing import Dict, Optional, Type, TYPE_CHECKING
 from urllib.parse import quote
+from base64 import b
 
 import aiohttp
 import discord
@@ -253,6 +254,33 @@ class Node:
         self.available = False
         self._task.cancel()
 
+    async def build_track(
+        self,
+        *,
+        identifier: str,
+        ctx: Optional[commands.Context]
+    ):
+        """
+        Builds a track using a valid track identifier
+
+        You can also pass in a discord.py Context object to get a
+        Context object on the track it builds.
+        """
+
+        async with self.session.get(f'{self._rest_uri}/decodetrack?',
+                                    headers={'Authorization': self._password},
+                                    params={'track': identifier}) as resp:
+                                    
+            data: dict = await resp.json()
+            
+            if not resp.status == 200:
+                raise TrackLoadError(f'Failed to build track. Status: {data["status"]}, Error: {data["error"]}.'
+                                      f'Check the identifier is correct and try again.')
+
+            track = Track(track_id=identifier, ctx=ctx, info=data)
+            return track
+
+
     async def get_tracks(
         self,
         query: str,
@@ -480,7 +508,7 @@ class NodePool:
         """Fetches a node from the node pool using it's identifier.
            If no identifier is provided, it will choose a node at random.
         """
-        available_nodes = {identifier: node for identifier, node in cls._nodes.items()}
+        available_nodes = {identifier: node for identifier, node in cls._nodes.items() if node._available}
         if not available_nodes:
             raise NoNodesAvailable('There are no nodes available.')
 
