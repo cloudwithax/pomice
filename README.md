@@ -1,7 +1,7 @@
 # Pomice
 The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed for [discord.py](https://github.com/Rapptz/discord.py)
 
-![](https://img.shields.io/badge/license-GPL-2f2f2f) ![](https://img.shields.io/badge/python-3.8-2f2f2f)
+![](https://img.shields.io/badge/license-GPL-2f2f2f) ![](https://img.shields.io/badge/python-3.8-2f2f2f) ![](https://img.shields.io/discord/899324069235810315)
 
 This library is heavily based off of/uses code from the following libraries:
 - [Wavelink](https://github.com/PythonistaGuild/Wavelink)
@@ -22,6 +22,9 @@ pip install pomice
 ```
 pip install git+https://github.com/cloudwithax/pomice
 ```
+
+# Support
+You can join our support server [here](https://discord.gg/r64qjTSHG8)
 
 
 # Examples
