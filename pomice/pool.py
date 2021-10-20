@@ -6,7 +6,7 @@ import random
 import re
 import socket
 import time
-from typing import Dict, Optional, Type, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
 
 import aiohttp
@@ -27,7 +27,7 @@ from .exceptions import (
     TrackLoadError
 )
 from .objects import Playlist, Track
-from .utils import ExponentialBackoff, NodeStats
+from .utils import ClientType, ExponentialBackoff, NodeStats
 
 if TYPE_CHECKING:
     from .player import Player
@@ -54,7 +54,7 @@ class Node:
         self,
         *,
         pool,
-        bot: Type[discord.Client],
+        bot: ClientType,
         host: str,
         port: int,
         password: str,
@@ -88,7 +88,7 @@ class Node:
             "Client-Name": f"Pomice/{__version__}"
         }
 
-        self._players = {}
+        self._players: Dict[int, Player] = {}
 
         self._spotify_client_id = spotify_client_id
         self._spotify_client_secret = spotify_client_secret
@@ -132,7 +132,7 @@ class Node:
         return self._players
 
     @property
-    def bot(self) -> Type[discord.Client]:
+    def bot(self) -> ClientType:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
@@ -486,7 +486,7 @@ class NodePool:
     async def create_node(
         cls,
         *,
-        bot: Type[discord.Client],
+        bot: ClientType,
         host: str,
         port: str,
         password: str,

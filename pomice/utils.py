@@ -20,11 +20,18 @@ DEALINGS IN THE SOFTWARE.
 
 import random
 import time
+from typing import Union
+
+from discord import AutoShardedClient, Client
+from discord.ext.commands import AutoShardedBot, Bot
 
 __all__ = [
     'ExponentialBackoff',
-    'PomiceStats'
+    'NodeStats',
+    'ClientType'
 ]
+
+ClientType = Union[AutoShardedBot, AutoShardedClient, Bot, Client]
 
 
 class ExponentialBackoff:
@@ -77,4 +84,4 @@ class NodeStats:
         self.uptime = data.get('uptime')
 
     def __repr__(self) -> str:
-        return f'<Pomice.NodeStats total_players={self.players_total} playing_active={self.players_active}>'
+        return f'<Pomice.NodeStats total_players={self.players_total!r} playing_active={self.players_active!r}>'
