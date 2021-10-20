@@ -11,7 +11,7 @@ from .exceptions import TrackInvalidPosition
 from .filters import Filter
 from .pool import Node, NodePool
 from .objects import Track
-from .utils import ClientType, MISSING
+from .utils import ClientType
 
 class Player(VoiceProtocol):
     """The Default Basic Player class for Pomice.
@@ -27,7 +27,7 @@ class Player(VoiceProtocol):
 
         return self
 
-    def __init__(self, client : ClientType = MISSING, channel : VoiceChannel = MISSING, **kwargs):
+    def __init__(self, client : ClientType = None, channel : VoiceChannel = None, **kwargs):
 
         # self.client
         self._bot = client
@@ -44,7 +44,7 @@ class Player(VoiceProtocol):
         self._last_update = 0
 
         self._voice_state = {}
-        self._extra = kwargs or {} # all custom attributes you want to store
+        self._extra = kwargs or {} # all custom attributes you want to store ? can change this later
 
         self._current: Track = None
         self._filter: Filter = None
