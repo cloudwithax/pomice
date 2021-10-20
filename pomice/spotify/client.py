@@ -1,26 +1,25 @@
-import aiohttp
+import base64
 import re
 import time
-import base64
 
+import aiohttp
 
-from .exceptions import SpotifyRequestException
 from .album import Album
+from .exceptions import SpotifyRequestException
 from .playlist import Playlist
 from .track import Track
 
-GRANT_URL = 'https://accounts.spotify.com/api/token'
+GRANT_URL = "https://accounts.spotify.com/api/token"
 SPOTIFY_URL_REGEX = re.compile(
     r"https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)"
 )
 
 class Client:
-    """
-    The base client for the Spotify module of Pomice.
-    This class will do all the heavy lifting of getting all the metadata for any Spotify URL you throw at it.
+    """The base client for the Spotify module of Pomice.
+       This class will do all the heavy lifting of getting all the metadata 
+       for any Spotify URL you throw at it.
     """
     def __init__(self, client_id: str, client_secret: str) -> None:
-        print("Client initialized")
         self._client_id: str = client_id
         self._client_secret: str = client_secret
 
@@ -32,7 +31,6 @@ class Client:
         self._grant_headers = {"Authorization": f"Basic {self._auth_token.decode()}"}
         self._bearer_headers = None
 
-
     async def _fetch_bearer_token(self) -> None:
         data = {"grant_type": "client_credentials"}
         async with self.session.post(GRANT_URL, data=data, headers=self._grant_headers) as resp:
@@ -40,9 +38,9 @@ class Client:
                 raise SpotifyRequestException(f"Error: {resp.status} {resp.reason}")
 
             data = await resp.json()
-            self._bearer_token = data['access_token']
-            self._expiry = time.time() + (int(data['expires_in']) - 10)
-            self._bearer_headers = {'Authorization': f'Bearer {self._bearer_token}'}
+            self._bearer_token = data["access_token"]
+            self._expiry = time.time() + (int(data["expires_in"]) - 10)
+            self._bearer_headers = {"Authorization": f"Bearer {self._bearer_token}"}
 
 
     async def search(self, *, query: str):
@@ -51,8 +49,8 @@ class Client:
             await self._fetch_bearer_token()
 
         result = SPOTIFY_URL_REGEX.match(query)
-        spotify_type = result.group('type')
-        spotify_id = result.group('id')
+        spotify_type = result.group("type")
+        spotify_id = result.group("id")
 
         if not result:
             return SpotifyRequestException("The Spotify link provided is not valid.")
@@ -98,7 +96,7 @@ class Client:
                 playlist_data: dict = await resp.json()
 
             # Second, get the total amount of tracks in said playlist so we can use this to get all the tracks
-            total_tracks: int = playlist_data['tracks']['total']
+            total_tracks: int = playlist_data["tracks"]["total"]
 
             # This section of code may look spammy, but trust me, it's not
             while len(tracks) < total_tracks:    
@@ -111,7 +109,7 @@ class Client:
 
                 # This is the juicy part..
                 # Add the tracks we got from the current page of results
-                tracks += [Track(track['track']) for track in playlist_track_data['items']]
+                tracks += [Track(track["track"]) for track in playlist_track_data["items"]]
                 # Set the offset to go to the next page
                 offset += 100
                 # Repeat until we have all the tracks
