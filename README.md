@@ -8,7 +8,6 @@ The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed f
 
 This library is heavily based off of/uses code from the following libraries:
 - [Wavelink](https://github.com/PythonistaGuild/Wavelink)
-- [spotify.py](https://github.com/mental32/spotify.py)
 - [Slate](https://github.com/Axelancerr/slate)
 - [Granitepy](https://github.com/twitch0001/granitepy)
 

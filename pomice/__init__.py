@@ -18,7 +18,9 @@ __author__ = "cloudwithax"
 from .enums import SearchType
 from .events import *
 from .exceptions import *
+from .spotify import *
 from .filters import *
 from .objects import *
 from .player import Player
 from .pool import *
+

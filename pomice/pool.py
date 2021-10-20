@@ -8,7 +8,6 @@ import socket
 import time
 from typing import Dict, Optional, Type, TYPE_CHECKING
 from urllib.parse import quote
-from base64 import b
 
 import aiohttp
 import discord
@@ -28,7 +27,6 @@ from .exceptions import (
     TrackLoadError
 )
 from .objects import Playlist, Track
-from .spotify import SpotifyException
 from .utils import ExponentialBackoff, NodeStats
 
 if TYPE_CHECKING:
@@ -97,9 +95,6 @@ class Node:
 
         if self._spotify_client_id and self._spotify_client_secret:
             self._spotify_client = spotify.Client(
-                self._spotify_client_id, self._spotify_client_secret
-            )
-            self._spotify_http_client = spotify.HTTPClient(
                 self._spotify_client_id, self._spotify_client_secret
             )
 
@@ -256,10 +251,9 @@ class Node:
 
     async def build_track(
         self,
-        *,
         identifier: str,
-        ctx: Optional[commands.Context]
-    ):
+        ctx: Optional[commands.Context] = None
+    ) -> Track:
         """
         Builds a track using a valid track identifier
 
@@ -267,7 +261,7 @@ class Node:
         Context object on the track it builds.
         """
 
-        async with self.session.get(f'{self._rest_uri}/decodetrack?',
+        async with self._session.get(f'{self._rest_uri}/decodetrack?',
                                     headers={'Authorization': self._password},
                                     params={'track': identifier}) as resp:
                                     
@@ -277,8 +271,7 @@ class Node:
                 raise TrackLoadError(f'Failed to build track. Status: {data["status"]}, Error: {data["error"]}.'
                                       f'Check the identifier is correct and try again.')
 
-            track = Track(track_id=identifier, ctx=ctx, info=data)
-            return track
+            return Track(track_id=identifier, ctx=ctx, info=data)
 
 
     async def get_tracks(
@@ -300,7 +293,7 @@ class Node:
         if not URL_REGEX.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
             query = f"{search_type}:{query}"
 
-        if spotify_url_check := SPOTIFY_URL_REGEX.match(query):
+        if SPOTIFY_URL_REGEX.match(query):
             if not self._spotify_client_id and not self._spotify_client_secret:
                 raise InvalidSpotifyClientAuthorization(
                     "You did not provide proper Spotify client authorization credentials. "
@@ -308,120 +301,92 @@ class Node:
                     "please obtain Spotify API credentials here: https://developer.spotify.com/"
                 )
 
-            spotify_search_type = spotify_url_check.group("type")
-            spotify_id = spotify_url_check.group("id")
+            spotify_results = await self._spotify_client.search(query=query)
 
-            if spotify_search_type == "playlist":
-                results = spotify.Playlist(
-                    client=self._spotify_client,
-                    data=await self._spotify_http_client.get_playlist(spotify_id)
+            if isinstance(spotify_results, spotify.Playlist):
+                tracks = [
+                    Track(
+                        track_id=track.id,
+                        ctx=ctx,
+                        search_type=search_type,
+                        spotify=True,
+                        info={
+                            "title": track.name,
+                            "author": track.artists,
+                            "length": track.length,
+                            "identifier": track.id,
+                            "uri": track.uri,
+                            "isStream": False,
+                            "isSeekable": False,
+                            "position": 0,
+                            "thumbnail": track.image
+                        },
+                    ) for track in spotify_results.tracks
+                ]
+
+                return Playlist(
+                    playlist_info={"name": spotify_results.name, "selectedTrack": tracks[0]},
+                    tracks=tracks,
+                    ctx=ctx,
+                    spotify=True,
+                    thumbnail=spotify_results.image,
+                    uri=spotify_results.uri,
                 )
 
-                try:
-                    search_tracks = await results.get_all_tracks()
-                    tracks = [
-                        Track(
-                            track_id=track.id,
-                            ctx=ctx,
-                            search_type=search_type,
-                            spotify=True,
-                            info={
-                                "title": track.name or "Unknown",
-                                "author": ", ".join(
-                                    artist.name for artist in track.artists
-                                ) or "Unknown",
-                                "length": track.duration or 0,
-                                "identifier": track.id or "Unknown",
-                                "uri": track.url or "spotify",
-                                "isStream": False,
-                                "isSeekable": False,
-                                "position": 0,
-                                "thumbnail": track.images[0].url if track.images else None
-                            },
-                        ) for track in search_tracks
-                    ]
-
-                    return Playlist(
-                        playlist_info={"name": results.name, "selectedTrack": tracks[0]},
-                        tracks=tracks,
+            elif isinstance(spotify_results, spotify.Album):
+            
+                tracks = [
+                    Track(
+                        track_id=track.id,
                         ctx=ctx,
+                        search_type=search_type,
                         spotify=True,
-                        thumbnail=results.images[0].url,
-                        uri=results.url,
-                    )
+                        info={
+                            "title": track.name,
+                            "author": track.artists,
+                            "length": track.length,
+                            "identifier": track.id,
+                            "uri": track.uri,
+                            "isStream": False,
+                            "isSeekable": False,
+                            "position": 0,
+                            "thumbnail": track.image
+                        },
+                    ) for track in spotify_results.tracks
+                ]
 
-                except SpotifyException:
-                    raise SpotifyPlaylistLoadFailed(
-                        f"Unable to find results for {query}"
-                    )
+                return Playlist(
+                    playlist_info={"name": spotify_results.name, "selectedTrack": tracks[0]},
+                    tracks=tracks,
+                    ctx=ctx,
+                    spotify=True,
+                    thumbnail=spotify_results.image,
+                    uri=spotify_results.uri,
+                )
 
-            elif spotify_search_type == "album":
-                results = await self._spotify_client.get_album(spotify_id=spotify_id)
 
-                try:
-                    search_tracks = await results.get_all_tracks()
-                    tracks = [
-                        Track(
-                            track_id=track.id,
-                            ctx=ctx,
-                            search_type=search_type,
-                            spotify=True,
-                            info={
-                                "title": track.name or "Unknown",
-                                "author": ", ".join(
-                                    artist.name for artist in track.artists
-                                ) or "Unknown",
-                                "length": track.duration or 0,
-                                "identifier": track.id or "Unknown",
-                                "uri": track.url or "spotify",
-                                "isStream": False,
-                                "isSeekable": False,
-                                "position": 0,
-                                "thumbnail": track.images[0].url if track.images else None
-                            },
-                        ) for track in search_tracks
-                    ]
+            elif isinstance(spotify_results, spotify.Track):
 
-                    return Playlist(
-                        playlist_info={"name": results.name, "selectedTrack": tracks[0]},
-                        tracks=tracks,
+                return [
+                    Track(
+                        track_id=spotify_results.id,
                         ctx=ctx,
+                        search_type=search_type,
                         spotify=True,
-                        thumbnail=results.images[0].url,
-                        uri=results.url,
+                        info={
+                            "title": spotify_results.name,
+                            "author": spotify_results.artists,
+                            "length": spotify_results.length,
+                            "identifier": spotify_results.id,
+                            "uri": spotify_results.uri,
+                            "isStream": False,
+                            "isSeekable": False,
+                            "position": 0,
+                            "thumbnail": spotify_results.image
+                        },
                     )
+                ]
 
-                except SpotifyException:
-                    raise SpotifyAlbumLoadFailed(f"Unable to find results for {query}")
-
-            elif spotify_search_type == 'track':
-                try:
-                    results = await self._spotify_client.get_track(spotify_id=spotify_id)
-
-                    return [
-                        Track(
-                            track_id=results.id,
-                            ctx=ctx,
-                            search_type=search_type,
-                            spotify=True,
-                            info={
-                                "title": results.name or "Unknown",
-                                "author": ", ".join(
-                                    artist.name for artist in results.artists
-                                ) or "Unknown",
-                                "length": results.duration or 0,
-                                "identifier": results.id or "Unknown",
-                                "uri": results.url or "spotify",
-                                "isStream": False,
-                                "isSeekable": False,
-                                "position": 0,
-                                "thumbnail": results.images[0].url if results.images else None
-                            },
-                        )
-                    ]
-
-                except SpotifyException:
-                    raise SpotifyTrackLoadFailed(f"Unable to find results for {query}")
 
         elif discord_url := DISCORD_MP3_URL_REGEX.match(query):
             async with self._session.get(
