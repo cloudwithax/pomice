@@ -77,44 +77,28 @@ class Client:
             return Album(album_data)
 
         elif spotify_type == "playlist":
-            # Okay i know this looks like a mess, but hear me out, this works
-            # The Spotify Web API limits how many tracks can be seen in a single request to 100
-            # So we have to do some clever techniques to get all the tracks in any playlist larger than 100 songs
-            # This method doesn't need to be applied to albums due to the fact that 99% of albums
-            # are never more than 100 tracks (I'm looking at you, Deep Zone Project...)
-        
             request_url = f"https://api.spotify.com/v1/playlists/{spotify_id}"
-            # Set the offset now so we can change it when we get all the tracks
-            offset = 0
             tracks = []
-
-            # First, get the playlist data so we can get the total amount of tracks for later
             async with self.session.get(request_url, headers=self._bearer_headers) as resp:
                 if resp.status != 200:
                     raise SpotifyRequestException(resp.status, resp.reason)
 
                 playlist_data: dict = await resp.json()
 
-            # Second, get the total amount of tracks in said playlist so we can use this to get all the tracks
-            total_tracks: int = playlist_data["tracks"]["total"]
+            tracks += [Track(track["track"]) for track in playlist_data["tracks"]["items"]]
 
-            # This section of code may look spammy, but trust me, it's not
-            while len(tracks) < total_tracks:    
-                tracks_request_url = f"https://api.spotify.com/v1/playlists/{spotify_id}/tracks?offset={offset}&limit=100"
-                async with self.session.get(tracks_request_url, headers=self._bearer_headers) as resp:
+            next_page_url = playlist_data["tracks"]["next"]
+
+            while next_page_url != None:    
+                async with self.session.get(next_page_url, headers=self._bearer_headers) as resp:
                     if resp.status != 200:
                         raise SpotifyRequestException(resp.status, resp.reason)
 
-                    playlist_track_data: dict = await resp.json()
+                    next_page_data: dict = await resp.json()
 
-                # This is the juicy part..
-                # Add the tracks we got from the current page of results
-                tracks += [Track(track["track"]) for track in playlist_track_data["items"]]
-                # Set the offset to go to the next page
-                offset += 100
-                # Repeat until we have all the tracks
+                tracks += [Track(track["track"]) for track in next_page_data["items"]]
+                next_page_url = next_page_data["next"]
                 
-            # We have all the tracks, cast to the class for easier reading
             return Playlist(playlist_data, tracks)
 
             
