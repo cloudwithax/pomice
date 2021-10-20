@@ -20,7 +20,10 @@ DEALINGS IN THE SOFTWARE.
 
 import random
 import time
-from typing import Union
+from typing import (
+    Union,
+    Any,
+)
 
 from discord import AutoShardedClient, Client
 from discord.ext.commands import AutoShardedBot, Bot
@@ -28,7 +31,8 @@ from discord.ext.commands import AutoShardedBot, Bot
 __all__ = [
     'ExponentialBackoff',
     'NodeStats',
-    'ClientType'
+    'ClientType',
+    'MISSING'
 ]
 
 ClientType = Union[AutoShardedBot, AutoShardedClient, Bot, Client]
@@ -85,3 +89,13 @@ class NodeStats:
 
     def __repr__(self) -> str:
         return f'<Pomice.NodeStats total_players={self.players_total!r} playing_active={self.players_active!r}>'
+
+class _MissingSentinel:
+    def __repr__(self) -> str:
+        return "MISSING"
+
+    def __bool__(self) -> bool:
+        return False
+
+
+MISSING: Any = _MissingSentinel()
