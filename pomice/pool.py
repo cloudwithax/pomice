@@ -423,10 +423,8 @@ class Node:
             raise TrackLoadError("There was an error while trying to load this track.")
 
         elif load_type == "LOAD_FAILED":
-            raise TrackLoadError(
-                f"There was an error of severity '{data['severity']}' "
-                f"while loading tracks.\n\n{data['cause']}"
-            )
+            exception = data["exception"]
+            raise TrackLoadError(f"{exception['message']} [{exception['severity']}]")
 
         elif load_type == "NO_MATCHES":
             return None
