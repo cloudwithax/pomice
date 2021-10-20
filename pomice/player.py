@@ -29,9 +29,14 @@ class Player(VoiceProtocol):
        await ctx.author.voice.channel.connect(cls=pomice.Player)
        ```
     """
+    def __call__(self, client: ClientType, channel: VoiceChannel):
+        self.client: ClientType = client
+        self.channel : VoiceChannel = channel
 
-    def __init__(self, client: ClientType, channel: VoiceChannel):
-        super().__init__(client=client, channel=channel)
+        return self
+
+    def __init__(self, client: ClientType = None, channel: VoiceChannel = None, **kwargs):
+        # super().__init__(client=client, channel=channel)
 
         self.client = client
         self._bot = client
@@ -51,6 +56,7 @@ class Player(VoiceProtocol):
         self._ending_track: Optional[Track] = None
 
         self._voice_state = {}
+        self._extra = kwargs or {}
 
     def __repr__(self):
         return (
