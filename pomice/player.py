@@ -273,6 +273,5 @@ class Player(VoiceProtocol):
             "WebSocketOpenEvent": (data.get("target", None), data.get("ssrc", None)),
             "WebSocketClosedEvent" : (self._guild,  data.get("reason", None), data.get("code", None))
         }
-        if (event := getattr(events, event_type, None)) and (args := _events.get(event_type, None)):
-            
-            self.bot.dispatch(f"pomice_{event.name}", event, *args)
+      
+        self.bot.dispatch(f"pomice_{event.name}", event, *args)
