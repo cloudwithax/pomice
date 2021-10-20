@@ -22,6 +22,9 @@ class BasePlayer(VoiceProtocol):
     def __call__(self, client: discord.Client, channel: VoiceChannel):
         self.client: discord.Client = client
         self.channel : VoiceChannel = channel
+            
+        return self
+    
 
     def __init__(self, client : Type[Client] = MISSING, channel: VoiceChannel = MISSING):
 
