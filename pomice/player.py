@@ -209,7 +209,13 @@ class Player(VoiceProtocol):
         await self.disconnect()
         await self._node.send(op="destroy", guildId=str(self.guild.id))
 
-    async def play(self, track: Track, *, start_position: int = 0) -> Track:
+    async def play(
+        self,
+        track: Track,
+        *,
+        start_position: int = 0,
+        ignore_if_playing: bool = False
+    ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
             search: Track = (await self._node.get_tracks(
@@ -224,7 +230,7 @@ class Player(VoiceProtocol):
                 track=search.track_id,
                 startTime=start_position,
                 endTime=search.length,
-                noReplace=False
+                noReplace=ignore_if_playing
             )
         else:
             await self._node.send(
@@ -233,7 +239,7 @@ class Player(VoiceProtocol):
                 track=track.track_id,
                 startTime=start_position,
                 endTime=track.length,
-                noReplace=False
+                noReplace=ignore_if_playing
             )
         self._current = track
         return self._current
