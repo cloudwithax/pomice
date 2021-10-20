@@ -1,27 +1,25 @@
 import time
 from typing import (
-    Any, 
-    Dict, 
-    Optional, 
-    Type, 
-    Union
+    Any,
+    Dict,
+    Optional
 )
 
 from discord import (
-    Client, 
-    Guild, 
-    VoiceChannel, 
+    Guild,
+    VoiceChannel,
     VoiceProtocol
 )
 from discord.ext import commands
 
-from pomice.enums import SearchType
-
 from . import events
+from .enums import SearchType
+from .events import PomiceEvent, TrackStartEvent
 from .exceptions import TrackInvalidPosition
 from .filters import Filter
-from .pool import Node, NodePool
 from .objects import Track
+from .pool import Node, NodePool
+from .utils import ClientType
 
 
 class Player(VoiceProtocol):
@@ -32,7 +30,7 @@ class Player(VoiceProtocol):
        ```
     """
 
-    def __init__(self, client: Type[Client], channel: VoiceChannel):
+    def __init__(self, client: ClientType, channel: VoiceChannel):
         super().__init__(client=client, channel=channel)
 
         self.client = client
@@ -50,6 +48,7 @@ class Player(VoiceProtocol):
         self._position = 0
         self._last_position = 0
         self._last_update = 0
+        self._ending_track: Optional[Track] = None
 
         self._voice_state = {}
 
@@ -118,7 +117,7 @@ class Player(VoiceProtocol):
         return self._filter
 
     @property
-    def bot(self) -> Type[Client]:
+    def bot(self) -> ClientType:
         """Property which returns the bot associated with this player instance"""
         return self._bot
 
@@ -159,32 +158,11 @@ class Player(VoiceProtocol):
 
     async def _dispatch_event(self, data: dict):
         event_type = data.get("type")
+        event: PomiceEvent = getattr(events, event_type)(data)
+        event.dispatch(self._bot)
 
-        if event_type == "TrackStartEvent":
-            track = await self._node.build_track(data["track"])
-            event = events.TrackStartEvent(self, track)
-            self.dispatch(event, self, track)
-        elif event_type == "TrackEndEvent":
-            track = await self._node.build_track(data["track"])
-            event = events.TrackEndEvent(self, track, data["reason"])
-            self.dispatch(event, self, track, data["reason"])
-        elif event_type == "TrackExceptionEvent":
-            track = await self._node.build_track(data["track"])
-            event = events.TrackExceptionEvent(self, track, data["error"])
-            self.dispatch(event, self, track, data["error"])
-        elif event_type == "TrackStuckEvent":
-            track = await self._node.build_track(data["track"])
-            event = events.TrackStuckEvent(self, track, data["thresholdMs"])
-            self.dispatch(event, self, track, data["thresholdMs"])
-        elif event_type == "WebSocketOpenEvent":
-            event = events.WebSocketOpenEvent(data["target"], data["ssrc"])
-            self.dispatch(event, data["target"], data["ssrc"])
-        elif event_type == "WebSocketClosedEvent":
-            event = events.WebSocketClosedEvent(self._guild, data["reason"], data["code"])
-            self.dispatch(event, self._guild, data["reason"], data["code"])
-        
-    def dispatch(self, event, *args, **kwargs):
-        self.bot.dispatch(f"pomice_{event.name}", event, *args, **kwargs)
+        if isinstance(event, TrackStartEvent):
+            self._ending_track = self._current
 
     async def get_tracks(
         self,
