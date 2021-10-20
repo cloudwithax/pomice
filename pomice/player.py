@@ -1,7 +1,6 @@
 import time
-from typing import Any, Dict, Optional, Type, Union
+from typing import Any, Dict, Optional, Type
 
-import discord
 from discord import Client, Guild, VoiceChannel, VoiceProtocol
 from discord.ext import commands
 
@@ -12,23 +11,25 @@ from .exceptions import TrackInvalidPosition
 from .filters import Filter
 from .pool import Node, NodePool
 from .objects import Track
-from .utils import MISSING
+from .utils import ClientType, MISSING
 
-class BasePlayer(VoiceProtocol):
-    """Base Player Class For Pomice This Class Has to Be Inherited if your are Building 
-    your own Player Class, Unless you know what you are doing.
+class Player(VoiceProtocol):
+    """The Default Basic Player class for Pomice.
+       In order to initiate a player, you must pass it in as a cls when you connect to a channel.
+       i.e: ```py
+       await ctx.author.voice.channel.connect(cls=pomice.Player)
+       ```
     """
 
-    def __call__(self, client: discord.Client, channel: VoiceChannel):
-        self.client: discord.Client = client
+    def __call__(self, client: ClientType, channel: VoiceChannel):
+        self.client: ClientType = client
         self.channel : VoiceChannel = channel
-            
+
         return self
-    
 
-    def __init__(self, client : Type[Client] = MISSING, channel: VoiceChannel = MISSING):
+    def __init__(self, client : ClientType = MISSING, channel : VoiceChannel = MISSING, **kwargs):
 
-        self.client = client
+        # self.client
         self._bot = client
         self.channel = channel
         self._guild : Guild = channel.guild
@@ -43,9 +44,17 @@ class BasePlayer(VoiceProtocol):
         self._last_update = 0
 
         self._voice_state = {}
-    
-    def __repr__(self) -> str:
-        return f"<{self.__class__.__name__}(bot={self._bot}, guildId={self._guild.id})>"
+        self._extra = kwargs or {} # all custom attributes you want to store
+
+        self._current: Track = None
+        self._filter: Filter = None
+
+
+    def __repr__(self):
+        return (
+            f"<Pomice.player bot={self.bot} guildId={self.guild.id} "
+            f"is_connected={self.is_connected} is_playing={self.is_playing}>"
+        )
 
     @property
     def is_connected(self) -> bool:
@@ -76,104 +85,6 @@ class BasePlayer(VoiceProtocol):
     def bot(self) -> Type[Client]:
         """Property which returns the bot associated with this player instance"""
         return self._bot
-
-    async def _update_state(self, data: dict):
-        state: dict = data.get("state")
-        self._last_update = time.time() * 1000
-        self._is_connected = state.get("connected")
-        self._last_position = state.get("position")
-
-    async def _dispatch_voice_update(self, voice_data: Dict[str, Any]):
-        if {"sessionId", "event"} != self._voice_state.keys():
-            return
-
-        await self._node.send(
-            op="voiceUpdate",
-            guildId=str(self.guild.id),
-            **voice_data
-        )
-
-    async def on_voice_server_update(self, data: dict):
-        self._voice_state.update({"event": data})
-        await self._dispatch_voice_update(self._voice_state)
-
-    async def on_voice_state_update(self, data: dict):
-        self._voice_state.update({"sessionId": data.get("session_id")})
-
-        if not (channel_id := data.get("channel_id")):
-            self.channel = None
-            self._voice_state.clear()
-            return
-
-        self.channel = self.guild.get_channel(int(channel_id))
-
-        if not data.get('token'):
-            return
-
-        await self._dispatch_voice_update({**self._voice_state, "event": data})
-
-    async def _dispatch_event(self, data: dict):
-        event_type = data.get("type")
-        if _track := data.get("track", None):
-            track = await self._node.build_track(_track)
-            
-        _events = {
-            "TrackStartEvent" : (self, track),
-            "TrackEndEvent" : (self, track, data.get("reason", None)),
-            "TrackExceptionEvent" : (self, track, data.get("error", None)),
-            "TrackStuckEvent" : (self, track, data.get("thresholdMs", None)),
-            "WebSocketOpenEvent": (data.get("target", None), data.get("ssrc", None)),
-            "WebSocketClosedEvent" : (self._guild,  data.get("reason", None), data.get("code", None))
-        }
-        if (event := getattr(events, event_type, None)) and (args := _events.get(event_type, None)):
-            
-            self.bot.dispatch(f"pomice_{event.name}", event, *args)
-
-    async def connect(self, *, timeout: float, reconnect: bool):
-        await self.guild.change_voice_state(channel=self.channel)
-        self._node._players[self.guild.id] = self
-        self._is_connected = True
-
-    async def stop(self):
-        """Stops a currently playing track."""
-        self._current = None
-        await self._node.send(op="stop", guildId=str(self.guild.id))
-
-    async def disconnect(self, *, force: bool = False):
-        await self.stop()
-        await self.guild.change_voice_state(channel=None)
-        self.cleanup()
-        self.channel = None
-        self._is_connected = False
-        del self._node._players[self.guild.id]
-
-    async def destroy(self):
-        """Disconnects a player and destroys the player instance."""
-        await self.disconnect()
-        await self._node.send(op="destroy", guildId=str(self.guild.id))
-
-    
-
-class Player(BasePlayer):
-    """The Default Basic Player class for Pomice.
-       In order to initiate a player, you must pass it in as a cls when you connect to a channel.
-       i.e: ```py
-       await ctx.author.voice.channel.connect(cls=pomice.Player)
-       ```
-    """
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self._current: Track = None
-        self._filter: Filter = None
-
-
-    def __repr__(self):
-        return (
-            f"<Pomice.player bot={self.bot} guildId={self.guild.id} "
-            f"is_connected={self.is_connected} is_playing={self.is_playing}>"
-        )
 
     @property
     def position(self) -> float:
@@ -256,6 +167,29 @@ class Player(BasePlayer):
         self._current = track
         return self._current
 
+    async def connect(self, *, timeout: float, reconnect: bool):
+        await self.guild.change_voice_state(channel=self.channel)
+        self._node._players[self.guild.id] = self
+        self._is_connected = True
+
+    async def stop(self):
+        """Stops a currently playing track."""
+        self._current = None
+        await self._node.send(op="stop", guildId=str(self.guild.id))
+
+    async def disconnect(self, *, force: bool = False):
+        await self.stop()
+        await self.guild.change_voice_state(channel=None)
+        self.cleanup()
+        self.channel = None
+        self._is_connected = False
+        del self._node._players[self.guild.id]
+
+    async def destroy(self):
+        """Disconnects a player and destroys the player instance."""
+        await self.disconnect()
+        await self._node.send(op="destroy", guildId=str(self.guild.id))
+
     async def seek(self, position: float) -> float:
         """Seeks to a position in the currently playing track milliseconds"""
 
@@ -287,3 +221,58 @@ class Player(BasePlayer):
         await self.seek(self.position)
         self._filter = filter
         return filter
+
+    async def _update_state(self, data: dict):
+        state: dict = data.get("state")
+        self._last_update = time.time() * 1000
+        self._is_connected = state.get("connected")
+        self._last_position = state.get("position")
+
+    async def _dispatch_voice_update(self, voice_data: Dict[str, Any]):
+        if {"sessionId", "event"} != self._voice_state.keys():
+            return
+
+        await self._node.send(
+            op="voiceUpdate",
+            guildId=str(self.guild.id),
+            **voice_data
+        )
+
+    async def on_voice_server_update(self, data: dict):
+        self._voice_state.update({"event": data})
+        await self._dispatch_voice_update(self._voice_state)
+
+    async def on_voice_state_update(self, data: dict):
+        self._voice_state.update({"sessionId": data.get("session_id")})
+
+        if not (channel_id := data.get("channel_id")):
+            self.channel = None
+            self._voice_state.clear()
+            return
+
+        self.channel = self.guild.get_channel(int(channel_id))
+
+        if not data.get('token'):
+            return
+
+        await self._dispatch_voice_update({**self._voice_state, "event": data})
+
+    async def _dispatch_event(self, data: dict): 
+        # this feels far more cleaner and does the same thing
+        # pls, seeing all that if statements makes my eyes bleed 
+
+        event_type = data.get("type")
+        if _track := data.get("track", None):
+            track = await self._node.build_track(_track)
+            
+        _events = {
+            "TrackStartEvent" : (self, track),
+            "TrackEndEvent" : (self, track, data.get("reason", None)),
+            "TrackExceptionEvent" : (self, track, data.get("error", None)),
+            "TrackStuckEvent" : (self, track, data.get("thresholdMs", None)),
+            "WebSocketOpenEvent": (data.get("target", None), data.get("ssrc", None)),
+            "WebSocketClosedEvent" : (self._guild,  data.get("reason", None), data.get("code", None))
+        }
+        if (event := getattr(events, event_type, None)) and (args := _events.get(event_type, None)):
+            
+            self.bot.dispatch(f"pomice_{event.name}", event, *args)
