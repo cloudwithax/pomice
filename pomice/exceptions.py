@@ -28,6 +28,9 @@ class NoNodesAvailable(PomiceException):
     """There are no nodes currently available."""
     pass
 
+class OptionNotToggled(PomiceException):
+    """The Option was not Toggled, Therefore the feature Could not be used."""
+    pass
 
 class TrackInvalidPosition(PomiceException):
     """An invalid position was chosen for a track."""
