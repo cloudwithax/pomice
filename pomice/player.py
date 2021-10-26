@@ -2,7 +2,8 @@ import time
 from typing import (
     Any,
     Dict,
-    Optional
+    Optional,
+    Union
 )
 
 from discord import (
@@ -10,7 +11,7 @@ from discord import (
     VoiceChannel,
     VoiceProtocol
 )
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from . import events
 from .enums import SearchType
@@ -19,7 +20,7 @@ from .exceptions import TrackInvalidPosition
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
-from .utils import ClientType
+from .utils import ClientType, if_toggled
 
 
 class Player(VoiceProtocol):
@@ -29,14 +30,15 @@ class Player(VoiceProtocol):
        await ctx.author.voice.channel.connect(cls=pomice.Player)
        ```
     """
-
     def __call__(self, client: ClientType, channel: VoiceChannel):
         self.client: ClientType = client
-        self.channel: VoiceChannel = channel
+        self.channel : VoiceChannel = channel
 
         return self
 
     def __init__(self, client: ClientType = None, channel: VoiceChannel = None, **kwargs):
+        # super().__init__(client=client, channel=channel)
+
         self.client = client
         self._bot = client
         self.channel = channel
@@ -57,11 +59,34 @@ class Player(VoiceProtocol):
         self._voice_state = {}
         self._extra = kwargs or {}
 
-    def __repr__(self):
+        self.check.start()
+
+    def __repr__(self) -> str:
         return (
             f"<Pomice.player bot={self.bot} guildId={self.guild.id} "
             f"is_connected={self.is_connected} is_playing={self.is_playing}>"
         )
+
+    def __getitem__(self, key) -> Union[Any, None]:
+        return self._extra.get(key, None)
+
+    def __setitem__(self, key, value) -> None:
+        self._extra[key] = value
+
+    def __delitem__(self, key) -> None:
+        try:
+            del self._extra[key]
+        except KeyError:
+            pass
+
+    def get(self, key) -> Union[Any, None]:
+        return self.__getitem__(key)
+
+    def put(self, key, value) -> None:
+        self.__setitem__(key, value)
+    
+    def remove(self, key) -> None:
+        self.__delitem__(key)
 
     @property
     def position(self) -> float:
@@ -150,7 +175,7 @@ class Player(VoiceProtocol):
         self._voice_state.update({"sessionId": data.get("session_id")})
 
         if not (channel_id := data.get("channel_id")):
-            await self.disconnect()
+            self.channel = None
             self._voice_state.clear()
             return
 
@@ -199,28 +224,18 @@ class Player(VoiceProtocol):
 
     async def disconnect(self, *, force: bool = False):
         await self.stop()
-
-        try:
-            await self.guild.change_voice_state(channel=None)
-        finally:
-            self._is_connected = False
-            self.cleanup()
-            self.channel = None
-            del self._node._players[self.guild.id]
+        await self.guild.change_voice_state(channel=None)
+        self.cleanup()
+        self.channel = None
+        self._is_connected = False
+        del self._node._players[self.guild.id]
 
     async def destroy(self):
         """Disconnects a player and destroys the player instance."""
         await self.disconnect()
         await self._node.send(op="destroy", guildId=str(self.guild.id))
 
-    async def play(
-        self,
-        track: Track,
-        *,
-        start: int = 0,
-        end: int = 0,
-        ignore_if_playing: bool = False
-    ) -> Track:
+    async def play(self, track: Track, *, start_position: int = 0) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify:
             search: Track = (await self._node.get_tracks(
@@ -229,27 +244,23 @@ class Player(VoiceProtocol):
             ))[0]
             track.original = search
 
-            data = {
-                "op": "play",
-                "guildId": str(self.guild.id),
-                "track": search.track_id,
-                "startTime": str(start),
-                "noReplace": ignore_if_playing
-            }
+            await self._node.send(
+                op="play",
+                guildId=str(self.guild.id),
+                track=search.track_id,
+                startTime=start_position,
+                endTime=search.length,
+                noReplace=False
+            )
         else:
-            data = {
-                "op": "play",
-                "guildId": str(self.guild.id),
-                "track": track.track_id,
-                "startTime": str(start),
-                "noReplace": ignore_if_playing
-            }
-
-        if end > 0:
-            data["endtime"] = str(end)
-
-        await self._node.send(**data)
-
+            await self._node.send(
+                op="play",
+                guildId=str(self.guild.id),
+                track=track.track_id,
+                startTime=start_position,
+                endTime=track.length,
+                noReplace=False
+            )
         self._current = track
         return self._current
 
@@ -284,3 +295,37 @@ class Player(VoiceProtocol):
         await self.seek(self.position)
         self._filter = filter
         return filter
+
+    @if_toggled('auto_switch_nodes')
+    async def change_node(self, node: Node = None) -> None:
+
+        if node := (node or NodePool.get_node()):
+            del self._node.players[self.guild.id]
+            self._node = node
+            self._node.players[self.guild.id] = self
+            if self._voice_state:
+                self._ending_track = self._current
+                await self._dispatch_voice_update(self._voice_state)
+            
+            if self._current:
+                await self._node.send(
+                    op='play', 
+                    guildId=str(self.guild.id), 
+                    track=self.current.track_id, 
+                    startTime=self.position, 
+                    endTime=self.current.length, 
+                    noReplace = False)
+
+                self._current = self.current
+                self._last_update = time.time() * 1000
+
+                if self.is_paused:
+                    await self._node.send(op='pause', guildId=str(self.guild.id), pause=self.is_paused)
+
+            await self._node.send(op="volume", guildId = str(self.guild.id), volume=self.volume)
+    
+    @tasks.loop(seconds=5)
+    async def check(self):
+        if not self.node.is_connected:
+            print(self.node.is_connected)
+    
