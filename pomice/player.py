@@ -29,9 +29,10 @@ class Player(VoiceProtocol):
        await ctx.author.voice.channel.connect(cls=pomice.Player)
        ```
     """
+
     def __call__(self, client: ClientType, channel: VoiceChannel):
         self.client: ClientType = client
-        self.channel : VoiceChannel = channel
+        self.channel: VoiceChannel = channel
 
         return self
 
@@ -213,7 +214,8 @@ class Player(VoiceProtocol):
         self,
         track: Track,
         *,
-        start_position: int = 0,
+        start: int = 0,
+        end: int = 0,
         ignore_if_playing: bool = False
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
@@ -223,24 +225,21 @@ class Player(VoiceProtocol):
                 ctx=track.ctx
             ))[0]
             track.original = search
+            track = search
 
-            await self._node.send(
-                op="play",
-                guildId=str(self.guild.id),
-                track=search.track_id,
-                startTime=start_position,
-                endTime=search.length,
-                noReplace=ignore_if_playing
-            )
-        else:
-            await self._node.send(
-                op="play",
-                guildId=str(self.guild.id),
-                track=track.track_id,
-                startTime=start_position,
-                endTime=track.length,
-                noReplace=ignore_if_playing
-            )
+        data = {
+            "op": "play",
+            "guildId": str(self.guild.id),
+            "track": track.track_id,
+            "startTime": str(start),
+            "noReplace": ignore_if_playing
+        }
+
+        if end > 0:
+            data["endtime"] = str(end)
+
+        await self._node.send(**data)
+
         self._current = track
         return self._current
 
