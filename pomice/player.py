@@ -225,15 +225,22 @@ class Player(VoiceProtocol):
                 ctx=track.ctx
             ))[0]
             track.original = search
-            track = search
 
-        data = {
-            "op": "play",
-            "guildId": str(self.guild.id),
-            "track": track.track_id,
-            "startTime": str(start),
-            "noReplace": ignore_if_playing
-        }
+            data = {
+                "op": "play",
+                "guildId": str(self.guild.id),
+                "track": search.track_id,
+                "startTime": str(start),
+                "noReplace": ignore_if_playing
+            }
+        else:
+            data = {
+                "op": "play",
+                "guildId": str(self.guild.id),
+                "track": track.track_id,
+                "startTime": str(start),
+                "noReplace": ignore_if_playing
+            }
 
         if end > 0:
             data["endtime"] = str(end)
