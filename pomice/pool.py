@@ -6,7 +6,7 @@ import random
 import re
 import socket
 import time
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Dict, Optional, TYPE_CHECKING, Union
 from urllib.parse import quote
 
 import aiohttp
@@ -27,7 +27,12 @@ from .exceptions import (
     TrackLoadError
 )
 from .objects import Playlist, Track
-from .utils import ClientType, ExponentialBackoff, NodeStats
+from .utils import (
+    ClientType, 
+    ExponentialBackoff, 
+    NodeStats, 
+    NodeAlgorithims,
+)
 
 if TYPE_CHECKING:
     from .player import Player
@@ -206,7 +211,7 @@ class Node:
         if not self._available:
             raise NodeNotAvailable(
                 f"The node '{self.identifier}' is not currently available.")
-
+                
         await self._websocket.send_str(json.dumps(data))
 
     def get_player(self, guild_id: int):
@@ -466,19 +471,49 @@ class NodePool:
     def node_count(self):
         return len(self._nodes.values())
 
+    # @classmethod
+    # def get_node(cls, *, identifier: str = None) -> Node:
+    #     """Fetches a node from the node pool using it's identifier.
+    #        If no identifier is provided, it will choose a node at random.
+    #     """
+    #     available_nodes = {identifier: node for identifier, node in cls._nodes.items() if node._available}
+    #     if not available_nodes:
+    #         raise NoNodesAvailable('There are no nodes available.')
+
+    #     if identifier is None:
+    #         return random.choice(list(available_nodes.values()))
+
+    #     return available_nodes.get(identifier, None)
+
     @classmethod
-    def get_node(cls, *, identifier: str = None) -> Node:
+    def get_node(
+        cls, *, 
+        identifier: str = None, 
+        algorithim : NodeAlgorithims = NodeAlgorithims.base, 
+        args=(), **kwargs
+
+    ) -> Node:
         """Fetches a node from the node pool using it's identifier.
-           If no identifier is provided, it will choose a node at random.
+           If no identifier is provided, it will choose based on the algorithim given.
+           Default Algorithim returns a random Node.
         """
         available_nodes = {identifier: node for identifier, node in cls._nodes.items() if node._available}
         if not available_nodes:
             raise NoNodesAvailable('There are no nodes available.')
 
-        if identifier is None:
-            return random.choice(list(available_nodes.values()))
+        if identifier is None and isinstance(algorithim, NodeAlgorithims):
+            return algorithim(list(available_nodes.values()), *args, **kwargs).first
 
         return available_nodes.get(identifier, None)
+
+    @classmethod
+    def get_player(cls, guildId) -> Union[Player, None]:
+        """Retruns the Exact Player object after Searching all the Nodes.
+        """
+        for node in [node for node in cls._nodes.values() if node._available]:
+            if (player := node.players.get(guildId, None)):
+                return player
+        return None
 
     @classmethod
     async def create_node(
