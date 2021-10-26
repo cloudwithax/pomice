@@ -150,7 +150,7 @@ class Player(VoiceProtocol):
         self._voice_state.update({"sessionId": data.get("session_id")})
 
         if not (channel_id := data.get("channel_id")):
-            self.channel = None
+            await self.disconnect()
             self._voice_state.clear()
             return
 
@@ -199,11 +199,14 @@ class Player(VoiceProtocol):
 
     async def disconnect(self, *, force: bool = False):
         await self.stop()
-        await self.guild.change_voice_state(channel=None)
-        self.cleanup()
-        self.channel = None
-        self._is_connected = False
-        del self._node._players[self.guild.id]
+
+        try:
+            await self.guild.change_voice_state(channel=None)
+        finally:
+            self._is_connected = False
+            self.cleanup()
+            self.channel = None
+            del self._node._players[self.guild.id]
 
     async def destroy(self):
         """Disconnects a player and destroys the player instance."""
