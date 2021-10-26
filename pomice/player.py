@@ -304,7 +304,6 @@ class Player(VoiceProtocol):
             self._node = node
             self._node.players[self.guild.id] = self
             if self._voice_state:
-                self._ending_track = self._current
                 await self._dispatch_voice_update(self._voice_state)
             
             if self._current:
@@ -316,7 +315,6 @@ class Player(VoiceProtocol):
                     endTime=self.current.length, 
                     noReplace = False)
 
-                self._current = self.current
                 self._last_update = time.time() * 1000
 
                 if self.is_paused:
