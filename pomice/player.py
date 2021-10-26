@@ -14,7 +14,7 @@ from discord.ext import commands
 
 from . import events
 from .enums import SearchType
-from .events import PomiceEvent, TrackStartEvent
+from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
 from .exceptions import TrackInvalidPosition
 from .filters import Filter
 from .objects import Track
@@ -164,6 +164,10 @@ class Player(VoiceProtocol):
     async def _dispatch_event(self, data: dict):
         event_type = data.get("type")
         event: PomiceEvent = getattr(events, event_type)(data)
+
+        if isinstance(event, TrackEndEvent):
+            self._current = None
+
         event.dispatch(self._bot)
 
         if isinstance(event, TrackStartEvent):
