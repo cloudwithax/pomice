@@ -458,6 +458,9 @@ class NodePool:
     """
 
     _nodes = {}
+    _config = {
+        'auto_swtich_nodes' : False
+    } # all the users Config Here, you can alter this to more user friendly later on
 
     def __repr__(self):
         return f"<Pomice.NodePool node_count={self.node_count}>"
