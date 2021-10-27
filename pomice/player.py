@@ -329,5 +329,5 @@ class Player(VoiceProtocol):
     @tasks.loop(seconds=5)
     async def check(self):
         if not self.node.is_connected:
-            await self.change_node(NodePool.get_node())
+            await self.change_node()
     
