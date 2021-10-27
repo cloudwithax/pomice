@@ -299,13 +299,14 @@ class Player(VoiceProtocol):
     async def change_node(self, node: Node = None) -> None:
 
         if node := (node or NodePool.get_node()):
-            await self.set_pause(True)
-            del self._node.players[self.guild.id]
+                
+            await self._node.send(op="destroy", guildId = str(self._guild.id))
+            del self._node.players[self.guild.id]            
             self._node = node
             self._node.players[self.guild.id] = self
+            
             if self._voice_state:
                 await self._dispatch_voice_update(self._voice_state)
-            await self.set_pause(False)
 
             if self._current:
                 await self._node.send(
@@ -316,16 +317,17 @@ class Player(VoiceProtocol):
                     endTime=self.current.length, 
                     noReplace = False
                 )
+                self._volume = 100
 
                 self._last_update = time.time() * 1000
 
                 if self.is_paused:
                     await self._node.send(op='pause', guildId=str(self.guild.id), pause=self.is_paused)
 
-            await self._node.send(op="volume", guildId = str(self.guild.id), volume=self.volume)
+                await self._node.send(op="volume", guildId = str(self.guild.id), volume=self._volume)
     
     @tasks.loop(seconds=5)
     async def check(self):
         if not self.node.is_connected:
-            print(self.node.is_connected)
+            await self.change_node(NodePool.get_node())
     
