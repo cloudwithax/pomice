@@ -471,20 +471,6 @@ class NodePool:
     def node_count(self):
         return len(self._nodes.values())
 
-    # @classmethod
-    # def get_node(cls, *, identifier: str = None) -> Node:
-    #     """Fetches a node from the node pool using it's identifier.
-    #        If no identifier is provided, it will choose a node at random.
-    #     """
-    #     available_nodes = {identifier: node for identifier, node in cls._nodes.items() if node._available}
-    #     if not available_nodes:
-    #         raise NoNodesAvailable('There are no nodes available.')
-
-    #     if identifier is None:
-    #         return random.choice(list(available_nodes.values()))
-
-    #     return available_nodes.get(identifier, None)
-
     @classmethod
     def get_node(
         cls, *, 
