@@ -32,7 +32,7 @@ __all__ = [
     'ExponentialBackoff',
     'NodeStats',
     'ClientType',
-    'NodeAlgorithims',
+    'NodeAlgorithms',
     'if_toggled'
 ]
 
@@ -105,7 +105,7 @@ class NodeStats:
     def __repr__(self) -> str:
         return f'<Pomice.NodeStats total_players={self.players_total!r} playing_active={self.players_active!r}>'
 
-class NodeAlgorithims:
+class NodeAlgorithms:
     """Class that Contains Algorithims for searching Nodes or get extact Players regardless of their Node"""
 
     def __init__(self, data : dict) -> None:
