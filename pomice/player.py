@@ -299,12 +299,14 @@ class Player(VoiceProtocol):
     async def change_node(self, node: Node = None) -> None:
 
         if node := (node or NodePool.get_node()):
+            await self.set_pause(True)
             del self._node.players[self.guild.id]
             self._node = node
             self._node.players[self.guild.id] = self
             if self._voice_state:
                 await self._dispatch_voice_update(self._voice_state)
-            
+            await self.set_pause(False)
+
             if self._current:
                 await self._node.send(
                     op='play', 
@@ -312,7 +314,8 @@ class Player(VoiceProtocol):
                     track=self.current.track_id, 
                     startTime=self.position, 
                     endTime=self.current.length, 
-                    noReplace = False)
+                    noReplace = False
+                )
 
                 self._last_update = time.time() * 1000
 
