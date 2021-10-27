@@ -31,7 +31,7 @@ from .utils import (
     ClientType, 
     ExponentialBackoff, 
     NodeStats, 
-    NodeAlgorithims,
+    NodeAlgorithms,
 )
 
 if TYPE_CHECKING:
@@ -478,7 +478,7 @@ class NodePool:
     def get_node(
         cls, *, 
         identifier: str = None, 
-        algorithim : NodeAlgorithims = NodeAlgorithims.base, 
+        algorithim : NodeAlgorithms = NodeAlgorithms.base, 
         args=(), **kwargs
 
     ) -> Node:
@@ -496,11 +496,11 @@ class NodePool:
         return available_nodes.get(identifier, None)
 
     @classmethod
-    def get_player(cls, guildId) -> Union[Player, None]:
+    def get_player(cls, guild_id) -> Union[Player, None]:
         """Retruns the Exact Player object after Searching all the Nodes.
         """
         for node in [node for node in cls._nodes.values() if node._available]:
-            if (player := node.players.get(guildId, None)):
+            if (player := node.players.get(guild_id, None)):
                 return player
         return None
 
