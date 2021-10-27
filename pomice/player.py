@@ -20,7 +20,7 @@ from .exceptions import TrackInvalidPosition
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
-from .utils import ClientType, if_toggled
+from .utils import ClientType, NodeAlgorithims
 
 
 class Player(VoiceProtocol):
@@ -298,7 +298,7 @@ class Player(VoiceProtocol):
     @if_toggled('auto_switch_nodes')
     async def change_node(self, node: Node = None) -> None:
 
-        if node := (node or NodePool.get_node()):
+        if node := (node or NodePool.get_node(algorithim=NodeAlgorithims.best_nodes, ping_wise=True)):
                 
             await self._node.send(op="destroy", guildId = str(self._guild.id))
             del self._node.players[self.guild.id]            
