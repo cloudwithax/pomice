@@ -496,7 +496,7 @@ class NodePool:
         return available_nodes.get(identifier, None)
 
     @classmethod
-    def get_player(cls, guild_id) -> Union[Player, None]:
+    def get_player(cls, guild_id: int) -> Union[Player, None]:
         """Retruns the Exact Player object after Searching all the Nodes.
         """
         for node in [node for node in cls._nodes.values() if node._available]:
