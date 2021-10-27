@@ -37,7 +37,6 @@ class Player(VoiceProtocol):
         return self
 
     def __init__(self, client: ClientType = None, channel: VoiceChannel = None, **kwargs):
-        # super().__init__(client=client, channel=channel)
 
         self.client = client
         self._bot = client
