@@ -197,13 +197,12 @@ class Player(VoiceProtocol):
         self._is_connected = True
 
     async def stop(self):
-        """Stops a currently playing track."""
+        """Stops the currently playing track."""
         self._current = None
         await self._node.send(op="stop", guildId=str(self.guild.id))
 
     async def disconnect(self, *, force: bool = False):
-        await self.stop()
-
+        """Disconnects the player from voice and handles internal state cleanup."""
         try:
             await self.guild.change_voice_state(channel=None)
         finally:
@@ -213,7 +212,7 @@ class Player(VoiceProtocol):
             del self._node._players[self.guild.id]
 
     async def destroy(self):
-        """Disconnects a player and destroys the player instance."""
+        """Disconnects the player and sends a call to destroy the player on Lavalink's end."""
         await self.disconnect()
         await self._node.send(op="destroy", guildId=str(self.guild.id))
 
