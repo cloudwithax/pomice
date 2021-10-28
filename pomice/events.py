@@ -1,6 +1,7 @@
 from .pool import NodePool
 from .utils import ClientType
 
+
 class PomiceEvent:
     """The base class for all events dispatched by a node. 
        Every event must be formatted within your bot's code as a listener.
@@ -24,7 +25,7 @@ class TrackStartEvent(PomiceEvent):
     name = "track_start"
 
     def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+        self.player = NodePool.get_player(int(data["guildId"]))
         self.track = self.player._current
 
         # on_pomice_track_start(player, track)
@@ -41,7 +42,7 @@ class TrackEndEvent(PomiceEvent):
     name = "track_end"
 
     def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+        self.player = NodePool.get_player(int(data["guildId"]))
         self.track = self.player._ending_track
         self.reason: str = data["reason"]
 
@@ -49,17 +50,21 @@ class TrackEndEvent(PomiceEvent):
         self.handler_args = self.player, self.track, self.reason
 
     def __repr__(self) -> str:
-        return f"<Pomice.TrackEndEvent player={self.player} track_id={self.track.track_id} reason={self.reason}>"
+        return (
+            f"<Pomice.TrackEndEvent player={self.player} track_id={self.track.track_id} "
+            f"reason={self.reason}>"
+        )
 
 
 class TrackStuckEvent(PomiceEvent):
     """Fired when a track is stuck and cannot be played. Returns the player
-       associated with the event along with the pomice.Track object to be further parsed by the end user.
+       associated with the event along with the pomice.Track object
+       to be further parsed by the end user.
     """
     name = "track_stuck"
 
     def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+        self.player = NodePool.get_player(int(data["guildId"]))
         self.track = self.player._ending_track
         self.threshold: float = data["thresholdMs"]
 
@@ -78,7 +83,7 @@ class TrackExceptionEvent(PomiceEvent):
     name = "track_exception"
 
     def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+        self.player = NodePool.get_player(int(data["guildId"]))
         self.track = self.player._ending_track
         self.error: str = data["error"]
 
@@ -91,7 +96,7 @@ class TrackExceptionEvent(PomiceEvent):
 
 class WebSocketClosedPayload:
     def __init__(self, data: dict):
-        self.guild = NodePool.get_node().get_player(int(data["guildId"]))._guild
+        self.guild = NodePool.get_player(int(data["guildId"]))._guild
         self.code: int = data["code"]
         self.reason: str = data["code"]
         self.by_remote: bool = data["byRemote"]
@@ -99,6 +104,7 @@ class WebSocketClosedPayload:
     def __repr__(self) -> str:
         return f"<Pomice.WebSocketClosedPayload guild={self.guild!r} code={self.code!r} " \
                f"reason={self.reason!r} by_remote={self.by_remote!r}>"
+
 
 class WebSocketClosedEvent(PomiceEvent):
     """Fired when a websocket connection to a node has been closed.
