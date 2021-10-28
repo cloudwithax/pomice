@@ -255,7 +255,7 @@ class Player(VoiceProtocol):
             }
 
         if end > 0:
-            data["endtime"] = str(end)
+            data["endTime"] = str(end)
 
         await self._node.send(**data)
 
