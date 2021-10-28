@@ -14,14 +14,14 @@ class Equalizer:
     i.e: Applying a bass boost filter to emphasize the bass in a song.
     The format for the levels is: List[Tuple[int, float]]
     """
+
     def __init__(self, *, levels: list):
         super().__init__()
 
         self.eq = self._factory(self, levels)
         self.raw = levels
 
-        self.payload = {'equalizer': {'bands': self.eq}}
-
+        self.payload = {"equalizer": {"bands": self.eq}}
 
     def _factory(self, levels: list):
         _dict = collections.defaultdict(int)

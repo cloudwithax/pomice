@@ -10,7 +10,6 @@ from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
 
 import aiohttp
-import discord
 from discord.ext import commands
 
 from . import __version__, spotify
@@ -21,9 +20,6 @@ from .exceptions import (
     NodeCreationError,
     NodeNotAvailable,
     NoNodesAvailable,
-    SpotifyAlbumLoadFailed,
-    SpotifyPlaylistLoadFailed,
-    SpotifyTrackLoadFailed,
     TrackLoadError
 )
 from .objects import Playlist, Track
@@ -37,10 +33,12 @@ SPOTIFY_URL_REGEX = re.compile(
 )
 
 DISCORD_MP3_URL_REGEX = re.compile(
-    r"https?://cdn.discordapp.com/attachments/(?P<channel_id>[0-9]+)/(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
+    r"https?://cdn.discordapp.com/attachments/(?P<channel_id>[0-9]+)/"
+    r"(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
 )
+
 URL_REGEX = re.compile(
-    r'https?://(?:www\.)?.+'
+    r"https?://(?:www\.)?.+"
 )
 
 
@@ -205,7 +203,8 @@ class Node:
     async def send(self, **data):
         if not self._available:
             raise NodeNotAvailable(
-                f"The node '{self.identifier}' is not currently available.")
+                f"The node '{self.identifier}' is unavailable."
+            )
 
         await self._websocket.send_str(json.dumps(data))
 
@@ -261,18 +260,18 @@ class Node:
         Context object on the track it builds.
         """
 
-        async with self._session.get(f'{self._rest_uri}/decodetrack?',
-                                    headers={'Authorization': self._password},
-                                    params={'track': identifier}) as resp:
-                                    
-            data: dict = await resp.json()
-            
+        async with self._session.get(
+            f"{self._rest_uri}/decodetrack?",
+            headers={"Authorization": self._password},
+            params={"track": identifier}
+        ) as resp:
             if not resp.status == 200:
-                raise TrackLoadError(f'Failed to build track. Status: {data["status"]}, Error: {data["error"]}.'
-                                      f'Check the identifier is correct and try again.')
+                raise TrackLoadError(
+                    f"Failed to build track. Check the identifier is correct and try again."
+                )
 
+            data: dict = await resp.json()
             return Track(track_id=identifier, ctx=ctx, info=data)
-
 
     async def get_tracks(
         self,
@@ -303,70 +302,7 @@ class Node:
 
             spotify_results = await self._spotify_client.search(query=query)
 
-            if isinstance(spotify_results, spotify.Playlist):
-                tracks = [
-                    Track(
-                        track_id=track.id,
-                        ctx=ctx,
-                        search_type=search_type,
-                        spotify=True,
-                        info={
-                            "title": track.name,
-                            "author": track.artists,
-                            "length": track.length,
-                            "identifier": track.id,
-                            "uri": track.uri,
-                            "isStream": False,
-                            "isSeekable": False,
-                            "position": 0,
-                            "thumbnail": track.image
-                        },
-                    ) for track in spotify_results.tracks
-                ]
-
-                return Playlist(
-                    playlist_info={"name": spotify_results.name, "selectedTrack": tracks[0]},
-                    tracks=tracks,
-                    ctx=ctx,
-                    spotify=True,
-                    thumbnail=spotify_results.image,
-                    uri=spotify_results.uri,
-                )
-
-            elif isinstance(spotify_results, spotify.Album):
-            
-                tracks = [
-                    Track(
-                        track_id=track.id,
-                        ctx=ctx,
-                        search_type=search_type,
-                        spotify=True,
-                        info={
-                            "title": track.name,
-                            "author": track.artists,
-                            "length": track.length,
-                            "identifier": track.id,
-                            "uri": track.uri,
-                            "isStream": False,
-                            "isSeekable": False,
-                            "position": 0,
-                            "thumbnail": track.image
-                        },
-                    ) for track in spotify_results.tracks
-                ]
-
-                return Playlist(
-                    playlist_info={"name": spotify_results.name, "selectedTrack": tracks[0]},
-                    tracks=tracks,
-                    ctx=ctx,
-                    spotify=True,
-                    thumbnail=spotify_results.image,
-                    uri=spotify_results.uri,
-                )
-
-
-            elif isinstance(spotify_results, spotify.Track):
-
+            if isinstance(spotify_results, spotify.Track):
                 return [
                     Track(
                         track_id=spotify_results.id,
@@ -383,10 +319,38 @@ class Node:
                             "isSeekable": False,
                             "position": 0,
                             "thumbnail": spotify_results.image
-                        },
+                        }
                     )
                 ]
 
+            tracks = [
+                Track(
+                    track_id=track.id,
+                    ctx=ctx,
+                    search_type=search_type,
+                    spotify=True,
+                    info={
+                        "title": track.name,
+                        "author": track.artists,
+                        "length": track.length,
+                        "identifier": track.id,
+                        "uri": track.uri,
+                        "isStream": False,
+                        "isSeekable": False,
+                        "position": 0,
+                        "thumbnail": track.image
+                    }
+                ) for track in spotify_results.tracks
+            ]
+
+            return Playlist(
+                playlist_info={"name": spotify_results.name, "selectedTrack": tracks[0]},
+                tracks=tracks,
+                ctx=ctx,
+                spotify=True,
+                thumbnail=spotify_results.image,
+                uri=spotify_results.uri
+            )
 
         elif discord_url := DISCORD_MP3_URL_REGEX.match(query):
             async with self._session.get(
@@ -396,19 +360,22 @@ class Node:
                 data: dict = await response.json()
 
             track: dict = data["tracks"][0]
-            info: dict = track.get('info')
+            info: dict = track.get("info")
 
-            return [Track(
-                track_id=track['track'],
-                info={
-                    "title": discord_url.group('file'),
-                    "author": "Unknown",
-                    "length": info.get('length'),
-                    "uri": info.get('uri'),
-                    "position": info.get('position'),
-                    "identifier": info.get('identifier')
-                },
-                ctx=ctx)]
+            return [
+                Track(
+                    track_id=track["track"],
+                    info={
+                        "title": discord_url.group("file"),
+                        "author": "Unknown",
+                        "length": info.get("length"),
+                        "uri": info.get("uri"),
+                        "position": info.get("position"),
+                        "identifier": info.get("identifier")
+                    },
+                    ctx=ctx
+                )
+            ]
 
         else:
             async with self._session.get(
@@ -471,9 +438,13 @@ class NodePool:
         """Fetches a node from the node pool using it's identifier.
            If no identifier is provided, it will choose a node at random.
         """
-        available_nodes = {identifier: node for identifier, node in cls._nodes.items() if node._available}
+        available_nodes = {
+            identifier: node
+            for identifier, node in cls._nodes.items() if node._available
+        }
+
         if not available_nodes:
-            raise NoNodesAvailable('There are no nodes available.')
+            raise NoNodesAvailable("There are no nodes available.")
 
         if identifier is None:
             return random.choice(list(available_nodes.values()))

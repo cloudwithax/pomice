@@ -1,6 +1,7 @@
 from .pool import NodePool
 from .utils import ClientType
 
+
 class PomiceEvent:
     """The base class for all events dispatched by a node. 
        Every event must be formatted within your bot's code as a listener.
@@ -49,12 +50,16 @@ class TrackEndEvent(PomiceEvent):
         self.handler_args = self.player, self.track, self.reason
 
     def __repr__(self) -> str:
-        return f"<Pomice.TrackEndEvent player={self.player} track_id={self.track.track_id} reason={self.reason}>"
+        return (
+            f"<Pomice.TrackEndEvent player={self.player} track_id={self.track.track_id} "
+            f"reason={self.reason}>"
+        )
 
 
 class TrackStuckEvent(PomiceEvent):
     """Fired when a track is stuck and cannot be played. Returns the player
-       associated with the event along with the pomice.Track object to be further parsed by the end user.
+       associated with the event along with the pomice.Track object
+       to be further parsed by the end user.
     """
     name = "track_stuck"
 
@@ -99,6 +104,7 @@ class WebSocketClosedPayload:
     def __repr__(self) -> str:
         return f"<Pomice.WebSocketClosedPayload guild={self.guild!r} code={self.code!r} " \
                f"reason={self.reason!r} by_remote={self.by_remote!r}>"
+
 
 class WebSocketClosedEvent(PomiceEvent):
     """Fired when a websocket connection to a node has been closed.

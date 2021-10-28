@@ -26,9 +26,9 @@ from discord import AutoShardedClient, Client
 from discord.ext.commands import AutoShardedBot, Bot
 
 __all__ = [
-    'ExponentialBackoff',
-    'NodeStats',
-    'ClientType'
+    "ClientType",
+    "ExponentialBackoff",
+    "NodeStats"
 ]
 
 ClientType = Union[AutoShardedBot, AutoShardedClient, Bot, Client]
@@ -64,24 +64,26 @@ class ExponentialBackoff:
 
 
 class NodeStats:
-    """The base class for the node stats object. Gives critcical information on the node, which is updated every minute."""
+    """The base class for the node stats object.
+       Gives critical information on the node, which is updated every minute.
+    """
 
     def __init__(self, data: dict) -> None:
 
-        memory = data.get('memory')
-        self.used = memory.get('used')
-        self.free = memory.get('free')
-        self.reservable = memory.get('reservable')
-        self.allocated = memory.get('allocated')
+        memory = data.get("memory")
+        self.used = memory.get("used")
+        self.free = memory.get("free")
+        self.reservable = memory.get("reservable")
+        self.allocated = memory.get("allocated")
 
-        cpu = data.get('cpu')
-        self.cpu_cores = cpu.get('cores')
-        self.cpu_system_load = cpu.get('systemLoad')
-        self.cpu_process_load = cpu.get('lavalinkLoad')
+        cpu = data.get("cpu")
+        self.cpu_cores = cpu.get("cores")
+        self.cpu_system_load = cpu.get("systemLoad")
+        self.cpu_process_load = cpu.get("lavalinkLoad")
 
-        self.players_active = data.get('playingPlayers')
-        self.players_total = data.get('players')
-        self.uptime = data.get('uptime')
+        self.players_active = data.get("playingPlayers")
+        self.players_total = data.get("players")
+        self.uptime = data.get("uptime")
 
     def __repr__(self) -> str:
-        return f'<Pomice.NodeStats total_players={self.players_total!r} playing_active={self.players_active!r}>'
+        return f"<Pomice.NodeStats total_players={self.players_total!r} playing_active={self.players_active!r}>"

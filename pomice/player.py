@@ -156,7 +156,7 @@ class Player(VoiceProtocol):
 
         self.channel = self.guild.get_channel(int(channel_id))
 
-        if not data.get('token'):
+        if not data.get("token"):
             return
 
         await self._dispatch_voice_update({**self._voice_state, "event": data})
@@ -274,7 +274,7 @@ class Player(VoiceProtocol):
         return self._paused
 
     async def set_volume(self, volume: int) -> int:
-        """Sets the volume of the player as an integer. Lavalink accepts an amount from 0 to 500."""
+        """Sets the volume of the player as an integer. Lavalink accepts values from 0 to 500."""
         await self._node.send(op="volume", guildId=str(self.guild.id), volume=volume)
         self._volume = volume
         return self._volume

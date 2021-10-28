@@ -1,7 +1,7 @@
 """Pomice wrapper for Lavalink, made possible by cloudwithax 2021"""
 import discord
 
-if discord.__version__ != '2.0.0a':
+if discord.__version__ != "2.0.0a":
     class DiscordPyOutdated(Exception):
         pass
 
@@ -22,4 +22,3 @@ from .filters import *
 from .objects import *
 from .player import Player
 from .pool import *
-

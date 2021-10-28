@@ -3,14 +3,17 @@ from enum import Enum
 
 class SearchType(Enum):
     """The enum for the different search types for Pomice.
-    This feature is exclusively for the Spotify search feature of Pomice.
-    If you are not using this feature, this class is not necessary.
+       This feature is exclusively for the Spotify search feature of Pomice.
+       If you are not using this feature, this class is not necessary.
 
-    SearchType.ytsearch searches using regular Youtube, which is best for all scenarios.
+       SearchType.ytsearch searches using regular Youtube,
+       which is best for all scenarios.
 
-    SearchType.ytmsearch searches using YouTube Music, which is best for getting audio-only results.
+       SearchType.ytmsearch searches using YouTube Music,
+       which is best for getting audio-only results.
 
-    SearchType.scsearch searches using SoundCloud, which is an alternative to YouTube or YouTube Music.
+       SearchType.scsearch searches using SoundCloud,
+       which is an alternative to YouTube or YouTube Music.
     """
     ytsearch = "ytsearch"
     ytmsearch = "ytmsearch"
