@@ -1,8 +1,12 @@
 import collections
 from .exceptions import FilterInvalidArgument
+
+
 class Filter:
     def __init__(self):
         self.payload = None
+        
+        
 class Equalizer:
     """
     Filter which represents a 15 band equalizer.
@@ -28,6 +32,8 @@ class Equalizer:
         return _dict
     def __repr__(self) -> str:
         return f"<Pomice.EqualizerFilter eq={self.eq} raw={self.raw}>"
+    
+    
 class Timescale(Filter):
     """Filter which changes the speed and pitch of a track.
        Do be warned that this filter is bugged as of the lastest Lavalink dev version
@@ -51,6 +57,8 @@ class Timescale(Filter):
                                       "rate": self.rate}}
     def __repr__(self):
         return f"<Pomice.TimescaleFilter speed={self.speed} pitch={self.pitch} rate={self.rate}>"
+    
+    
 class Karaoke(Filter):
     """Filter which filters the vocal track from any song and leaves the instrumental.
        Best for karaoke as the filter implies.
@@ -77,6 +85,8 @@ class Karaoke(Filter):
             f"<Pomice.KaraokeFilter level={self.level} mono_level={self.mono_level} "
             f"filter_band={self.filter_band} filter_width={self.filter_width}>"
         )
+    
+    
 class Tremolo(Filter):
     """Filter which produces a wavering tone in the music,
        causing it to sound like the music is changing in volume rapidly.
@@ -95,6 +105,8 @@ class Tremolo(Filter):
                                     "depth": self.depth}}
     def __repr__(self):
         return f"<Pomice.TremoloFilter frequency={self.frequency} depth={self.depth}>"
+    
+    
 class Vibrato(Filter):
     """Filter which produces a wavering tone in the music, similar to the Tremolo filter,
        but changes in pitch rather than volume.
