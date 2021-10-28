@@ -1,7 +1,7 @@
 """Pomice wrapper for Lavalink, made possible by cloudwithax 2021"""
 import discord
 
-if discord.__version__ != '2.0.0a':
+if discord.__version__ != "2.0.0a":
     class DiscordPyOutdated(Exception):
         pass
 
@@ -11,7 +11,7 @@ if discord.__version__ != '2.0.0a':
         "using 'pip install git+https://github.com/Rapptz/discord.py@master'"
     )
 
-__version__ = "1.0.7.1"
+__version__ = "1.0.7.2"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
@@ -22,4 +22,3 @@ from .filters import *
 from .objects import *
 from .player import Player
 from .pool import *
-
