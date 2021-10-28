@@ -4,4 +4,5 @@ class SpotifyRequestException(Exception):
 
 
 class InvalidSpotifyURL(Exception):
+    """An invalid Spotify URL was passed"""
     pass

@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     include_package_data=True,
-    install_requires=['discord.py>=1.7.1'],
+    install_requires=['discord.py>=2.0.0a'],
     extra_require=None,
     classifiers=[
         "Framework :: AsyncIO",
