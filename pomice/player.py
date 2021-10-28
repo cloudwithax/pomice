@@ -15,7 +15,7 @@ from discord.ext import commands, tasks
 
 from . import events
 from .enums import SearchType
-from .events import PomiceEvent, TrackStartEvent
+from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
 from .exceptions import TrackInvalidPosition
 from .filters import Filter
 from .objects import Track
@@ -188,6 +188,10 @@ class Player(VoiceProtocol):
     async def _dispatch_event(self, data: dict):
         event_type = data.get("type")
         event: PomiceEvent = getattr(events, event_type)(data)
+        
+        if isinstance(event, TrackEndEvent):
+            self._current = None
+        
         event.dispatch(self._bot)
 
         if isinstance(event, TrackStartEvent):
@@ -231,7 +235,15 @@ class Player(VoiceProtocol):
 
     async def destroy(self):
         """Disconnects a player and destroys the player instance."""
-        await self.disconnect()
+        try:
+            await self.disconnect()
+        except AttributeError:
+            # 'NoneType' has no attribute '_get_voice_client_key' raised by self.cleanup() ->
+            # assume we're already disconnected and cleaned up
+            assert self.channel is None \
+                and not self.is_connected \
+                and self.guild.id not in self._node._players
+
         await self._node.send(op="destroy", guildId=str(self.guild.id))
 
     async def play(self, track: Track, *, start_position: int = 0) -> Track:
