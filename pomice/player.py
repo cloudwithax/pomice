@@ -202,26 +202,24 @@ class Player(VoiceProtocol):
         await self._node.send(op="stop", guildId=str(self.guild.id))
 
     async def disconnect(self, *, force: bool = False):
-        """Disconnects the player from voice and handles internal state cleanup."""
+        """Disconnects the player from voice."""
         try:
             await self.guild.change_voice_state(channel=None)
         finally:
             self.cleanup()
             self._is_connected = False
             self.channel = None
-            del self._node._players[self.guild.id]
 
     async def destroy(self):
-        """Disconnects the player and sends a call to destroy the player on Lavalink's end."""
+        """Disconnects and destroys the player, and runs internal cleanup."""
         try:
             await self.disconnect()
         except AttributeError:
             # 'NoneType' has no attribute '_get_voice_client_key' raised by self.cleanup() ->
             # assume we're already disconnected and cleaned up
-            assert self.channel is None \
-                and not self.is_connected \
-                and self.guild.id not in self._node._players
+            assert self.channel is None and not self.is_connected
 
+        del self._node._players[self.guild.id]
         await self._node.send(op="destroy", guildId=str(self.guild.id))
 
     async def play(
