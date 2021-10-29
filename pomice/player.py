@@ -126,6 +126,13 @@ class Player(VoiceProtocol):
         """Property which returns the bot associated with this player instance"""
         return self._bot
 
+    @property
+    def is_dead(self) -> bool:
+        """Returns a bool representing whether the player is dead or not.
+           A player is considered dead if it has been destroyed and removed from stored players.
+        """
+        return self._guild.id not in self._node._players
+
     async def _update_state(self, data: dict):
         state: dict = data.get("state")
         self._last_update = time.time() * 1000
@@ -219,8 +226,8 @@ class Player(VoiceProtocol):
             # assume we're already disconnected and cleaned up
             assert self.channel is None and not self.is_connected
 
-        del self._node._players[self.guild.id]
-        await self._node.send(op="destroy", guildId=str(self.guild.id))
+        self._node._players.pop(self._guild.id)
+        await self._node.send(op="destroy", guildId=str(self._guild.id))
 
     async def play(
         self,
@@ -264,7 +271,6 @@ class Player(VoiceProtocol):
 
     async def seek(self, position: float) -> float:
         """Seeks to a position in the currently playing track milliseconds"""
-
         if position < 0 or position > self.current.length:
             raise TrackInvalidPosition(
                 f"Seek position must be between 0 and the track length"
