@@ -146,3 +146,18 @@ class Vibrato(Filter):
 
     def __repr__(self):
         return f"<Pomice.VibratoFilter frequency={self.frequency} depth={self.depth}>"
+    
+class EightD(Filter):
+    """Filer Which Produces a rotational sound in music, similar to a panning audio,
+       on the x , y plane.
+    """
+
+    def __init__(self, *, rotational_hz : int = 0.2):
+
+        super().__init__()
+
+        self.rotational_hz = rotational_hz
+        self.payload = {"rotation" : {"rotationHz" : self.rotational_hz}}
+    
+    def __repr__(self) -> str:
+        return f"<Pomice.EightDFilter rotational_hz={self.rotational_hz}>"
