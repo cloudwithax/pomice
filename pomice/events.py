@@ -85,13 +85,18 @@ class TrackExceptionEvent(PomiceEvent):
     def __init__(self, data: dict):
         self.player = NodePool.get_node().get_player(int(data["guildId"]))
         self.track = self.player._ending_track
-        self.error: str = data["error"]
+        if data.get('error'):
+            # User is running Lavalink <= 3.3
+            self.exception: str = data["error"]
+        else:
+            # User is running Lavalink >=3.4
+            self.exception: str = data["exception"]
 
         # on_pomice_track_exception(player, track, error)
-        self.handler_args = self.player, self.track, self.error
+        self.handler_args = self.player, self.track, self.exception
 
     def __repr__(self) -> str:
-        return f"<Pomice.TrackExceptionEvent player={self.player!r} error={self.error!r}>"
+        return f"<Pomice.TrackExceptionEvent player={self.player!r} exception={self.exception!r}>"
 
 
 class WebSocketClosedPayload:
