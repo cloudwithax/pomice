@@ -74,21 +74,20 @@ class Client:
             return Track(data)
         elif spotify_type == "album":
             return Album(data)
+        else:
+            tracks = [Track(track["track"]) for track in data["tracks"]["items"]]
+            next_page_url = data["tracks"]["next"]
 
-        # processing a playlist result
-        tracks = [Track(track["track"]) for track in data["tracks"]["items"]]
-        next_page_url = data["tracks"]["next"]
+            while next_page_url is not None:
+                async with self.session.get(next_page_url, headers=self._bearer_headers) as resp:
+                    if resp.status != 200:
+                        raise SpotifyRequestException(
+                            f"Error while fetching results: {resp.status} {resp.reason}"
+                        )
 
-        while next_page_url is not None:
-            async with self.session.get(next_page_url, headers=self._bearer_headers) as resp:
-                if resp.status != 200:
-                    raise SpotifyRequestException(
-                        f"Error while fetching results: {resp.status} {resp.reason}"
-                    )
+                    next_data: dict = await resp.json()
 
-                next_data: dict = await resp.json()
+                tracks += [Track(track["track"]) for track in next_data["items"]]
+                next_page_url = next_data["next"]
 
-            tracks += [Track(track["track"]) for track in next_data["items"]]
-            next_page_url = next_data["next"]
-
-        return Playlist(data, tracks)
+            return Playlist(data, tracks)
