@@ -149,6 +149,14 @@ class Player(VoiceProtocol):
     def bot(self) -> ClientType:
         """Property which returns the bot associated with this player instance"""
         return self._bot
+    
+    @property
+    def is_dead(self) -> bool:
+        """Returns a bool representing whether the player is dead or not.
+           A player is considered dead if it has been destroyed and removed from stored players.
+        """
+        return self._guild.id not in self._node._players
+
 
     async def _update_state(self, data: dict):
         state: dict = data.get("state")
@@ -240,11 +248,10 @@ class Player(VoiceProtocol):
         except AttributeError:
             # 'NoneType' has no attribute '_get_voice_client_key' raised by self.cleanup() ->
             # assume we're already disconnected and cleaned up
-            assert self.channel is None \
-                and not self.is_connected \
-                and self.guild.id not in self._node._players
+            assert self.channel is None and not self.is_connected
 
-        await self._node.send(op="destroy", guildId=str(self.guild.id))
+        self._node._players.pop(self._guild.id)
+        await self._node.send(op="destroy", guildId=str(self._guild.id))
 
     async def play(self, track: Track, *, start_position: int = 0) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
