@@ -56,7 +56,7 @@ class Music(commands.Cog):
 
         player: pomice.Player = ctx.voice_client
 
-        player.destroy()
+        await player.destroy()
 
         await ctx.send("Player has left the channel.")
         
@@ -96,7 +96,7 @@ class Music(commands.Cog):
         if player.is_paused:
             await ctx.send("Player is already paused!")
 
-        player.set_pause(pause=True)
+        await player.set_pause(pause=True)
 
         await ctx.send("Player has been paused")
 
@@ -111,7 +111,7 @@ class Music(commands.Cog):
         if not player.is_paused:
             await ctx.send("Player is already playing!")
 
-        player.set_pause(pause=False)
+        await player.set_pause(pause=False)
 
         await ctx.send("Player has been resumed")
 
@@ -126,7 +126,7 @@ class Music(commands.Cog):
         if not player.is_playing:
             await ctx.send("Player is already stopped!")
 
-        player.stop()
+        await player.stop()
 
         await ctx.send("Player has been stopped")
 
