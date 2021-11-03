@@ -58,7 +58,7 @@ class Client:
         spotify_id = result.group("id")
 
         if not result:
-            return InvalidSpotifyURL("The Spotify link provided is not valid.")
+            raise InvalidSpotifyURL("The Spotify link provided is not valid.")
 
         request_url = REQUEST_URL.format(type=spotify_type, id=spotify_id)
 
