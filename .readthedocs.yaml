@@ -6,8 +6,8 @@ sphinx:
 python:
   version: "3.8"
   install:
+    - requirements: docs/requirements_rtd.txt
     - method: pip
       path: . 
-    - requirements: docs/requirements_rtd.txt
 
   system_packages: true
