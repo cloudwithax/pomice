@@ -1,0 +1,854 @@
+
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Pomice &#8212; Pomice 1.1.1 documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/alabaster.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Spotify" href="pomice.spotify.html" />
+    <link rel="prev" title="&lt;no title&gt;" href="modules.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="pomice">
+<h1>Pomice<a class="headerlink" href="#pomice" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pomice.spotify.html">Spotify</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pomice.spotify.html#module-pomice.spotify.album">spotify.Album</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pomice.spotify.html#module-pomice.spotify.client">spotify.Client</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pomice.spotify.html#module-pomice.spotify.exceptions">spotify.Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pomice.spotify.html#module-pomice.spotify.playlist">spotify.Playlist</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pomice.spotify.html#module-pomice.spotify.track">spotify.Track</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<section id="module-pomice.enums">
+<span id="enums"></span><h2>Enums<a class="headerlink" href="#module-pomice.enums" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.enums.SearchType">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.enums.</span></span><span class="sig-name descname"><span class="pre">SearchType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.enums.SearchType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>The enum for the different search types for Pomice.
+This feature is exclusively for the Spotify search feature of Pomice.
+If you are not using this feature, this class is not necessary.</p>
+<p>SearchType.ytsearch searches using regular Youtube,
+which is best for all scenarios.</p>
+<p>SearchType.ytmsearch searches using YouTube Music,
+which is best for getting audio-only results.</p>
+<p>SearchType.scsearch searches using SoundCloud,
+which is an alternative to YouTube or YouTube Music.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.enums.SearchType.scsearch">
+<span class="sig-name descname"><span class="pre">scsearch</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'scsearch'</span></em><a class="headerlink" href="#pomice.enums.SearchType.scsearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.enums.SearchType.ytmsearch">
+<span class="sig-name descname"><span class="pre">ytmsearch</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ytmsearch'</span></em><a class="headerlink" href="#pomice.enums.SearchType.ytmsearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.enums.SearchType.ytsearch">
+<span class="sig-name descname"><span class="pre">ytsearch</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'ytsearch'</span></em><a class="headerlink" href="#pomice.enums.SearchType.ytsearch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pomice.events">
+<span id="events"></span><h2>Events<a class="headerlink" href="#module-pomice.events" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.PomiceEvent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">PomiceEvent</span></span><a class="headerlink" href="#pomice.events.PomiceEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base class for all events dispatched by a node. 
+Every event must be formatted within your bot’s code as a listener.
+i.e: If you want to listen for when a track starts, the event would be:
+<code class="docutils literal notranslate"><span class="pre">`py</span>
+<span class="pre">&#64;bot.listen</span>
+<span class="pre">async</span> <span class="pre">def</span> <span class="pre">on_pomice_track_start(self,</span> <span class="pre">event):</span>
+<span class="pre">`</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.events.PomiceEvent.dispatch">
+<span class="sig-name descname"><span class="pre">dispatch</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">bot</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.bot.AutoShardedBot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.shard.AutoShardedClient</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.ext.commands.bot.Bot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.client.Client</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.PomiceEvent.dispatch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.PomiceEvent.handler_args">
+<span class="sig-name descname"><span class="pre">handler_args</span></span><em class="property"> <span class="pre">=</span> <span class="pre">()</span></em><a class="headerlink" href="#pomice.events.PomiceEvent.handler_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.PomiceEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'event'</span></em><a class="headerlink" href="#pomice.events.PomiceEvent.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.TrackEndEvent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">TrackEndEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.TrackEndEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.events.PomiceEvent" title="pomice.events.PomiceEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.events.PomiceEvent</span></code></a></p>
+<p>Fired when a track has successfully ended.
+Returns the player associated with the event along with the pomice.Track object and reason.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.TrackEndEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'track_end'</span></em><a class="headerlink" href="#pomice.events.TrackEndEvent.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.TrackExceptionEvent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">TrackExceptionEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.TrackExceptionEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.events.PomiceEvent" title="pomice.events.PomiceEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.events.PomiceEvent</span></code></a></p>
+<p>Fired when a track error has occured.
+Returns the player associated with the event along with the error code and exception.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.TrackExceptionEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'track_exception'</span></em><a class="headerlink" href="#pomice.events.TrackExceptionEvent.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.TrackStartEvent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">TrackStartEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.TrackStartEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.events.PomiceEvent" title="pomice.events.PomiceEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.events.PomiceEvent</span></code></a></p>
+<p>Fired when a track has successfully started.
+Returns the player associated with the event and the pomice.Track object.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.TrackStartEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'track_start'</span></em><a class="headerlink" href="#pomice.events.TrackStartEvent.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.TrackStuckEvent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">TrackStuckEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.TrackStuckEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.events.PomiceEvent" title="pomice.events.PomiceEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.events.PomiceEvent</span></code></a></p>
+<p>Fired when a track is stuck and cannot be played. Returns the player
+associated with the event along with the pomice.Track object
+to be further parsed by the end user.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.TrackStuckEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'track_stuck'</span></em><a class="headerlink" href="#pomice.events.TrackStuckEvent.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.WebSocketClosedEvent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">WebSocketClosedEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.WebSocketClosedEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.events.PomiceEvent" title="pomice.events.PomiceEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.events.PomiceEvent</span></code></a></p>
+<p>Fired when a websocket connection to a node has been closed.
+Returns the reason and the error code.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.WebSocketClosedEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'websocket_closed'</span></em><a class="headerlink" href="#pomice.events.WebSocketClosedEvent.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.WebSocketClosedPayload">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">WebSocketClosedPayload</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.WebSocketClosedPayload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.events.WebSocketOpenEvent">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.events.</span></span><span class="sig-name descname"><span class="pre">WebSocketOpenEvent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.events.WebSocketOpenEvent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.events.PomiceEvent" title="pomice.events.PomiceEvent"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.events.PomiceEvent</span></code></a></p>
+<p>Fired when a websocket connection to a node has been initiated.
+Returns the target and the session SSRC.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="pomice.events.WebSocketOpenEvent.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"> <span class="pre">=</span> <span class="pre">'websocket_open'</span></em><a class="headerlink" href="#pomice.events.WebSocketOpenEvent.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pomice.exceptions">
+<span id="exceptions"></span><h2>Exceptions<a class="headerlink" href="#module-pomice.exceptions" title="Permalink to this headline">¶</a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.FilterInvalidArgument">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">FilterInvalidArgument</span></span><a class="headerlink" href="#pomice.exceptions.FilterInvalidArgument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>An invalid argument was passed to a filter.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.InvalidSpotifyClientAuthorization">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">InvalidSpotifyClientAuthorization</span></span><a class="headerlink" href="#pomice.exceptions.InvalidSpotifyClientAuthorization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>No Spotify client authorization was provided for track searching.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.NoNodesAvailable">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">NoNodesAvailable</span></span><a class="headerlink" href="#pomice.exceptions.NoNodesAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>There are no nodes currently available.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.NodeConnectionClosed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">NodeConnectionClosed</span></span><a class="headerlink" href="#pomice.exceptions.NodeConnectionClosed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.NodeException" title="pomice.exceptions.NodeException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.NodeException</span></code></a></p>
+<p>The node’s connection is closed.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.NodeConnectionFailure">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">NodeConnectionFailure</span></span><a class="headerlink" href="#pomice.exceptions.NodeConnectionFailure" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.NodeException" title="pomice.exceptions.NodeException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.NodeException</span></code></a></p>
+<p>There was a problem while connecting to the node.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.NodeCreationError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">NodeCreationError</span></span><a class="headerlink" href="#pomice.exceptions.NodeCreationError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.NodeException" title="pomice.exceptions.NodeException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.NodeException</span></code></a></p>
+<p>There was a problem while creating the node.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.NodeException">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">NodeException</span></span><a class="headerlink" href="#pomice.exceptions.NodeException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Base exception for nodes.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.NodeNotAvailable">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">NodeNotAvailable</span></span><a class="headerlink" href="#pomice.exceptions.NodeNotAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>The node is currently unavailable.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.PomiceException">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">PomiceException</span></span><a class="headerlink" href="#pomice.exceptions.PomiceException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Base of all Pomice exceptions.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.SpotifyAlbumLoadFailed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">SpotifyAlbumLoadFailed</span></span><a class="headerlink" href="#pomice.exceptions.SpotifyAlbumLoadFailed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>The pomice Spotify client was unable to load an album.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.SpotifyPlaylistLoadFailed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">SpotifyPlaylistLoadFailed</span></span><a class="headerlink" href="#pomice.exceptions.SpotifyPlaylistLoadFailed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>The pomice Spotify client was unable to load a playlist.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.SpotifyTrackLoadFailed">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">SpotifyTrackLoadFailed</span></span><a class="headerlink" href="#pomice.exceptions.SpotifyTrackLoadFailed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>The pomice Spotify client was unable to load a track.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.TrackInvalidPosition">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">TrackInvalidPosition</span></span><a class="headerlink" href="#pomice.exceptions.TrackInvalidPosition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>An invalid position was chosen for a track.</p>
+</dd></dl>
+
+<dl class="py exception">
+<dt class="sig sig-object py" id="pomice.exceptions.TrackLoadError">
+<em class="property"><span class="pre">exception</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.exceptions.</span></span><span class="sig-name descname"><span class="pre">TrackLoadError</span></span><a class="headerlink" href="#pomice.exceptions.TrackLoadError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.exceptions.PomiceException" title="pomice.exceptions.PomiceException"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.exceptions.PomiceException</span></code></a></p>
+<p>There was an error while loading a track.</p>
+</dd></dl>
+
+</section>
+<section id="module-pomice.filters">
+<span id="filters"></span><h2>Filters<a class="headerlink" href="#module-pomice.filters" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.ChannelMix">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">ChannelMix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_to_left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_to_right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">left_to_right</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">right_to_left</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.ChannelMix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which manually adjusts the panning of the audio, which can make
+for some cool effects when done correctly.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Distortion">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Distortion</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sin_offset</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sin_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cos_offset</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cos_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tan_offset</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tan_scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">offset</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.Distortion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which generates a distortion effect. Useful for certain filter implementations where
+distortion is needed.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Equalizer">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Equalizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">levels</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.Equalizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Filter which represents a 15 band equalizer.
+You can adjust the dynamic of the sound using this filter.
+i.e: Applying a bass boost filter to emphasize the bass in a song.
+The format for the levels is: List[Tuple[int, float]]</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Filter">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Filter</span></span><a class="headerlink" href="#pomice.filters.Filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Karaoke">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Karaoke</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mono_level</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_band</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">220.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_width</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">100.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.Karaoke" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which filters the vocal track from any song and leaves the instrumental.
+Best for karaoke as the filter implies.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.LowPass">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">LowPass</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">smoothing</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">20</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.LowPass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which supresses higher frequencies and allows lower frequencies to pass.
+You can also do this with the Equalizer filter, but this is an easier way to do it.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Rotation">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Rotation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rotation_hertz</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.Rotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which produces a stereo-like panning effect, which sounds like
+the audio is being rotated around the listener’s head</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Timescale">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Timescale</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">speed</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pitch</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rate</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.Timescale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which changes the speed and pitch of a track.
+Do be warned that this filter is bugged as of the lastest Lavalink dev version
+due to the filter patch not corresponding with the track time.</p>
+<p>In short this means that your track will either end prematurely or end later due to this.
+This is not the library’s fault.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Tremolo">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Tremolo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.Tremolo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which produces a wavering tone in the music,
+causing it to sound like the music is changing in volume rapidly.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.filters.Vibrato">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.filters.</span></span><span class="sig-name descname"><span class="pre">Vibrato</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">2.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.filters.Vibrato" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><code class="xref py py-class docutils literal notranslate"><span class="pre">pomice.filters.Filter</span></code></a></p>
+<p>Filter which produces a wavering tone in the music, similar to the Tremolo filter,
+but changes in pitch rather than volume.</p>
+</dd></dl>
+
+</section>
+<section id="module-pomice.objects">
+<span id="objects"></span><h2>Objects<a class="headerlink" href="#module-pomice.objects" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.objects.Playlist">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.objects.</span></span><span class="sig-name descname"><span class="pre">Playlist</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">playlist_info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tracks</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.context.Context</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spotify</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">thumbnail</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">uri</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.objects.Playlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base playlist object.
+Returns critical playlist information needed for parsing by Lavalink.
+You can also pass in commands.Context to get a discord.py Context object in your tracks.</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.objects.Playlist.thumbnail">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">thumbnail</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pomice.objects.Playlist.thumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spotify album/playlist thumbnail, or None if not a Spotify object.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.objects.Playlist.uri">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">uri</span></span><em class="property"><span class="pre">:</span> <span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pomice.objects.Playlist.uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Spotify album/playlist URI, or None if not a Spotify object.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.objects.Track">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.objects.</span></span><span class="sig-name descname"><span class="pre">Track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">track_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.context.Context</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spotify</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#pomice.enums.SearchType" title="pomice.enums.SearchType"><span class="pre">pomice.enums.SearchType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">SearchType.ytsearch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.objects.Track" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base track object. Returns critical track information needed for parsing by Lavalink.
+You can also pass in commands.Context to get a discord.py Context object in your track.</p>
+</dd></dl>
+
+</section>
+<section id="module-pomice.player">
+<span id="player"></span><h2>Player<a class="headerlink" href="#module-pomice.player" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.player.Player">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.player.</span></span><span class="sig-name descname"><span class="pre">Player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">client</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.bot.AutoShardedBot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.shard.AutoShardedClient</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.ext.commands.bot.Bot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.client.Client</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">channel</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.channel.VoiceChannel</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">discord.voice_client.VoiceProtocol</span></code></p>
+<p>The base player class for Pomice.
+In order to initiate a player, you must pass it in as a cls when you connect to a channel.
+i.e: <code class="docutils literal notranslate"><span class="pre">`py</span>
+<span class="pre">await</span> <span class="pre">ctx.author.voice.channel.connect(cls=pomice.Player)</span>
+<span class="pre">`</span></code></p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.bot">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">bot</span></span><em class="property"><span class="pre">:</span> <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.bot.AutoShardedBot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.shard.AutoShardedClient</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.ext.commands.bot.Bot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.client.Client</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pomice.player.Player.bot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the bot associated with this player instance</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.connect">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reconnect</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id3"><span class="problematic" id="id4">|coro|</span></a></p>
+<p>An abstract method called when the client initiates the connection request.</p>
+<p>When a connection is requested initially, the library calls the constructor
+under <code class="docutils literal notranslate"><span class="pre">__init__</span></code> and then calls <a class="reference internal" href="#pomice.player.Player.connect" title="pomice.player.Player.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connect()</span></code></a>. If <a class="reference internal" href="#pomice.player.Player.connect" title="pomice.player.Player.connect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">connect()</span></code></a> fails at
+some point then <a class="reference internal" href="#pomice.player.Player.disconnect" title="pomice.player.Player.disconnect"><code class="xref py py-meth docutils literal notranslate"><span class="pre">disconnect()</span></code></a> is called.</p>
+<p>Within this method, to start the voice connection flow it is recommended to
+use <code class="xref py py-meth docutils literal notranslate"><span class="pre">Guild.change_voice_state()</span></code> to start the flow. After which,
+<a class="reference internal" href="#pomice.player.Player.on_voice_server_update" title="pomice.player.Player.on_voice_server_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">on_voice_server_update()</span></code></a> and <a class="reference internal" href="#pomice.player.Player.on_voice_state_update" title="pomice.player.Player.on_voice_state_update"><code class="xref py py-meth docutils literal notranslate"><span class="pre">on_voice_state_update()</span></code></a> will be called.
+The order that these two are called is unspecified.</p>
+<dl class="simple">
+<dt>timeout: <code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></dt><dd><p>The timeout for the connection.</p>
+</dd>
+<dt>reconnect: <code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></dt><dd><p>Whether reconnection is expected.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.current">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">current</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#pomice.objects.Track" title="pomice.objects.Track"><span class="pre">pomice.objects.Track</span></a></em><a class="headerlink" href="#pomice.player.Player.current" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the currently playing track</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.destroy">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">destroy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player.destroy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnects and destroys the player, and runs internal cleanup.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.disconnect">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">force</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnects the player from voice.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.filter">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">filter</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><span class="pre">pomice.filters.Filter</span></a></em><a class="headerlink" href="#pomice.player.Player.filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the currently applied filter, if one is applied</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.get_tracks">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">get_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.context.Context</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#pomice.enums.SearchType" title="pomice.enums.SearchType"><span class="pre">pomice.enums.SearchType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">SearchType.ytsearch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player.get_tracks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches tracks from the node’s REST api to parse into Lavalink.</p>
+<p>If you passed in Spotify API credentials when you created the node,
+you can also pass in a Spotify URL of a playlist, album or track and it will be parsed
+accordingly.</p>
+<p>You can also pass in a discord.py Context object to get a
+Context object on any track you search.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.guild">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">guild</span></span><em class="property"><span class="pre">:</span> <span class="pre">discord.guild.Guild</span></em><a class="headerlink" href="#pomice.player.Player.guild" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the guild associated with the player</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.is_connected">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_connected</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#pomice.player.Player.is_connected" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns whether or not the player is connected</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.is_dead">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_dead</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#pomice.player.Player.is_dead" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a bool representing whether the player is dead or not.
+A player is considered dead if it has been destroyed and removed from stored players.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.is_paused">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_paused</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#pomice.player.Player.is_paused" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns whether or not the player has a track which is paused or not.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.is_playing">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_playing</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#pomice.player.Player.is_playing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns whether or not the player is actively playing a track.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.node">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">node</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#pomice.pool.Node" title="pomice.pool.Node"><span class="pre">pomice.pool.Node</span></a></em><a class="headerlink" href="#pomice.player.Player.node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the node the player is connected to</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.on_voice_server_update">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">on_voice_server_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player.on_voice_server_update" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id5"><span class="problematic" id="id6">|coro|</span></a></p>
+<p>An abstract method that is called when initially connecting to voice.
+This corresponds to <code class="docutils literal notranslate"><span class="pre">VOICE_SERVER_UPDATE</span></code>.</p>
+<dl class="simple">
+<dt>data: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></dt><dd><p>The raw <a class="reference external" href="https://discord.com/developers/docs/topics/gateway#voice-server-update-voice-server-update-event-fields">voice server update payload</a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.on_voice_state_update">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">on_voice_state_update</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player.on_voice_state_update" title="Permalink to this definition">¶</a></dt>
+<dd><p><a href="#id7"><span class="problematic" id="id8">|coro|</span></a></p>
+<p>An abstract method that is called when the client’s voice state
+has changed. This corresponds to <code class="docutils literal notranslate"><span class="pre">VOICE_STATE_UPDATE</span></code>.</p>
+<dl class="simple">
+<dt>data: <code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></dt><dd><p>The raw <a class="reference external" href="https://discord.com/developers/docs/resources/voice#voice-state-object">voice state payload</a>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.play">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">play</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#pomice.objects.Track" title="pomice.objects.Track"><span class="pre">pomice.objects.Track</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_if_playing</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pomice.objects.Track" title="pomice.objects.Track"><span class="pre">pomice.objects.Track</span></a></span></span><a class="headerlink" href="#pomice.player.Player.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plays a track. If a Spotify track is passed in, it will be handled accordingly.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.position">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">position</span></span><em class="property"><span class="pre">:</span> <span class="pre">float</span></em><a class="headerlink" href="#pomice.player.Player.position" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the player’s position in a track in milliseconds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.seek">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">position</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pomice.player.Player.seek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Seeks to a position in the currently playing track milliseconds</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.set_filter">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">set_filter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filter</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><span class="pre">pomice.filters.Filter</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pomice.filters.Filter" title="pomice.filters.Filter"><span class="pre">pomice.filters.Filter</span></a></span></span><a class="headerlink" href="#pomice.player.Player.set_filter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets a filter of the player. Takes a pomice.Filter object.
+This will only work if you are using the development version of Lavalink.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.set_pause">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">set_pause</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">pause</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="headerlink" href="#pomice.player.Player.set_pause" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the pause state of the currently playing track.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.set_volume">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">set_volume</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">volume</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="headerlink" href="#pomice.player.Player.set_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the volume of the player as an integer. Lavalink accepts values from 0 to 500.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.player.Player.stop">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">stop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pomice.player.Player.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stops the currently playing track.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.player.Player.volume">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">volume</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#pomice.player.Player.volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the players current volume</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pomice.pool">
+<span id="pool"></span><h2>Pool<a class="headerlink" href="#module-pomice.pool" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.pool.Node">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.pool.</span></span><span class="sig-name descname"><span class="pre">Node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">pool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bot</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.bot.AutoShardedBot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.shard.AutoShardedClient</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.ext.commands.bot.Bot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.client.Client</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">aiohttp.client.ClientSession</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spotify_client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spotify_client_secret</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.pool.Node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base class for a node. 
+This node object represents a Lavalink node. 
+To enable Spotify searching, pass in a proper Spotify Client ID and Spotify Client Secret</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.Node.bot">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">bot</span></span><em class="property"><span class="pre">:</span> <span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.bot.AutoShardedBot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.shard.AutoShardedClient</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.ext.commands.bot.Bot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.client.Client</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pomice.pool.Node.bot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the discord.py client linked to this node</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.Node.build_track">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">build_track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.context.Context</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pomice.objects.Track" title="pomice.objects.Track"><span class="pre">pomice.objects.Track</span></a></span></span><a class="headerlink" href="#pomice.pool.Node.build_track" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a track using a valid track identifier</p>
+<p>You can also pass in a discord.py Context object to get a
+Context object on the track it builds.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.Node.connect">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pomice.pool.Node.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initiates a connection with a Lavalink node and adds it to the node pool.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.Node.disconnect">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">disconnect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pomice.pool.Node.disconnect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Disconnects a connected Lavalink node and removes it from the node pool.
+This also destroys any players connected to the node.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.Node.get_player">
+<span class="sig-name descname"><span class="pre">get_player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">guild_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.pool.Node.get_player" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes a guild ID as a parameter. Returns a pomice Player object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.Node.get_tracks">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">get_tracks</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ctx</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.context.Context</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_type</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#pomice.enums.SearchType" title="pomice.enums.SearchType"><span class="pre">pomice.enums.SearchType</span></a></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">SearchType.ytsearch</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.pool.Node.get_tracks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches tracks from the node’s REST api to parse into Lavalink.</p>
+<p>If you passed in Spotify API credentials, you can also pass in a
+Spotify URL of a playlist, album or track and it will be parsed accordingly.</p>
+<p>You can also pass in a discord.py Context object to get a
+Context object on any track you search.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.Node.is_connected">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">is_connected</span></span><em class="property"><span class="pre">:</span> <span class="pre">bool</span></em><a class="headerlink" href="#pomice.pool.Node.is_connected" title="Permalink to this definition">¶</a></dt>
+<dd><p>“Property which returns whether this node is connected or not</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.Node.latency">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">latency</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#pomice.pool.Node.latency" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the latency of the node in milliseconds</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.Node.player_count">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">player_count</span></span><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#pomice.pool.Node.player_count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns how many players are connected to this node</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.Node.players">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">players</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">,</span> </span><span class="pre">Player</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pomice.pool.Node.players" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns a dict containing the guild ID and the player object.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.Node.pool">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">pool</span></span><a class="headerlink" href="#pomice.pool.Node.pool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the pool this node is apart of</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.Node.send">
+<em class="property"><span class="pre">async</span> </em><span class="sig-name descname"><span class="pre">send</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.pool.Node.send" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.Node.stats">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">stats</span></span><em class="property"><span class="pre">:</span> <a class="reference internal" href="#pomice.utils.NodeStats" title="pomice.utils.NodeStats"><span class="pre">pomice.utils.NodeStats</span></a></em><a class="headerlink" href="#pomice.pool.Node.stats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns the node stats.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.pool.NodePool">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.pool.</span></span><span class="sig-name descname"><span class="pre">NodePool</span></span><a class="headerlink" href="#pomice.pool.NodePool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base class for the node pool.
+This holds all the nodes that are to be used by the bot.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.NodePool.create_node">
+<em class="property"><span class="pre">async</span> <span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">create_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bot</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Union</span><span class="p"><span class="pre">[</span></span><span class="pre">discord.ext.commands.bot.AutoShardedBot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.shard.AutoShardedClient</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.ext.commands.bot.Bot</span><span class="p"><span class="pre">,</span> </span><span class="pre">discord.client.Client</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spotify_client_id</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spotify_client_secret</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">session</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">aiohttp.client.ClientSession</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pomice.pool.Node" title="pomice.pool.Node"><span class="pre">pomice.pool.Node</span></a></span></span><a class="headerlink" href="#pomice.pool.NodePool.create_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a Node object to be then added into the node pool.
+For Spotify searching capabilites, pass in valid Spotify API credentials.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.pool.NodePool.get_node">
+<em class="property"><span class="pre">classmethod</span> </em><span class="sig-name descname"><span class="pre">get_node</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">identifier</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Optional</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#pomice.pool.Node" title="pomice.pool.Node"><span class="pre">pomice.pool.Node</span></a></span></span><a class="headerlink" href="#pomice.pool.NodePool.get_node" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fetches a node from the node pool using it’s identifier.
+If no identifier is provided, it will choose a node at random.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.NodePool.node_count">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">node_count</span></span><a class="headerlink" href="#pomice.pool.NodePool.node_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="pomice.pool.NodePool.nodes">
+<em class="property"><span class="pre">property</span> </em><span class="sig-name descname"><span class="pre">nodes</span></span><em class="property"><span class="pre">:</span> <span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span> </span><a class="reference internal" href="#pomice.pool.Node" title="pomice.pool.Node"><span class="pre">pomice.pool.Node</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#pomice.pool.NodePool.nodes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Property which returns a dict with the node identifier and the Node object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-pomice.utils">
+<span id="utils"></span><h2>Utils<a class="headerlink" href="#module-pomice.utils" title="Permalink to this headline">¶</a></h2>
+<p>The MIT License (MIT)
+Copyright (c) 2015-present Rapptz
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the “Software”),
+to deal in the Software without restriction, including without limitation
+the rights to use, copy, modify, merge, publish, distribute, sublicense,
+and/or sell copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.utils.ExponentialBackoff">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.utils.</span></span><span class="sig-name descname"><span class="pre">ExponentialBackoff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">base</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">integral</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">bool</span></span> <span class="o"><span class="pre">=</span></span> <span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.utils.ExponentialBackoff" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="pomice.utils.ExponentialBackoff.delay">
+<span class="sig-name descname"><span class="pre">delay</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#pomice.utils.ExponentialBackoff.delay" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="pomice.utils.NodeStats">
+<em class="property"><span class="pre">class</span> </em><span class="sig-prename descclassname"><span class="pre">pomice.utils.</span></span><span class="sig-name descname"><span class="pre">NodeStats</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#pomice.utils.NodeStats" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>The base class for the node stats object.
+Gives critical information on the node, which is updated every minute.</p>
+</dd></dl>
+
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="index.html">Pomice</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pomice</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pomice.spotify.html">Spotify</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.enums">Enums</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.events">Events</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.exceptions">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.filters">Filters</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.objects">Objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.player">Player</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.pool">Pool</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-pomice.utils">Utils</a></li>
+</ul>
+</li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="index.html">Documentation overview</a><ul>
+  <li><a href="modules.html">&lt;no title&gt;</a><ul>
+      <li>Previous: <a href="modules.html" title="previous chapter">&lt;no title&gt;</a></li>
+      <li>Next: <a href="pomice.spotify.html" title="next chapter">Spotify</a></li>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>$('#searchbox').show(0);</script>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2021, cloudwithax.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 4.2.0</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+      |
+      <a href="_sources/pomice.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
