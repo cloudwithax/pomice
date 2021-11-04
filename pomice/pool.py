@@ -109,20 +109,11 @@ class Node:
         """"Property which returns whether this node is connected or not"""
         return self._websocket is not None and not self._websocket.closed
 
-    @property
-    async def latency(self) -> int:
-        """Property which returns the latency of the node in milliseconds"""
-        start_time = time.time()
-        await self.send(op="ping")
-        end_time = await self._bot.wait_for("node_ping")
-        return (end_time - start_time) * 1000
 
     @property
     async def stats(self) -> NodeStats:
         """Property which returns the node stats."""
-        await self.send(op="get-stats")
-        node_stats = await self._bot.wait_for("node_stats")
-        return node_stats
+        return self._stats
 
     @property
     def players(self) -> Dict[int, Player]:
@@ -225,15 +216,15 @@ class Node:
             return self
         except aiohttp.WSServerHandshakeError:
             raise NodeConnectionFailure(
-                f"The password for node '{self.identifier}' is invalid."
+                f"The password for node '{self._identifier}' is invalid."
             )
         except aiohttp.InvalidURL:
             raise NodeConnectionFailure(
-                f"The URI for node '{self.identifier}' is invalid."
+                f"The URI for node '{self._identifier}' is invalid."
             )
         except socket.gaierror:
             raise NodeConnectionFailure(
-                f"The node '{self.identifier}' failed to connect."
+                f"The node '{self._identifier}' failed to connect."
             )
 
     async def disconnect(self):
