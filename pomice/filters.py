@@ -7,7 +7,7 @@ class Filter:
         self.payload = None
 
 
-class Equalizer:
+class Equalizer(Filter):
     """
     Filter which represents a 15 band equalizer.
     You can adjust the dynamic of the sound using this filter.

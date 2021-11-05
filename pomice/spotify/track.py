@@ -12,7 +12,7 @@ class Track:
         else:
             self.image = None
 
-        self.uri = data["external_urls"]["spotify"]
+        self.uri = f"https://open.spotify.com/track/{self.id}"
 
     def __repr__(self) -> str:
         return (
