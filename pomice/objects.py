@@ -74,7 +74,6 @@ class Playlist:
         self.spotify = spotify
 
         self.name = playlist_info.get("name")
-        self.selected_track = playlist_info.get("selectedTrack")
 
         self._thumbnail = thumbnail
         self._uri = uri
@@ -86,6 +85,11 @@ class Playlist:
                 Track(track_id=track["track"], info=track["info"], ctx=ctx)
                 for track in self.tracks_raw
             ]
+
+        if (index := playlist_info.get("selectedTrack")) == -1:
+            self.selected_track = None
+        else:
+            self.selected_track = self.tracks[index]
 
         self.track_count = len(self.tracks)
 

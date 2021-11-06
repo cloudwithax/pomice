@@ -307,7 +307,7 @@ class Node:
                             "identifier": spotify_results.id,
                             "uri": spotify_results.uri,
                             "isStream": False,
-                            "isSeekable": False,
+                            "isSeekable": True,
                             "position": 0,
                             "thumbnail": spotify_results.image
                         }
@@ -327,7 +327,7 @@ class Node:
                         "identifier": track.id,
                         "uri": track.uri,
                         "isStream": False,
-                        "isSeekable": False,
+                        "isSeekable": True,
                         "position": 0,
                         "thumbnail": track.image
                     }
@@ -335,7 +335,7 @@ class Node:
             ]
 
             return Playlist(
-                playlist_info={"name": spotify_results.name, "selectedTrack": tracks[0]},
+                playlist_info={"name": spotify_results.name, "selectedTrack": 0},
                 tracks=tracks,
                 ctx=ctx,
                 spotify=True,
