@@ -7,12 +7,15 @@ class Track:
         self.length = data["duration_ms"]
         self.id = data["id"]
 
-        if data.get("album") and data["album"]["images"]:
+        if data.get("album") and data["album"].get("images"):
             self.image = data["album"]["images"][0]["url"]
         else:
             self.image = None
 
-        self.uri = f"https://open.spotify.com/track/{self.id}"
+        if data["is_local"]:
+            self.uri = None
+        else:
+            self.uri = data["external_urls"]["spotify"]
 
     def __repr__(self) -> str:
         return (

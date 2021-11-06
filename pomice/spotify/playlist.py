@@ -12,7 +12,7 @@ class Playlist:
         self.total_tracks = data["tracks"]["total"]
         self.id = data["id"]
         self.image = data["images"][0]["url"]
-        self.uri = f"https://open.spotify.com/playlist/{self.id}"
+        self.uri = data["external_urls"]["spotify"]
 
     def __repr__(self) -> str:
         return (

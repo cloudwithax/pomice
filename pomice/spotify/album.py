@@ -11,7 +11,7 @@ class Album:
         self.total_tracks = data["total_tracks"]
         self.id = data["id"]
         self.image = data["images"][0]["url"]
-        self.uri = f"https://open.spotify.com/album/{self.id}"
+        self.uri = data["external_urls"]["spotify"]
 
     def __repr__(self) -> str:
         return (
