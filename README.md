@@ -4,7 +4,7 @@
 
 The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed for [discord.py](https://github.com/Rapptz/discord.py)
 
-![](https://img.shields.io/badge/license-GPL-2f2f2f) ![](https://img.shields.io/badge/python-3.8-2f2f2f) ![](https://img.shields.io/discord/899324069235810315) ![](https://pomice.readthedocs.io/en/latest/?badge=latest)
+![](https://img.shields.io/badge/license-GPL-2f2f2f) ![](https://img.shields.io/badge/python-3.8-2f2f2f) ![](https://img.shields.io/discord/899324069235810315) ![](https://readthedocs.org/projects/pomice/badge/?version=latest)
 
 
 This library is heavily based off of/uses code from the following libraries:
