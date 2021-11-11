@@ -300,6 +300,7 @@ class Node:
                         ctx=ctx,
                         search_type=search_type,
                         spotify=True,
+                        spotify_track=spotify_results,
                         info={
                             "title": spotify_results.name,
                             "author": spotify_results.artists,
@@ -320,6 +321,7 @@ class Node:
                     ctx=ctx,
                     search_type=search_type,
                     spotify=True,
+                    spotify_track=track,
                     info={
                         "title": track.name,
                         "author": track.artists,
@@ -339,8 +341,7 @@ class Node:
                 tracks=tracks,
                 ctx=ctx,
                 spotify=True,
-                thumbnail=spotify_results.image,
-                uri=spotify_results.uri
+                spotify_playlist=spotify_results
             )
 
         elif discord_url := DISCORD_MP3_URL_REGEX.match(query):

@@ -17,17 +17,22 @@ class Track:
         info: dict,
         ctx: Optional[commands.Context] = None,
         spotify: bool = False,
-        search_type: SearchType = SearchType.ytsearch
+        search_type: SearchType = SearchType.ytsearch,
+        spotify_track = None,
     ):
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
 
-        self.original: Optional[Track] = None if self.spotify else self
-        self._search_type = search_type
+        if self.spotify:
+            self.original: Optional[Track] = None 
+            self._search_type = search_type
+            self.spotify_track = spotify_track
+
 
         self.title = info.get("title")
         self.author = info.get("author")
+        self.thumbnail = info.get("thumbnail")
         self.length = info.get("length")
         self.ctx = ctx
         self.requester = self.ctx.author if ctx else None
@@ -66,20 +71,18 @@ class Playlist:
         tracks: list,
         ctx: Optional[commands.Context] = None,
         spotify: bool = False,
-        thumbnail: Optional[str] = None,
-        uri: Optional[str] = None,
+        spotify_playlist = None
     ):
         self.playlist_info = playlist_info
         self.tracks_raw = tracks
         self.spotify = spotify
-
         self.name = playlist_info.get("name")
-
-        self._thumbnail = thumbnail
-        self._uri = uri
-
+        
         if self.spotify:
             self.tracks = tracks
+            self.spotify_playlist = spotify_playlist
+            self._thumbnail = self.spotify_playlist.image
+            self._uri = self.spotify_playlist.uri
         else:
             self.tracks = [
                 Track(track_id=track["track"], info=track["info"], ctx=ctx)

@@ -11,7 +11,10 @@ class Playlist:
         self.owner = data["owner"]["display_name"]
         self.total_tracks = data["tracks"]["total"]
         self.id = data["id"]
-        self.image = data["images"][0]["url"]
+        if data.get("images"):
+            self.image = data["images"][0]["url"]
+        else:
+            self.image = None
         self.uri = data["external_urls"]["spotify"]
 
     def __repr__(self) -> str:
