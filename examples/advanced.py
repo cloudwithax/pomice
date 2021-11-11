@@ -21,6 +21,7 @@ class Player(pomice.Player):
  
         self.queue = asyncio.Queue()
         self.controller: discord.Message = None
+        # Set context here so we can send a now playing embed
         self.context: commands.Context = None
         self.dj: discord.Member = None
 
@@ -56,11 +57,9 @@ class Player(pomice.Player):
 
         if track.is_stream:
             embed = discord.Embed(title="Now playing", description=f":red_circle: **LIVE** [{track.title}]({track.uri}) [{track.requester.mention}]")
-            embed.set_footer(text=f"Use {track.ctx.prefix}help for more commands!", icon_url=f"{self.client.user.avatar.url}")
             self.controller = await self.context.send(embed=embed)
         else:
             embed = discord.Embed(title=f"Now playing", description=f"[{track.title}]({track.uri}) [{track.requester.mention}]")
-            embed.set_footer(text=f"Use {track.ctx.prefix}help for more commands!", icon_url=f"{self.client.user.avatar.url}")
             self.controller = await self.context.send(embed=embed)
 
 
@@ -99,6 +98,13 @@ class Music(commands.Cog):
         )
         print(f"Node is ready!")
 
+
+    # The following are events from pomice.events
+    # We are using these so that if the track either stops or errors,
+    # we can just skip to the next track
+
+    # Of course, you can modify this to do whatever you like
+    
     @commands.Cog.listener()
     async def on_pomice_track_end(self, player: Player, track, _):
         await player.do_next()
@@ -149,7 +155,9 @@ class Music(commands.Cog):
         # You can pass in "search_type=" as an argument to change the search type
         # i.e: player.get_tracks("query", search_type=SearchType.ytmsearch)
         # will search up any keyword results on YouTube Music
-        results = await player.get_tracks(search)     
+
+        # We will also set the context here to get special features, like a track.requester object
+        results = await player.get_tracks(search, ctx=ctx)     
         
         if not results:
             raise commands.CommandError("No results were found for that search term.")

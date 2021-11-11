@@ -24,10 +24,10 @@ class Track:
         self.info = info
         self.spotify = spotify
 
-        if self.spotify:
-            self.original: Optional[Track] = None 
-            self._search_type = search_type
-            self.spotify_track = spotify_track
+        
+        self.original: Optional[Track] = None 
+        self._search_type = search_type
+        self.spotify_track = spotify_track
 
 
         self.title = info.get("title")
@@ -77,10 +77,13 @@ class Playlist:
         self.tracks_raw = tracks
         self.spotify = spotify
         self.name = playlist_info.get("name")
+        self.spotify_playlist = spotify_playlist
+
+        self._thumbnail = None
+        self._uri = None
         
         if self.spotify:
             self.tracks = tracks
-            self.spotify_playlist = spotify_playlist
             self._thumbnail = self.spotify_playlist.image
             self._uri = self.spotify_playlist.uri
         else:
