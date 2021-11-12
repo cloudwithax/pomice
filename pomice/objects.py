@@ -24,11 +24,9 @@ class Track:
         self.info = info
         self.spotify = spotify
 
-        
-        self.original: Optional[Track] = None 
+        self.original: Optional[Track] = None if spotify else self
         self._search_type = search_type
         self.spotify_track = spotify_track
-
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -91,6 +89,8 @@ class Playlist:
                 Track(track_id=track["track"], info=track["info"], ctx=ctx)
                 for track in self.tracks_raw
             ]
+            self._thumbnail = None
+            self._uri = None
 
         if (index := playlist_info.get("selectedTrack")) == -1:
             self.selected_track = None
