@@ -118,7 +118,7 @@ class Node:
 
 
     @property
-    async def stats(self) -> NodeStats:
+    def stats(self) -> NodeStats:
         """Property which returns the node stats."""
         return self._stats
 
