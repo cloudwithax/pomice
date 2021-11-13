@@ -3,6 +3,12 @@ from .exceptions import FilterInvalidArgument
 
 
 class Filter:
+    """
+    The base class for all filters.
+    You can use these filters if you have the latest Lavalink version
+    installed. If you do not have the latest Lavalink version,
+    these filters will not work.
+    """
     def __init__(self):
         self.payload = None
 
@@ -37,11 +43,9 @@ class Equalizer(Filter):
 
 class Timescale(Filter):
     """Filter which changes the speed and pitch of a track.
-       Do be warned that this filter is bugged as of the lastest Lavalink dev version
-       due to the filter patch not corresponding with the track time.
-
-       In short this means that your track will either end prematurely or end later due to this.
-       This is not the library's fault.
+       You can make some very nice effects with this filter,
+       i.e: a vaporwave-esque filter which slows the track down
+       a certain amount to produce said effect.
     """
 
     def __init__(

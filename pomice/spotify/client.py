@@ -75,10 +75,15 @@ class Client:
         elif spotify_type == "album":
             return Album(data)
         else:
+
             tracks = [
                 Track(track["track"])
                 for track in data["tracks"]["items"] if track["track"] is not None
             ]
+
+            if not len(tracks):
+                raise SpotifyRequestException("This playlist is empty and therefore cannot be queued.")
+                
             next_page_url = data["tracks"]["next"]
 
             while next_page_url is not None:

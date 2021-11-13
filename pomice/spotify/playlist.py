@@ -11,7 +11,7 @@ class Playlist:
         self.owner = data["owner"]["display_name"]
         self.total_tracks = data["tracks"]["total"]
         self.id = data["id"]
-        if data.get("images"):
+        if data.get("images") and len(data["images"]):
             self.image = data["images"][0]["url"]
         else:
             self.image = None

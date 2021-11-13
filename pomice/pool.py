@@ -5,14 +5,18 @@ import json
 import random
 import re
 import socket
-import time
 from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
 
 import aiohttp
 from discord.ext import commands
 
-from . import __version__, spotify
+
+from . import (
+    __version__, 
+    spotify,
+)
+
 from .enums import SearchType
 from .exceptions import (
     InvalidSpotifyClientAuthorization,
@@ -57,6 +61,7 @@ class Node:
         port: int,
         password: str,
         identifier: str,
+        secure: bool = False,
         session: Optional[aiohttp.ClientSession],
         spotify_client_id: Optional[str],
         spotify_client_secret: Optional[str],
@@ -68,8 +73,10 @@ class Node:
         self._pool = pool
         self._password = password
         self._identifier = identifier
+        self._secure = secure
 
-        self._websocket_uri = f"ws://{self._host}:{self._port}"
+       
+        self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
         self._rest_uri = f"http://{self._host}:{self._port}"
 
         self._session = session or aiohttp.ClientSession()
@@ -258,7 +265,7 @@ class Node:
         ) as resp:
             if not resp.status == 200:
                 raise TrackLoadError(
-                    f"Failed to build track. Check the identifier is correct and try again."
+                    f"Failed to build track. Check if the identifier is correct and try again."
                 )
 
             data: dict = await resp.json()
@@ -452,6 +459,7 @@ class NodePool:
         port: str,
         password: str,
         identifier: str,
+        secure: bool = False,
         spotify_client_id: Optional[str],
         spotify_client_secret: Optional[str],
         session: Optional[aiohttp.ClientSession] = None,
@@ -465,7 +473,7 @@ class NodePool:
 
         node = Node(
             pool=cls, bot=bot, host=host, port=port, password=password,
-            identifier=identifier, spotify_client_id=spotify_client_id,
+            identifier=identifier, secure=secure, spotify_client_id=spotify_client_id,
             session=session, spotify_client_secret=spotify_client_secret
         )
 
