@@ -77,7 +77,7 @@ class Node:
 
        
         self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
-        self._rest_uri = f"http://{self._host}:{self._port}"
+        self._rest_uri = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
 
         self._session = session or aiohttp.ClientSession()
         self._websocket: aiohttp.ClientWebSocketResponse = None
