@@ -1,8 +1,13 @@
+import re
 from typing import Optional
 
 from discord.ext import commands
 
 from .enums import SearchType
+
+SOUNDCLOUD_URL_REGEX = re.compile(
+    r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/[\w\-\.]+(\/)+[\w\-\.]+/?$"
+)
 
 
 class Track:
@@ -30,12 +35,20 @@ class Track:
 
         self.title = info.get("title")
         self.author = info.get("author")
-        self.thumbnail = info.get("thumbnail")
+        self.uri = info.get("uri")
+        self.identifier = info.get("identifier")
+        if info.get("thumbnail"):
+            self.thumbnail = info.get("thumbnail") 
+        else:
+            if SOUNDCLOUD_URL_REGEX.match(self.uri):
+                # ok so theres no feasible way of getting a Soundcloud image URL
+                # so we're just gonna leave it blank for brevity
+                self.thumbnail = None
+            else:
+                self.thumbnail = f"https://img.youtube.com/vi/{self.identifier}/mqdefault.jpg"
         self.length = info.get("length")
         self.ctx = ctx
         self.requester = self.ctx.author if ctx else None
-        self.identifier = info.get("identifier")
-        self.uri = info.get("uri")
         self.is_stream = info.get("isStream")
         self.is_seekable = info.get("isSeekable")
         self.position = info.get("position")

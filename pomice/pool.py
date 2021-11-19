@@ -383,6 +383,7 @@ class Node:
             ) as response:
                 data = await response.json()
 
+
         load_type = data.get("loadType")
 
         if not load_type:
