@@ -216,7 +216,7 @@ class Node:
 
         try:
             self._websocket = await self._session.ws_connect(
-                self._websocket_uri, headers=self._headers, heartbeat=60
+                self._websocket_uri, headers=self._headers, heartbeat=30
             )
             self._task = self._bot.loop.create_task(self._listen())
             self._available = True
