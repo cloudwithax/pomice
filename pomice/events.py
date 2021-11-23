@@ -24,8 +24,8 @@ class TrackStartEvent(PomiceEvent):
     """
     name = "track_start"
 
-    def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+    def __init__(self, data: dict, player):
+        self.player = player
         self.track = self.player._current
 
         # on_pomice_track_start(player, track)
@@ -41,8 +41,8 @@ class TrackEndEvent(PomiceEvent):
     """
     name = "track_end"
 
-    def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+    def __init__(self, data: dict, player):
+        self.player = player
         self.track = self.player._ending_track
         self.reason: str = data["reason"]
 
@@ -63,8 +63,8 @@ class TrackStuckEvent(PomiceEvent):
     """
     name = "track_stuck"
 
-    def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+    def __init__(self, data: dict, player):
+        self.player = player
         self.track = self.player._ending_track
         self.threshold: float = data["thresholdMs"]
 
@@ -82,8 +82,8 @@ class TrackExceptionEvent(PomiceEvent):
     """
     name = "track_exception"
 
-    def __init__(self, data: dict):
-        self.player = NodePool.get_node().get_player(int(data["guildId"]))
+    def __init__(self, data: dict, player):
+        self.player = player
         self.track = self.player._ending_track
         if data.get('error'):
             # User is running Lavalink <= 3.3
@@ -117,7 +117,7 @@ class WebSocketClosedEvent(PomiceEvent):
     """
     name = "websocket_closed"
 
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, _):
         self.payload = WebSocketClosedPayload(data)
 
         # on_pomice_websocket_closed(payload)
@@ -133,7 +133,7 @@ class WebSocketOpenEvent(PomiceEvent):
     """
     name = "websocket_open"
 
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, _):
         self.target: str = data["target"]
         self.ssrc: int = data["ssrc"]
 

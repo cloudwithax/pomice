@@ -36,13 +36,19 @@ class Player(VoiceProtocol):
 
         return self
 
-    def __init__(self, client: ClientType = None, channel: VoiceChannel = None, **kwargs):
+    def __init__(
+        self, 
+        client: ClientType = None, 
+        channel: VoiceChannel = None, 
+        *, 
+        node: Node = None
+    ):
         self.client = client
         self._bot = client
         self.channel = channel
         self._guild: Guild = self.channel.guild
 
-        self._node = NodePool.get_node()
+        self._node = node if node else NodePool.get_node()
         self._current: Track = None
         self._filter: Filter = None
         self._volume = 100
@@ -55,7 +61,6 @@ class Player(VoiceProtocol):
         self._ending_track: Optional[Track] = None
 
         self._voice_state = {}
-        self._extra = kwargs or {}
 
     def __repr__(self):
         return (
@@ -171,7 +176,7 @@ class Player(VoiceProtocol):
 
     async def _dispatch_event(self, data: dict):
         event_type = data.get("type")
-        event: PomiceEvent = getattr(events, event_type)(data)
+        event: PomiceEvent = getattr(events, event_type)(data, self)
 
         if isinstance(event, TrackEndEvent) and event.reason != "REPLACED":
             self._current = None

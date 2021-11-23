@@ -4,12 +4,15 @@ import asyncio
 import json
 import random
 import re
+import time
 import socket
 from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
+from enum import Enum
 
 import aiohttp
 from discord.ext import commands
+from discord import VoiceRegion
 
 
 from . import (
@@ -17,17 +20,18 @@ from . import (
     spotify,
 )
 
-from .enums import SearchType
+from .enums import SearchType, NodeAlgorithm
 from .exceptions import (
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
     NodeCreationError,
+    NodeException,
     NodeNotAvailable,
     NoNodesAvailable,
     TrackLoadError
 )
 from .objects import Playlist, Track
-from .utils import ClientType, ExponentialBackoff, NodeStats
+from .utils import ClientType, ExponentialBackoff, NodeStats, Ping
 
 if TYPE_CHECKING:
     from .player import Player
@@ -46,6 +50,7 @@ URL_REGEX = re.compile(
 )
 
 
+
 class Node:
     """The base class for a node. 
        This node object represents a Lavalink node. 
@@ -62,6 +67,8 @@ class Node:
         password: str,
         identifier: str,
         secure: bool = False,
+        heartbeat: int = 30,
+        region: Optional[VoiceRegion],
         session: Optional[aiohttp.ClientSession],
         spotify_client_id: Optional[str],
         spotify_client_secret: Optional[str],
@@ -73,7 +80,9 @@ class Node:
         self._pool = pool
         self._password = password
         self._identifier = identifier
+        self._heartbeat = heartbeat
         self._secure = secure
+        self._region: Optional[VoiceRegion] = region
 
        
         self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
@@ -128,6 +137,11 @@ class Node:
         return self._players
 
     @property
+    def region(self) -> Optional[VoiceRegion]:
+        """Property which returns the VoiceRegion of the node, if one is set"""
+        return self._region
+
+    @property
     def bot(self) -> ClientType:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
@@ -141,6 +155,11 @@ class Node:
     def pool(self):
         """Property which returns the pool this node is apart of"""
         return self._pool
+
+    @property
+    def latency(self):
+        """Property which returns the latency of the node"""
+        return Ping(self._host, port=self._port).get_ping()
 
     async def _update_handler(self, data: dict):
         await self._bot.wait_until_ready()
@@ -216,7 +235,7 @@ class Node:
 
         try:
             self._websocket = await self._session.ws_connect(
-                self._websocket_uri, headers=self._headers, heartbeat=30
+                self._websocket_uri, headers=self._headers, heartbeat=self._heartbeat
             )
             self._task = self._bot.loop.create_task(self._listen())
             self._available = True
@@ -414,6 +433,8 @@ class Node:
             ]
 
 
+
+
 class NodePool:
     """The base class for the node pool.
        This holds all the nodes that are to be used by the bot.
@@ -432,6 +453,41 @@ class NodePool:
     @property
     def node_count(self):
         return len(self._nodes.values())
+
+    @classmethod
+    def get_best_node(cls, *, algorithm: NodeAlgorithm, voice_region: VoiceRegion = None) -> Node:
+        """Fetches the best node based on an NodeAlgorithm.
+         This option is preferred if you want to choose the best node
+         from a multi-node setup using either the node's latency
+         or the node's voice region.
+
+         Use NodeAlgorithm.by_ping if you want to get the best node
+         based on the node's latency.
+
+         Use NodeAlgorithm.by_region if you want to get the best node
+         based on the node's voice region. This method will only work
+         if you set a voice region when you create a node.
+        """
+        available_nodes = (node for node in cls._nodes.values() if node._available)
+
+        if not available_nodes:
+            raise NoNodesAvailable("There are no nodes available.")
+
+        if algorithm == NodeAlgorithm.by_ping:
+            tested_nodes = {node: node.latency for node in available_nodes}
+            return min(tested_nodes, key=tested_nodes.get)
+            
+        else:
+            if voice_region == None:
+                raise NodeException("You must specify a VoiceRegion in order to use this functionality.")
+
+            nodes = [node for node in available_nodes if node._region is voice_region]
+            if not nodes:
+                raise NoNodesAvailable(
+                    f"No nodes for region {voice_region} exist in this pool."
+                )
+
+            return nodes[0] 
 
     @classmethod
     def get_node(cls, *, identifier: str = None) -> Node:
@@ -461,6 +517,8 @@ class NodePool:
         password: str,
         identifier: str,
         secure: bool = False,
+        heartbeat: int = 30,
+        region: Optional[VoiceRegion] = None,
         spotify_client_id: Optional[str],
         spotify_client_secret: Optional[str],
         session: Optional[aiohttp.ClientSession] = None,
@@ -474,7 +532,8 @@ class NodePool:
 
         node = Node(
             pool=cls, bot=bot, host=host, port=port, password=password,
-            identifier=identifier, secure=secure, spotify_client_id=spotify_client_id,
+            identifier=identifier, secure=secure, heartbeat=heartbeat,
+            region=region, spotify_client_id=spotify_client_id, 
             session=session, spotify_client_secret=spotify_client_secret
         )
 
