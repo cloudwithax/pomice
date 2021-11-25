@@ -468,7 +468,7 @@ class NodePool:
          based on the node's voice region. This method will only work
          if you set a voice region when you create a node.
         """
-        available_nodes = (node for node in cls._nodes.values() if node._available)
+        available_nodes = [node for node in cls._nodes.values() if node._available]
 
         if not available_nodes:
             raise NoNodesAvailable("There are no nodes available.")
