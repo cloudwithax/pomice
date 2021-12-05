@@ -5,7 +5,6 @@ import json
 import random
 import re
 import time
-import socket
 from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
 from enum import Enum
@@ -194,7 +193,6 @@ class Node:
             if msg.type == aiohttp.WSMsgType.CLOSED:
                 retry = backoff.delay()
                 await asyncio.sleep(retry)
-
                 if not self.is_connected:
                     self._bot.loop.create_task(self.connect())
             else:
@@ -220,7 +218,7 @@ class Node:
     async def send(self, **data):
         if not self._available:
             raise NodeNotAvailable(
-                f"The node '{self.identifier}' is unavailable."
+                f"The node '{self._identifier}' is unavailable."
             )
 
         await self._websocket.send_str(json.dumps(data))
@@ -240,6 +238,11 @@ class Node:
             self._task = self._bot.loop.create_task(self._listen())
             self._available = True
             return self
+
+        except aiohttp.ClientConnectorError:
+            raise NodeConnectionFailure(
+                f"The connection to node '{self._identifier}' failed."
+            )
         except aiohttp.WSServerHandshakeError:
             raise NodeConnectionFailure(
                 f"The password for node '{self._identifier}' is invalid."
@@ -247,10 +250,6 @@ class Node:
         except aiohttp.InvalidURL:
             raise NodeConnectionFailure(
                 f"The URI for node '{self._identifier}' is invalid."
-            )
-        except socket.gaierror:
-            raise NodeConnectionFailure(
-                f"The node '{self._identifier}' failed to connect."
             )
 
     async def disconnect(self):

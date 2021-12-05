@@ -7,10 +7,10 @@ class Album:
     def __init__(self, data: dict) -> None:
         self.name = data["name"]
         self.artists = ", ".join(artist["name"] for artist in data["artists"])
-        self.tracks = [Track(track) for track in data["tracks"]["items"]]
+        self.image = data["images"][0]["url"]
+        self.tracks = [Track(track, image=self.image) for track in data["tracks"]["items"]]
         self.total_tracks = data["total_tracks"]
         self.id = data["id"]
-        self.image = data["images"][0]["url"]
         self.uri = data["external_urls"]["spotify"]
 
     def __repr__(self) -> str:

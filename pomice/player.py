@@ -15,7 +15,7 @@ from discord.ext import commands
 from . import events
 from .enums import SearchType
 from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
-from .exceptions import TrackInvalidPosition
+from .exceptions import FilterInvalidArgument, TrackInvalidPosition
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
@@ -279,7 +279,7 @@ class Player(VoiceProtocol):
         """Seeks to a position in the currently playing track milliseconds"""
         if position < 0 or position > self._current.original.length:
             raise TrackInvalidPosition(
-                f"Seek position must be between 0 and the track length"
+                "Seek position must be between 0 and the track length"
             )
 
         await self._node.send(op="seek", guildId=str(self.guild.id), position=position)
@@ -299,9 +299,29 @@ class Player(VoiceProtocol):
 
     async def set_filter(self, filter: Filter) -> Filter:
         """Sets a filter of the player. Takes a pomice.Filter object.
-           This will only work if you are using the development version of Lavalink.
+           This will only work if you are using a version of Lavalink that supports filters.
         """
         await self._node.send(op="filters", guildId=str(self.guild.id), **filter.payload)
         await self.seek(self.position)
         self._filter = filter
         return filter
+
+    async def reset_filter(self):
+        """Resets a currently applied filter to its default parameters.
+            You must have a filter applied in order for this to work
+        """
+
+        if not self._filter:
+            raise FilterInvalidArgument(
+                "You must have a filter applied first in order to use this method."
+            )
+
+        _payload: dict = self._filter._reset()
+        await self._node.send(op="filters", guildId=str(self.guild.id), **_payload)
+        await self.seek(self.position)
+        self._filter = None
+
+
+
+        
+        
