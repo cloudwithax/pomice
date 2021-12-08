@@ -1,9 +1,9 @@
 """
 Pomice
 ~~~~~~
-Pythonic Wrapper for Lavalink
+Pythonic wrapper for Lavalink
 
-:copyright: 2021 cloudwithax
+:copyright: 2021, cloudwithax
 :license: GPL-3.0
 """
 import discord
