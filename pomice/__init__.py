@@ -1,7 +1,7 @@
 """
 Pomice
 ~~~~~~
-Pythonic wrapper for Lavalink
+Modern Lavalink wrapper designed for discord.py
 
 :copyright: 2021, cloudwithax
 :license: GPL-3.0
