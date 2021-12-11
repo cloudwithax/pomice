@@ -67,10 +67,10 @@ class Node:
         identifier: str,
         secure: bool = False,
         heartbeat: int = 30,
-        region: Optional[VoiceRegion],
-        session: Optional[aiohttp.ClientSession],
-        spotify_client_id: Optional[str],
-        spotify_client_secret: Optional[str],
+        region: Optional[VoiceRegion] = None,
+        session: Optional[aiohttp.ClientSession] = None,
+        spotify_client_id: Optional[str] = None,
+        spotify_client_secret: Optional[str] = None,
 
     ):
         self._bot = bot
@@ -518,8 +518,8 @@ class NodePool:
         secure: bool = False,
         heartbeat: int = 30,
         region: Optional[VoiceRegion] = None,
-        spotify_client_id: Optional[str],
-        spotify_client_secret: Optional[str],
+        spotify_client_id: Optional[str] = None,
+        spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
 
     ) -> Node:
