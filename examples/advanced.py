@@ -85,6 +85,9 @@ class Music(commands.Cog):
         # In order to initialize a node, or really do anything in this library,
         # you need to make a node pool
         self.pomice = pomice.NodePool()
+
+        # Start the node
+        bot.loop.create_task(self.start_nodes)
     
     async def start_nodes(self):
         # You can pass in Spotify credentials to enable Spotify querying.
