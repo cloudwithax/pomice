@@ -179,8 +179,11 @@ class Player(VoiceProtocol):
         event_type = data.get("type")
         event: PomiceEvent = getattr(events, event_type)(data, self)
 
-        if isinstance(event, TrackEndEvent) and event.reason != "REPLACED":
-            self._current = None
+        if isinstance(event, TrackEndEvent):
+            if self._loop:
+                await self.play(self._current)
+            elif event.reason != "REPLACED":
+                self._current = None
 
         event.dispatch(self._bot)
 
@@ -326,8 +329,3 @@ class Player(VoiceProtocol):
         await self._node.send(op="filters", guildId=str(self.guild.id), **_payload)
         await self.seek(self.position)
         self._filter = None
-
-
-
-        
-        
