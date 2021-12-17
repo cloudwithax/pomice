@@ -61,6 +61,7 @@ class Player(VoiceProtocol):
         self._ending_track: Optional[Track] = None
 
         self._voice_state = {}
+        self._loop = False
 
     def __repr__(self):
         return (
@@ -305,6 +306,11 @@ class Player(VoiceProtocol):
         await self.seek(self.position)
         self._filter = filter
         return filter
+
+    async def set_loop(self, loop: bool) -> bool:
+        """Sets the loop state of the currently playing track""" # just kept set_pause doc string
+        self._loop = loop
+        return self._loop
 
     async def reset_filter(self):
         """Resets a currently applied filter to its default parameters.
