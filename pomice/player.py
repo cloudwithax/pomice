@@ -136,7 +136,7 @@ class Player(VoiceProtocol):
         """Returns a bool representing whether the player is dead or not.
            A player is considered dead if it has been destroyed and removed from stored players.
         """
-        return self._guild.id not in self._node._players
+        return self.guild.id not in self._node._players
 
     async def _update_state(self, data: dict):
         state: dict = data.get("state")
@@ -231,8 +231,8 @@ class Player(VoiceProtocol):
             # assume we're already disconnected and cleaned up
             assert self.channel is None and not self.is_connected
 
-        self._node._players.pop(self._guild.id)
-        await self._node.send(op="destroy", guildId=str(self._guild.id))
+        self._node._players.pop(self.guild.id)
+        await self._node.send(op="destroy", guildId=str(self.guild.id))
 
     async def play(
         self,
