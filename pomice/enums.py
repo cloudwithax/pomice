@@ -35,11 +35,15 @@ class NodeAlgorithm(Enum):
         NodeAlgorithm.by_region returns a node based on its voice region,
         which the region is specified by the user in the method as an arg. 
         This method will only work if you set a voice region when you create a node.
+
+        NodeAlgorithm.by_players return a nodes based on how many players it has.
+        This algorithm prefers nodes with the least amount of players.
     """
 
     # We don't have to define anything special for these, since these just serve as flags
     by_ping = auto()
     by_region = auto()
+    by_players = auto()
 
     def __str__(self) -> str:
         return self.value

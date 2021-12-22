@@ -466,6 +466,10 @@ class NodePool:
          Use NodeAlgorithm.by_region if you want to get the best node
          based on the node's voice region. This method will only work
          if you set a voice region when you create a node.
+
+         Use NodeAlgorithm.by_players if you want to get the best node
+         based on how players it has. This method will return a node with
+         the least amount of players
         """
         available_nodes = [node for node in cls._nodes.values() if node._available]
 
@@ -474,6 +478,10 @@ class NodePool:
 
         if algorithm == NodeAlgorithm.by_ping:
             tested_nodes = {node: node.latency for node in available_nodes}
+            return min(tested_nodes, key=tested_nodes.get)
+
+        elif algorithm == NodeAlgorithm.by_players:
+            tested_nodes = {node: len(node.players.keys()) for node in available_nodes}
             return min(tested_nodes, key=tested_nodes.get)
             
         else:
