@@ -9,12 +9,9 @@ from discord import AutoShardedClient, Client
 from discord.ext.commands import AutoShardedBot, Bot
 
 __all__ = [
-    "ClientType",
     "ExponentialBackoff",
     "NodeStats"
 ]
-
-ClientType = Union[AutoShardedBot, AutoShardedClient, Bot, Client]
 
 
 class ExponentialBackoff:

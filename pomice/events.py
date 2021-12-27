@@ -1,5 +1,6 @@
+from discord import Client
+
 from .pool import NodePool
-from .utils import ClientType
 
 
 class PomiceEvent:
@@ -14,7 +15,7 @@ class PomiceEvent:
     name = "event"
     handler_args = ()
 
-    def dispatch(self, bot: ClientType):
+    def dispatch(self, bot: Client):
         bot.dispatch(f"pomice_{self.name}", *self.handler_args)
 
 

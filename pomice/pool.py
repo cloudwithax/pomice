@@ -4,14 +4,12 @@ import asyncio
 import json
 import random
 import re
-import time
 from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
-from enum import Enum
 
 import aiohttp
+from discord import Client, VoiceRegion
 from discord.ext import commands
-from discord import VoiceRegion
 
 
 from . import (
@@ -30,7 +28,7 @@ from .exceptions import (
     TrackLoadError
 )
 from .objects import Playlist, Track
-from .utils import ClientType, ExponentialBackoff, NodeStats, Ping
+from .utils import ExponentialBackoff, NodeStats, Ping
 
 if TYPE_CHECKING:
     from .player import Player
@@ -60,7 +58,7 @@ class Node:
         self,
         *,
         pool,
-        bot: ClientType,
+        bot: Client,
         host: str,
         port: int,
         password: str,
@@ -141,7 +139,7 @@ class Node:
         return self._region
 
     @property
-    def bot(self) -> ClientType:
+    def bot(self) -> Client:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
@@ -518,7 +516,7 @@ class NodePool:
     async def create_node(
         cls,
         *,
-        bot: ClientType,
+        bot: Client,
         host: str,
         port: str,
         password: str,
