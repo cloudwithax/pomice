@@ -6,6 +6,7 @@ from typing import (
 )
 
 from discord import (
+    Client,
     Guild,
     VoiceChannel,
     VoiceProtocol
@@ -19,7 +20,6 @@ from .exceptions import FilterInvalidArgument, TrackInvalidPosition
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
-from .utils import ClientType
 
 
 class Player(VoiceProtocol):
@@ -30,22 +30,24 @@ class Player(VoiceProtocol):
        ```
     """
 
-    def __call__(self, client: ClientType, channel: VoiceChannel):
-        self.client: ClientType = client
+    def __call__(self, client: Client, channel: VoiceChannel):
+        self.client: Client = client
         self.channel: VoiceChannel = channel
+        self._guild: Guild = channel.guild
 
         return self
 
     def __init__(
         self, 
-        client: ClientType = None, 
-        channel: VoiceChannel = None, 
+        client: Optional[Client] = None, 
+        channel: Optional[VoiceChannel] = None, 
         *, 
         node: Node = None
     ):
         self.client = client
         self._bot = client
         self.channel = channel
+        self._guild = channel.guild if channel else None
 
         self._node = node if node else NodePool.get_node()
         self._current: Track = None
@@ -114,7 +116,7 @@ class Player(VoiceProtocol):
     @property
     def guild(self) -> Guild:
         """Property which returns the guild associated with the player"""
-        return self.channel.guild
+        return self._guild
 
     @property
     def volume(self) -> int:
@@ -127,7 +129,7 @@ class Player(VoiceProtocol):
         return self._filter
 
     @property
-    def bot(self) -> ClientType:
+    def bot(self) -> Client:
         """Property which returns the bot associated with this player instance"""
         return self._bot
 
