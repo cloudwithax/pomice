@@ -169,7 +169,6 @@ class Player(VoiceProtocol):
             return
 
         self.channel = self.guild.get_channel(int(channel_id))
-        self._guild = self.channel.guild
 
         if not data.get("token"):
             return
