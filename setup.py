@@ -6,7 +6,7 @@ with open("README.md") as f:
 setuptools.setup(
     name="pomice",
     author="cloudwithax",
-    version="1.1.6",
+    version="1.1.6.1",
     url="https://github.com/cloudwithax/pomice",
     packages=setuptools.find_packages(),
     license="GPL",
@@ -14,7 +14,7 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     include_package_data=True,
-    install_requires=['discord.py>=2.0.0a'],
+    install_requires=None,
     extra_require=None,
     classifiers=[
         "Framework :: AsyncIO",
