@@ -92,10 +92,11 @@ class Music(commands.Cog):
         bot.loop.create_task(self.start_nodes())
     
     async def start_nodes(self):
-        # You can pass in Spotify credentials to enable Spotify querying.
-        # If you do not pass in valid Spotify credentials, Spotify querying will not work
         # Waiting for the bot to get ready before connecting to nodes.
-        await self.bot.wait_until_ready() 
+        await self.bot.wait_until_ready()
+        
+        # You can pass in Spotify credentials to enable Spotify querying.
+        # If you do not pass in valid Spotify credentials, Spotify querying will not work 
         await self.pomice.create_node(
             bot=self.bot,
             host="127.0.0.1",
