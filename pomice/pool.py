@@ -96,7 +96,8 @@ class Node:
         self._headers = {
             "Authorization": self._password,
             "User-Id": str(self._bot.user.id),
-            "Client-Name": f"Pomice/{__version__}"
+            "Client-Name": f"Pomice/{__version__}",
+            "Num-Shards": getattr(bot, "shards", 1)
         }
 
         self._players: Dict[int, Player] = {}
