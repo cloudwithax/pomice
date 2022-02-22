@@ -256,6 +256,9 @@ class Node:
         """
         for player in self.players.copy().values():
             await player.destroy()
+            
+        if self._spotify_client:
+            await self._spotify_client.close()
 
         await self._websocket.close()
         del self._pool.nodes[self._identifier]
