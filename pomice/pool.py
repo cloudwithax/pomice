@@ -262,7 +262,7 @@ class Node:
 
         await self._websocket.close()
         del self._pool.nodes[self._identifier]
-        self.available = False
+        self._available = False
         self._task.cancel()
 
     async def build_track(
