@@ -261,7 +261,7 @@ class Node:
             await self._spotify_client.close()
 
         await self._websocket.close()
-        del self._pool.nodes[self._identifier]
+        del self._pool._nodes[self._identifier]
         self._available = False
         self._task.cancel()
 
