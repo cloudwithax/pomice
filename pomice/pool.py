@@ -257,7 +257,7 @@ class Node:
         for player in self.players.copy().values():
             await player.destroy()
             
-        if self._spotify_client_id an self._spotify_client_secret:
+        if self._spotify_client_id and self._spotify_client_secret:
             await self._spotify_client.close()
 
         await self._websocket.close()
