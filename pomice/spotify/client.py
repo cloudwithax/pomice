@@ -1,18 +1,20 @@
 import re
 import time
-from base64 import b64encode
-
+import logging
 import aiohttp
+
+from base64 import b64encode
 
 from .album import Album
 from .exceptions import InvalidSpotifyURL, SpotifyRequestException
 from .playlist import Playlist
 from .track import Track
 
+BASE_URL = "https://api.spotify.com/v1"
 GRANT_URL = "https://accounts.spotify.com/api/token"
 REQUEST_URL = "https://api.spotify.com/v1/{type}s/{id}"
 SPOTIFY_URL_REGEX = re.compile(
-    r"https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)"
+    r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)"
 )
 
 
@@ -53,17 +55,19 @@ class Client:
         if not self._bearer_token or time.time() >= self._expiry:
             await self._fetch_bearer_token()
 
-        result = SPOTIFY_URL_REGEX.match(query)
+        if not (result := SPOTIFY_URL_REGEX.match(query)):
+            raise InvalidSpotifyURL("The Spotify link provided is not valid.")
+
         spotify_type = result.group("type")
         spotify_id = result.group("id")
 
-        if not result:
-            raise InvalidSpotifyURL("The Spotify link provided is not valid.")
-
         request_url = REQUEST_URL.format(type=spotify_type, id=spotify_id)
+        if spotify_type == "artist":
+            request_url += "/albums"
 
         async with self.session.get(request_url, headers=self._bearer_headers) as resp:
             if resp.status != 200:
+                logging.info(f"Error while fetching results: {resp.status} {resp.reason}")
                 raise SpotifyRequestException(
                     f"Error while fetching results: {resp.status} {resp.reason}"
                 )
@@ -74,7 +78,28 @@ class Client:
             return Track(data)
         elif spotify_type == "album":
             return Album(data)
-        else:
+        elif spotify_type == "artist":
+            logging.info(data)
+            tracks = []
+            
+            for album in data["items"]:
+                logging.info(album)
+
+                async with self.session.get(BASE_URL + f"/albums/{album['id']}/tracks", headers=self._bearer_headers) as resp:
+                    if resp.status != 200:
+                        raise SpotifyRequestException(
+                            f"Error while fetching results: {resp.status} {resp.reason}"
+                        )
+
+                    data: dict = await resp.json()
+                    for track in data["items"]:
+                        tracks.append(Track(track))
+
+            logging.info(tracks)
+            data = {"name": "testt"}
+            return Playlist(data, tracks)
+
+        else:       
 
             tracks = [
                 Track(track["track"])
