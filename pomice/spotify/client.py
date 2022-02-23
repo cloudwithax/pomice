@@ -5,6 +5,7 @@ import aiohttp
 
 from base64 import b64encode
 
+from .artist import Artist
 from .album import Album
 from .exceptions import InvalidSpotifyURL, SpotifyRequestException
 from .playlist import Playlist
@@ -44,7 +45,6 @@ class Client:
                 raise SpotifyRequestException(
                     f"Error fetching bearer token: {resp.status} {resp.reason}"
                 )
-
             data: dict = await resp.json()
 
         self._bearer_token = data["access_token"]
@@ -71,7 +71,6 @@ class Client:
                 raise SpotifyRequestException(
                     f"Error while fetching results: {resp.status} {resp.reason}"
                 )
-
             data: dict = await resp.json()
 
         if spotify_type == "track":
@@ -79,28 +78,29 @@ class Client:
         elif spotify_type == "album":
             return Album(data)
         elif spotify_type == "artist":
-            logging.info(data)
             tracks = []
             
             for album in data["items"]:
-                logging.info(album)
-
                 async with self.session.get(BASE_URL + f"/albums/{album['id']}/tracks", headers=self._bearer_headers) as resp:
                     if resp.status != 200:
                         raise SpotifyRequestException(
                             f"Error while fetching results: {resp.status} {resp.reason}"
                         )
-
                     data: dict = await resp.json()
+
                     for track in data["items"]:
-                        tracks.append(Track(track))
+                        tracks.append(Track(track, image=album["images"][0]["url"]))
 
-            logging.info(tracks)
-            data = {"name": "testt"}
-            return Playlist(data, tracks)
+            async with self.session.get(BASE_URL + f"/artists/{spotify_id}", headers=self._bearer_headers) as resp:
+                if resp.status != 200:
+                    raise SpotifyRequestException(
+                        f"Error while fetching results: {resp.status} {resp.reason}"
+                    )
+                data: dict = await resp.json()
 
-        else:       
+            return Artist(data, tracks)
 
+        else:
             tracks = [
                 Track(track["track"])
                 for track in data["tracks"]["items"] if track["track"] is not None
