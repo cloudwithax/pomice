@@ -1,5 +1,6 @@
 import re
 import time
+import orjson
 from base64 import b64encode
 
 import aiohttp
@@ -15,6 +16,8 @@ SPOTIFY_URL_REGEX = re.compile(
     r"https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)"
 )
 
+JSON_ENCODER = orjson.dumps
+JSON_DECODER = orjson.loads
 
 class Client:
     """The base client for the Spotify module of Pomice.
@@ -26,7 +29,7 @@ class Client:
         self._client_id = client_id
         self._client_secret = client_secret
 
-        self.session = aiohttp.ClientSession()
+        self.session = aiohttp.ClientSession(json_serialize=JSON_ENCODER)
 
         self._bearer_token: str = None
         self._expiry = 0
@@ -68,7 +71,7 @@ class Client:
                     f"Error while fetching results: {resp.status} {resp.reason}"
                 )
 
-            data: dict = await resp.json()
+            data: dict = await resp.json(loads=JSON_DECODER)
 
         if spotify_type == "track":
             return Track(data)
@@ -93,7 +96,7 @@ class Client:
                             f"Error while fetching results: {resp.status} {resp.reason}"
                         )
 
-                    next_data: dict = await resp.json()
+                    next_data: dict = await resp.json(JSON_DECODER)
 
                 tracks += [
                     Track(track["track"])
