@@ -256,10 +256,13 @@ class Node:
         """
         for player in self.players.copy().values():
             await player.destroy()
+            
+        if self._spotify_client_id and self._spotify_client_secret:
+            await self._spotify_client.close()
 
         await self._websocket.close()
-        del self._pool.nodes[self._identifier]
-        self.available = False
+        del self._pool._nodes[self._identifier]
+        self._available = False
         self._task.cancel()
 
     async def build_track(
