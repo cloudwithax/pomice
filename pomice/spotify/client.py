@@ -50,6 +50,8 @@ class Client:
         self._bearer_token = data["access_token"]
         self._expiry = time.time() + (int(data["expires_in"]) - 10)
         self._bearer_headers = {"Authorization": f"Bearer {self._bearer_token}"}
+        
+        
 
     async def search(self, *, query: str):
         if not self._bearer_token or time.time() >= self._expiry:
@@ -127,3 +129,7 @@ class Client:
                 next_page_url = next_data["next"]
 
             return Playlist(data, tracks)
+            
+    async def close(self):
+        await self.session.close()
+    
