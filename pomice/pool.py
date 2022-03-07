@@ -1,15 +1,14 @@
 from __future__ import annotations
-
 import asyncio
 import json
 import random
 import re
+import aiohttp
 from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
 
-import aiohttp
-from discord import Client, VoiceRegion
-from discord.ext import commands
+from discord import Client
+from discord.ext.commands import Context
 
 
 from . import (
@@ -28,7 +27,7 @@ from .exceptions import (
     TrackLoadError
 )
 from .objects import Playlist, Track
-from .utils import ExponentialBackoff, NodeStats, Ping
+from .utils import ExponentialBackoff, NodeStats, Ping, VoiceRegion
 
 if TYPE_CHECKING:
     from .player import Player
@@ -265,7 +264,7 @@ class Node:
     async def build_track(
         self,
         identifier: str,
-        ctx: Optional[commands.Context] = None
+        ctx: Optional[Context] = None
     ) -> Track:
         """
         Builds a track using a valid track identifier
@@ -291,7 +290,7 @@ class Node:
         self,
         query: str,
         *,
-        ctx: Optional[commands.Context] = None,
+        ctx: Optional[Context] = None,
         search_type: SearchType = SearchType.ytsearch
     ):
         """Fetches tracks from the node's REST api to parse into Lavalink.
