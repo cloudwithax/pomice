@@ -8,7 +8,7 @@ from typing import Dict, Optional, TYPE_CHECKING
 from urllib.parse import quote
 
 import aiohttp
-from discord import Client, VoiceRegion
+from discord import Client
 from discord.ext import commands
 
 
@@ -65,7 +65,7 @@ class Node:
         identifier: str,
         secure: bool = False,
         heartbeat: int = 30,
-        region: Optional[VoiceRegion] = None,
+        region: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
@@ -79,7 +79,7 @@ class Node:
         self._identifier = identifier
         self._heartbeat = heartbeat
         self._secure = secure
-        self._region: Optional[VoiceRegion] = region
+        self._region: Optional[str] = region
 
        
         self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
@@ -134,7 +134,7 @@ class Node:
         return self._players
 
     @property
-    def region(self) -> Optional[VoiceRegion]:
+    def region(self) -> Optional[str]:
         """Property which returns the VoiceRegion of the node, if one is set"""
         return self._region
 
@@ -455,7 +455,7 @@ class NodePool:
         return len(self._nodes.values())
 
     @classmethod
-    def get_best_node(cls, *, algorithm: NodeAlgorithm, voice_region: VoiceRegion = None) -> Node:
+    def get_best_node(cls, *, algorithm: NodeAlgorithm, voice_region: str = None) -> Node:
         """Fetches the best node based on an NodeAlgorithm.
          This option is preferred if you want to choose the best node
          from a multi-node setup using either the node's latency
@@ -489,7 +489,7 @@ class NodePool:
             if voice_region == None:
                 raise NodeException("You must specify a VoiceRegion in order to use this functionality.")
 
-            nodes = [node for node in available_nodes if node._region is voice_region]
+            nodes = [node for node in available_nodes if node._region == voice_region]
             if not nodes:
                 raise NoNodesAvailable(
                     f"No nodes for region {voice_region} exist in this pool."
@@ -526,7 +526,7 @@ class NodePool:
         identifier: str,
         secure: bool = False,
         heartbeat: int = 30,
-        region: Optional[VoiceRegion] = None,
+        region: Optional[str] = None,
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
