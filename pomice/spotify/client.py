@@ -100,7 +100,7 @@ class Client:
 
 
         processes = [_fetch_async(url, count)
-                        for url, count in enumerate(urls[:9] if not full else urls, start=1)]
+                     for url, count in enumerate(urls[:9] if not full else urls, start=1)]
 
         try:
             await asyncio.gather(*processes) 
