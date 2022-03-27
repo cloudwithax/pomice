@@ -121,7 +121,7 @@ class Client:
 
         return cls
 
-    async def search(self, *, query: str, raw: bool = False):
+    async def search(self, *, query: str):
         if not self._bearer_token or time.time() >= self._expiry:
             await self._fetch_bearer_token()
 
