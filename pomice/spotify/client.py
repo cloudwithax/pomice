@@ -94,13 +94,13 @@ class Client:
             cls = Playlist(data, [])
         else:
             urls = [REQUEST_URL.format(type="album", id=album['id'])+'/tracks'
-                    for album in (data['items'] if not other else other['items'])]
+                    for album in other['items']]
 
             cls = Artist(data, [])
 
 
         processes = [_fetch_async(url, count)
-                     for url, count in enumerate(urls[:9] if not full else urls, start=1)]
+                     for url, count in enumerate(urls, start=1)]
 
         try:
             await asyncio.gather(*processes) 
