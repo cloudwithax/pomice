@@ -37,11 +37,6 @@ class Equalizer(Filter):
 
         return _dict
 
-    def _reset(self):
-        self.raw = [(0, .0), (1, .0), (2, .0), (3, .0), (4, .0),
-                  (5, .0), (6, .0), (7, .0), (8, .0), (9, .0),
-                  (10, .0), (11, .0), (12, .0), (13, .0), (14, .0)]
-
         self.eq = self._factory(levels=self.raw)
         self.payload = {"equalizer": self.eq}
 
@@ -82,18 +77,6 @@ class Timescale(Filter):
                                       "pitch": self.pitch,
                                       "rate": self.rate}}
 
-    def _reset(self):
-        self.speed = 1.0
-        self.pitch = 1.0
-        self.rate = 1.0
-
-        self.payload = {"timescale": {"speed": self.speed,
-                                      "pitch": self.pitch,
-                                      "rate": self.rate}}
-
-        return self.payload
-
-
     def __repr__(self):
         return f"<Pomice.TimescaleFilter speed={self.speed} pitch={self.pitch} rate={self.rate}>"
 
@@ -122,20 +105,6 @@ class Karaoke(Filter):
                                     "monoLevel": self.mono_level,
                                     "filterBand": self.filter_band,
                                     "filterWidth": self.filter_width}}
-
-    def _reset(self):
-        self.level: float = 1.0
-        self.mono_level: float = 1.0
-        self.filter_band: float = 220.0
-        self.filter_width: float = 100.0
-
-        self.payload = {"karaoke": {"level": self.level,
-                                    "monoLevel": self.mono_level,
-                                    "filterBand": self.filter_band,
-                                    "filterWidth": self.filter_width}}
-
-
-        return self.payload
 
     def __repr__(self):
         return (
@@ -170,16 +139,6 @@ class Tremolo(Filter):
         self.payload = {"tremolo": {"frequency": self.frequency,
                                     "depth": self.depth}}
 
-    def _reset(self):
-        self.frequency: float = 2.0
-        self.depth: float = 0.5
-
-        self.payload = {"tremolo": {"frequency": self.frequency,
-                                    "depth": self.depth}}
-
-
-        return self.payload
-
     def __repr__(self):
         return f"<Pomice.TremoloFilter frequency={self.frequency} depth={self.depth}>"
 
@@ -209,15 +168,6 @@ class Vibrato(Filter):
 
         self.payload = {"vibrato": {"frequency": self.frequency,
                                     "depth": self.depth}}
-
-    def _reset(self):
-        self.frequency: float = 2.0
-        self.depth: float = 0.5
-
-        self.payload = {"vibrato": {"frequency": self.frequency,
-                                    "depth": self.depth}}
-
-        return self.payload
         
     def __repr__(self):
         return f"<Pomice.VibratoFilter frequency={self.frequency} depth={self.depth}>"
@@ -233,12 +183,6 @@ class Rotation(Filter):
 
         self.rotation_hertz = rotation_hertz
         self.payload = {"rotation": {"rotationHz": self.rotation_hertz}}
-
-    def _reset(self):
-        self.rotation_hertz = 5
-        self.payload = {"rotation": {"rotationHz": self.rotation_hertz}}
-
-        return self.payload
 
     def __repr__(self) -> str:
         return f"<Pomice.RotationFilter rotation_hertz={self.rotation_hertz}>"
@@ -283,19 +227,6 @@ class ChannelMix(Filter):
                                         "rightToRight": self.right_to_right}
                                         }
 
-    def _reset(self):
-        self.left_to_left: float = 1
-        self.right_to_right: float = 1
-        self.left_to_right: float = 0
-        self.right_to_left: float = 0
-
-        self.payload = {"channelMix": {"leftToLeft": self.left_to_left, 
-                                        "leftToRight": self.left_to_right, 
-                                        "rightToLeft": self.right_to_left, 
-                                        "rightToRight": self.right_to_right}
-                                        }
-
-        return self.payload
 
     def __repr__(self) -> str:
         return ( 
@@ -342,30 +273,6 @@ class Distortion(Filter):
             "scale": self.scale
         }}
 
-    def _reset(self):
-        self.sin_offset: float =  0
-        self.sin_scale: float = 1
-        self.cos_offset: float = 0
-        self.cos_scale: float = 1
-        self.tan_offset: float = 0
-        self.tan_scale: float = 1
-        self.offset: float = 0
-        self.scale: float = 1
-
-        self.payload = {"distortion": {
-            "sinOffset": self.sin_offset,
-            "sinScale": self.sin_scale,
-            "cosOffset": self.cos_offset,
-            "cosScale": self.cos_scale,
-            "tanOffset": self.tan_offset,
-            "tanScale": self.tan_scale,
-            "offset": self.offset,
-            "scale": self.scale
-        }}
-
-        return self.payload
-
-
     def __repr__(self) -> str:
         return (
         f"<Pomice.Distortion sin_offset={self.sin_offset} sin_scale={self.sin_scale}> "
@@ -384,12 +291,6 @@ class LowPass(Filter):
 
         self.smoothing = smoothing
         self.payload = {"lowPass": {"smoothing": self.smoothing}}
-
-    def _reset(self):
-        self.smoothing = 20
-        self.payload = {"lowPass": {"smoothing": self.smoothing}}
-        
-        return self.payload
 
     def __repr__(self) -> str:
         return f"<Pomice.LowPass smoothing={self.smoothing}>"
