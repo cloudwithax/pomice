@@ -116,7 +116,8 @@ class Client:
             
 
         cls.tracks = tracks
-        if cls.total_tracks == 0:
+        if cls.total_tracks == 0: 
+            # for artists i use len(tracks) so it will be zero at first
             cls.total_tracks = len(tracks)
 
         return cls
@@ -141,9 +142,6 @@ class Client:
                 )
 
             data = await resp.json(loads=json.loads)
-
-        if raw:
-            return data
 
         if spotify_type == 'track':
             return Track(data)
