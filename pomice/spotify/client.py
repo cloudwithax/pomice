@@ -107,7 +107,11 @@ class Client:
         except TimeoutError:
             # dont know why it TimeoutError simply happens
             # but if it does then manually waiting for each func
-            [await func for func in processes]
+            for process in processes:
+                try:
+                    await process
+                except RuntimeError:
+                    continue
            
         # tracks are jumbled for huge playlists so we use this to sort it out
         tracks.sort(key=lambda i: False if isinstance(i, Track) else i[0])
