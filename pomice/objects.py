@@ -37,6 +37,7 @@ class Track:
         self.author = info.get("author")
         self.uri = info.get("uri")
         self.identifier = info.get("identifier")
+        self.isrc = info.get("isrc")
         
         if info.get("thumbnail"):
             self.thumbnail = info.get("thumbnail") 
