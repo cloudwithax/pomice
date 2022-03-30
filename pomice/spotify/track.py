@@ -6,6 +6,7 @@ class Track:
         self.artists = ", ".join(artist["name"] for artist in data["artists"])
         self.length = data["duration_ms"]
         self.id = data["id"]
+        self.isrc = data["external_ids"]["isrc"]
 
         if data.get("album") and data["album"].get("images"):
             self.image = data["album"]["images"][0]["url"]
@@ -20,5 +21,5 @@ class Track:
     def __repr__(self) -> str:
         return (
             f"<Pomice.spotify.Track name={self.name} artists={self.artists} "
-            f"length={self.length} id={self.id}>"
+            f"length={self.length} id={self.id} isrc={self.isrc}>"
         )

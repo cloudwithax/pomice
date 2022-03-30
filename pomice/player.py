@@ -16,7 +16,7 @@ from discord.ext import commands
 from . import events
 from .enums import SearchType
 from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
-from .exceptions import FilterInvalidArgument, TrackInvalidPosition
+from .exceptions import FilterInvalidArgument, TrackInvalidPosition, TrackLoadError
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
@@ -245,11 +245,13 @@ class Player(VoiceProtocol):
         ignore_if_playing: bool = False
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
-        if track.spotify:
+        if track.spotify: 
             search: Track = (await self._node.get_tracks(
-                f"{track._search_type}:{track.author} - {track.title}",
-                ctx=track.ctx
-            ))[0]
+            f"{track._search_type}:{track.title} - {track.author}", ctx=track.ctx))[0]
+            if not search: 
+                raise TrackLoadError (
+                    "No equivalent track was able to be found."
+                )
             track.original = search
 
             data = {
@@ -298,16 +300,18 @@ class Player(VoiceProtocol):
         self._volume = volume
         return self._volume
 
-    async def set_filter(self, filter: Filter) -> Filter:
+    async def set_filter(self, filter: Filter, fast_apply=False) -> Filter:
         """Sets a filter of the player. Takes a pomice.Filter object.
            This will only work if you are using a version of Lavalink that supports filters.
+           If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
         """
         await self._node.send(op="filters", guildId=str(self.guild.id), **filter.payload)
-        await self.seek(self.position)
+        if fast_apply:
+            await self.seek(self.position)
         self._filter = filter
         return filter
 
-    async def reset_filter(self):
+    async def reset_filter(self, fast_apply=False):
         """Resets a currently applied filter to its default parameters.
             You must have a filter applied in order for this to work
         """
@@ -317,9 +321,9 @@ class Player(VoiceProtocol):
                 "You must have a filter applied first in order to use this method."
             )
 
-        _payload: dict = self._filter._reset()
-        await self._node.send(op="filters", guildId=str(self.guild.id), **_payload)
-        await self.seek(self.position)
+        await self._node.send(op="filters", guildId=str(self.guild.id))
+        if fast_apply:
+            await self.seek(self.position)
         self._filter = None
 
 
