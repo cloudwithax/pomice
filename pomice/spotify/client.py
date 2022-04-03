@@ -1,5 +1,4 @@
 import asyncio
-import re
 import itertools
 import time
 from base64 import b64encode
@@ -12,17 +11,13 @@ try:
 except ImportError:
     import json
 
-from .album import Album
+from typing import Union
+from ...regex import SPOTIFY_URL_REGEX
 from .exceptions import InvalidSpotifyURL, SpotifyRequestException
-from .playlist import Playlist
-from .track import Track
-from .artist import Artist
+from .objects import *
 
 GRANT_URL = "https://accounts.spotify.com/api/token"
 REQUEST_URL = "https://api.spotify.com/v1/{type}s/{id}"
-SPOTIFY_URL_REGEX = re.compile(
-    r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)"
-)
 
 
 class Client:
@@ -66,9 +61,19 @@ class Client:
         self._bearer_headers = {
             "Authorization": f"Bearer {self._bearer_token}"}
 
-    async def _load(self, type_: str, request_url: str, data: dict, tracks: list, other: dict = None, full: bool = False):
+    async def close(self):
+        """Close Session with the Spotify API"""
+        await self.session.close()
+
+    async def search(
+        self,
+        *, query: str,
+        raw: bool = False,
+        full: bool = False
+    ) -> Union[Track, Playlist, Album, Artist]:
 
         async def _fetch_async(count, url):
+            """Internal function"""
             async with self.session.get(url, headers=self._bearer_headers) as resp:
                 if resp.status != 200:
                     raise SpotifyRequestException(
@@ -81,52 +86,6 @@ class Client:
                              for track in next_data['items'])
                 tracks.append(inner)
 
-        processes = []
-
-        if type_ == 'playlist':
-            if not len(tracks):
-                raise SpotifyRequestException(
-                    "This playlist is empty and therefore cannot be queued.")
-
-            urls = [f"{request_url}/tracks?offset={off}"
-                    for off in range(100, data['tracks']['total']+100, 100)]
-
-            cls = Playlist(data, [])
-        else:
-            urls = [REQUEST_URL.format(type="album", id=album['id'])+'/tracks'
-                    for album in other['items']]
-
-            cls = Artist(data, [])
-
-
-        processes = [_fetch_async(url, count)
-                     for url, count in enumerate(urls, start=1)]
-
-        try:
-            await asyncio.gather(*processes) 
-        except TimeoutError:
-            # dont know why it TimeoutError simply happens
-            # but if it does then manually waiting for each func
-            for process in processes:
-                try:
-                    await process
-                except RuntimeError:
-                    continue
-           
-        # tracks are jumbled for huge playlists so we use this to sort it out
-        tracks.sort(key=lambda i: False if isinstance(i, Track) else i[0])
-        tracks = [track for track in itertools.chain(
-            *tracks) if not isinstance(track, int)]
-            
-
-        cls.tracks = tracks
-        if cls.total_tracks == 0: 
-            # for artists i use len(tracks) so it will be zero at first
-            cls.total_tracks = len(tracks)
-
-        return cls
-
-    async def search(self, *, query: str):
         if not self._bearer_token or time.time() >= self._expiry:
             await self._fetch_bearer_token()
 
@@ -147,29 +106,64 @@ class Client:
 
             data = await resp.json(loads=json.loads)
 
+        if raw:
+            return data
+
         if spotify_type == 'track':
             return Track(data)
         elif spotify_type == 'album':
             return Album(data)
         else:
             tracks = []
+
             if spotify_type == 'playlist':
+                # with this method of querying each task is completed at different times,
+                # so this will help us sort it, since it will be jumbled.
                 inner = [0]
                 inner.extend(Track(track['track'])
-                                for track in data['tracks']['items'] if track['track'])
+                             for track in data['tracks']['items'] if track['track'])
                 tracks.append(inner)
 
-                other = None # is for artist data
-            else:
-                if not data.get('items'):
-                    async with self.session.get(f"{request_url}/albums", headers=self._bearer_headers) as resp:
-                        if resp.status != 200:
-                            raise SpotifyRequestException(
-                                f"Error while fetching results: {resp.status} {resp.reason}"
-                            )
+                if not len(tracks[0][1:]):  # not considering the first number
+                    raise SpotifyRequestException(
+                        "This playlist is empty and therefore cannot be queued."
+                    )
 
-                        other = await resp.json(loads=json.loads)
-                else:
-                    other = None
+                urls = [f"{request_url}/tracks?offset={off}"
+                        for off in range(100, data['tracks']['total']+100, 100)]
+
+                cls = Playlist(data, [])
+            else:
+                async with self.session.get(f"{request_url}/albums", headers=self._bearer_headers) as resp:
+                    if resp.status != 200:
+                        raise SpotifyRequestException(
+                            f"Error while fetching results: {resp.status} {resp.reason}"
+                        )
+
+                    artist_data = await resp.json(loads=json.loads)
+
+                urls = [REQUEST_URL.format(type="album", id=album['id'])+'/tracks'
+                        for album in artist_data['items']]
+
+            processes = [_fetch_async(url, count)
+                         for count, url in enumerate(urls, start=1)]
+
+            try:
+                await asyncio.gather(*processes)
+            except aiohttp.ClientOSError:
+                for proccess in processes:
+                    try:
+                        await proccess
+                        # if process is already awaited
+                    except RuntimeError:
+                        continue
+
+            tracks.sort(key=lambda i: i[0])
+            tracks = [track for track in itertools.chain(
+                *tracks) if not isinstance(track, int)]
+
+            cls.tracks = tracks
+            if cls.total_tracks == 0:
+                cls.total_tracks = len(tracks)
             
-            return await self._load(spotify_type, request_url, data, tracks, other)
+            return cls
