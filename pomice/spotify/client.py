@@ -12,7 +12,6 @@ except ImportError:
     import json
 
 from typing import Union
-from ...regex import SPOTIFY_URL_REGEX
 from .exceptions import InvalidSpotifyURL, SpotifyRequestException
 from .objects import *
 
