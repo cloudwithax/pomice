@@ -205,8 +205,8 @@ class Player(VoiceProtocol):
         """
         return await self._node.get_tracks(query, ctx=ctx, search_type=search_type)
 
-    async def connect(self, *, timeout: float, reconnect: bool):
-        await self.guild.change_voice_state(channel=self.channel)
+    async def connect(self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False):
+        await self.guild.change_voice_state(channel=self.channel, self_deaf=self_deaf, self_mute=self_mute)
         self._node._players[self.guild.id] = self
         self._is_connected = True
 
