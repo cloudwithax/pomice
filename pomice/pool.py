@@ -79,6 +79,7 @@ class Node:
         self._heartbeat = heartbeat
         self._secure = secure
 
+
        
         self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
         self._rest_uri = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
@@ -250,10 +251,13 @@ class Node:
         """
         for player in self.players.copy().values():
             await player.destroy()
+            
+        if self._spotify_client_id and self._spotify_client_secret:
+            await self._spotify_client.close()
 
         await self._websocket.close()
-        del self._pool.nodes[self._identifier]
-        self.available = False
+        del self._pool._nodes[self._identifier]
+        self._available = False
         self._task.cancel()
 
     async def build_track(
@@ -447,7 +451,6 @@ class NodePool:
     def node_count(self):
         return len(self._nodes.values())
 
-    @classmethod
     def get_best_node(cls, *, algorithm: NodeAlgorithm) -> Node:
         """Fetches the best node based on an NodeAlgorithm.
          This option is preferred if you want to choose the best node
@@ -477,7 +480,6 @@ class NodePool:
         elif algorithm == NodeAlgorithm.by_players:
             tested_nodes = {node: len(node.players.keys()) for node in available_nodes}
             return min(tested_nodes, key=tested_nodes.get)
-    
 
     @classmethod
     def get_node(cls, *, identifier: str = None) -> Node:

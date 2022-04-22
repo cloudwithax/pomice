@@ -72,7 +72,7 @@ class Player(pomice.Player):
             if self.controller:
                 await self.controller.delete() 
 
-    async def set_context(self, ctx: commands.Context):
+    def set_context(self, ctx: commands.Context):
         """Set context for the player"""
         self.context = ctx 
         self.dj = ctx.author 
