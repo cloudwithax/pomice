@@ -131,7 +131,6 @@ class Node:
         """Property which returns a dict containing the guild ID and the player object."""
         return self._players
 
-
     @property
     def bot(self) -> Client:
         """Property which returns the discord.py client linked to this node"""
@@ -250,10 +249,13 @@ class Node:
         """
         for player in self.players.copy().values():
             await player.destroy()
+            
+        if self._spotify_client_id and self._spotify_client_secret:
+            await self._spotify_client.close()
 
         await self._websocket.close()
-        del self._pool.nodes[self._identifier]
-        self.available = False
+        del self._pool._nodes[self._identifier]
+        self._available = False
         self._task.cancel()
 
     async def build_track(
@@ -477,7 +479,6 @@ class NodePool:
         elif algorithm == NodeAlgorithm.by_players:
             tested_nodes = {node: len(node.players.keys()) for node in available_nodes}
             return min(tested_nodes, key=tested_nodes.get)
-    
 
     @classmethod
     def get_node(cls, *, identifier: str = None) -> Node:
