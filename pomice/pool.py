@@ -34,7 +34,7 @@ if TYPE_CHECKING:
     from .player import Player
 
 SPOTIFY_URL_REGEX = re.compile(
-    r"https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)"
+    r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)"
 )
 
 DISCORD_MP3_URL_REGEX = re.compile(

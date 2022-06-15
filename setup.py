@@ -1,5 +1,8 @@
 import setuptools
 
+with open("requirements.txt") as f:
+    requirements = f.read().splitlines()
+
 with open("README.md") as f:
     readme = f.read()
 
@@ -14,7 +17,7 @@ setuptools.setup(
     long_description=readme,
     long_description_content_type="text/markdown",
     include_package_data=True,
-    install_requires=None,
+    install_requires=requirements,
     extra_require=None,
     classifiers=[
         "Framework :: AsyncIO",

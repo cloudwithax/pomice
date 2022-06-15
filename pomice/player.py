@@ -2,6 +2,7 @@ import time
 from typing import (
     Any,
     Dict,
+    List,
     Optional
 )
 
@@ -16,10 +17,55 @@ from discord.ext import commands
 from . import events
 from .enums import SearchType
 from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
-from .exceptions import FilterInvalidArgument, TrackInvalidPosition, TrackLoadError
+from .exceptions import FilterInvalidArgument, FilterTagAlreadyInUse, FilterTagInvalid, TrackInvalidPosition, TrackLoadError
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
+
+class Filters:
+    """Helper class for filters"""
+    def __init__(self):
+        self._filters: List[Filter] = []
+
+    def add_filter(self, *, filter: Filter):
+        """Adds a filter to the list of filters applied"""
+        if any(f for f in self._filters if f.tag == filter.tag):
+            raise FilterTagAlreadyInUse(
+                "A filter with that tag is already in use."
+            )
+        self._filters.append(filter)
+    
+    def remove_filter(self, *, filter_tag: str):
+        """Removes a filter from the list of filters applied using its filter tag"""
+        if not any(f for f in self._filters if f.tag == filter_tag):
+            raise FilterTagInvalid(
+                "A filter with that tag was not found."
+            )
+
+        for index, filter in enumerate(self._filters):
+            if filter.tag == filter_tag:
+                del self._filters[index]
+
+    def has_filter(self, *, filter_tag: str):
+        """Checks if a filter exists in the list of filters using its filter tag"""
+        return any(f for f in self._filters if f.tag == filter_tag)
+
+    def reset_filters(self):
+        """Removes all filters from the list"""
+        self._filters = []
+        
+
+    def get_all_payloads(self):
+        """Returns a formatted dict of all the filter payloads"""
+        payload = {}
+        for filter in self._filters:
+            payload.update(filter.payload)
+        return payload
+
+    def get_filters(self):
+        """Returns the current list of applied filters"""
+        return self._filters
+
 
 
 class Player(VoiceProtocol):
@@ -51,7 +97,7 @@ class Player(VoiceProtocol):
 
         self._node = node if node else NodePool.get_node()
         self._current: Track = None
-        self._filter: Filter = None
+        self._filters: Filters = Filters()
         self._volume = 100
         self._paused = False
         self._is_connected = False
@@ -124,9 +170,9 @@ class Player(VoiceProtocol):
         return self._volume
 
     @property
-    def filter(self) -> Filter:
-        """Property which returns the currently applied filter, if one is applied"""
-        return self._filter
+    def filters(self) -> Filters:
+        """Property which returns the helper class for interacting with filters"""
+        return self._filters
 
     @property
     def bot(self) -> Client:
@@ -205,7 +251,7 @@ class Player(VoiceProtocol):
         """
         return await self._node.get_tracks(query, ctx=ctx, search_type=search_type)
 
-    async def connect(self, *, timeout: float, reconnect: bool):
+    async def connect(self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False):
         await self.guild.change_voice_state(channel=self.channel)
         self._node._players[self.guild.id] = self
         self._is_connected = True
@@ -246,21 +292,28 @@ class Player(VoiceProtocol):
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
         if track.spotify: 
-            search: Track = (await self._node.get_tracks(
-            f"{track._search_type}:{track.title} - {track.author}", ctx=track.ctx))[0]
-            if not search: 
-                raise TrackLoadError (
-                    "No equivalent track was able to be found."
-                )
-            track.original = search
-
+            # First lets try using the tracks ISRC, every track has one (hopefully)
+            try:
+                search: Track = (await self._node.get_tracks(
+                f"{track._search_type}:{track.isrc}", ctx=track.ctx))[0]
+            except:
+                # First method didn't work, lets try just searching it up
+                try:
+                    search: Track = (await self._node.get_tracks(
+                    f"{track._search_type}:{track.title} - {track.author}", ctx=track.ctx))[0]
+                except:
+                    # The song wasn't able to be found, raise error
+                    raise TrackLoadError (
+                        "No equivalent track was able to be found."
+                    )
             data = {
                 "op": "play",
                 "guildId": str(self.guild.id),
                 "track": search.track_id,
                 "startTime": str(start),
                 "noReplace": ignore_if_playing
-            }
+            }    
+            track.original = search
         else:
             data = {
                 "op": "play",
@@ -300,31 +353,55 @@ class Player(VoiceProtocol):
         self._volume = volume
         return self._volume
 
-    async def set_filter(self, filter: Filter, fast_apply=False) -> Filter:
-        """Sets a filter of the player. Takes a pomice.Filter object.
+    async def add_filter(self, filter: Filter, fast_apply=False) -> Filter:
+        """Adds a filter to the player. Takes a pomice.Filter object.
            This will only work if you are using a version of Lavalink that supports filters.
            If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
+
+           (You must have a song playing in order for `fast_apply` to work.)
         """
-        await self._node.send(op="filters", guildId=str(self.guild.id), **filter.payload)
+        
+        self._filters.add_filter(filter=filter)
+        payload = self._filters.get_all_payloads()
+        await self._node.send(op="filters", guildId=str(self.guild.id), **payload)
         if fast_apply:
             await self.seek(self.position)
-        self._filter = filter
-        return filter
+        
+        return self._filters
 
-    async def reset_filter(self, fast_apply=False):
-        """Resets a currently applied filter to its default parameters.
-            You must have a filter applied in order for this to work
+    async def remove_filter(self, filter_tag: str, fast_apply=False) -> Filter:
+        """Removes a filter from the player. Takes a filter tag.
+           This will only work if you are using a version of Lavalink that supports filters.
+           If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
+
+           (You must have a song playing in order for `fast_apply` to work.)
+        """
+        
+        self._filters.remove_filter(filter_tag=filter_tag)
+        payload = self._filters.get_all_payloads()
+        await self._node.send(op="filters", guildId=str(self.guild.id), **payload)
+        if fast_apply:
+            await self.seek(self.position)
+        
+        return self._filters
+
+    async def reset_filters(self, *, fast_apply=False):
+        """Resets all currently applied filters to their default parameters.
+            You must have filters applied in order for this to work.
+            If you would like the filters to be removed instantly, set the `fast_apply` arg to `True`.
+
+           (You must have a song playing in order for `fast_apply` to work.)
         """
 
-        if not self._filter:
+        if not self._filters:
             raise FilterInvalidArgument(
-                "You must have a filter applied first in order to use this method."
+                "You must have filters applied first in order to use this method."
             )
-
+        self._filters.reset_filters()
         await self._node.send(op="filters", guildId=str(self.guild.id))
         if fast_apply:
             await self.seek(self.position)
-        self._filter = None
+        
 
 
 

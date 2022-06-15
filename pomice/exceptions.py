@@ -43,6 +43,14 @@ class FilterInvalidArgument(PomiceException):
     """An invalid argument was passed to a filter."""
     pass
 
+class FilterTagInvalid(PomiceException):
+    """An invalid tag was passed or Pomice was unable to find a filter tag"""
+    pass
+
+class FilterTagAlreadyInUse(PomiceException):
+    """A filter with a tag is already in use by another filter"""
+    pass
+
 
 class SpotifyAlbumLoadFailed(PomiceException):
     """The pomice Spotify client was unable to load an album."""

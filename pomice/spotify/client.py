@@ -3,16 +3,16 @@ import time
 from base64 import b64encode
 
 import aiohttp
+import orjson as json
 
-from .album import Album
+
 from .exceptions import InvalidSpotifyURL, SpotifyRequestException
-from .playlist import Playlist
-from .track import Track
+from .objects import * 
 
 GRANT_URL = "https://accounts.spotify.com/api/token"
 REQUEST_URL = "https://api.spotify.com/v1/{type}s/{id}"
 SPOTIFY_URL_REGEX = re.compile(
-    r"https?://open.spotify.com/(?P<type>album|playlist|track)/(?P<id>[a-zA-Z0-9]+)"
+    r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)"
 )
 
 
@@ -43,7 +43,7 @@ class Client:
                     f"Error fetching bearer token: {resp.status} {resp.reason}"
                 )
 
-            data: dict = await resp.json()
+            data: dict = await resp.json(loads=json.loads)
 
         self._bearer_token = data["access_token"]
         self._expiry = time.time() + (int(data["expires_in"]) - 10)
@@ -68,14 +68,23 @@ class Client:
                     f"Error while fetching results: {resp.status} {resp.reason}"
                 )
 
-            data: dict = await resp.json()
+            data: dict = await resp.json(loads=json.loads)
 
         if spotify_type == "track":
             return Track(data)
         elif spotify_type == "album":
             return Album(data)
-        else:
+        elif spotify_type == "artist":
+            async with self.session.get(f"{request_url}/top-tracks?market=US", headers=self._bearer_headers) as resp:
+                    if resp.status != 200:
+                        raise SpotifyRequestException(
+                            f"Error while fetching results: {resp.status} {resp.reason}"
+                        )
 
+                    track_data: dict = await resp.json(loads=json.loads)
+                    tracks = track_data['tracks']
+                    return Artist(data, tracks)
+        else:
             tracks = [
                 Track(track["track"])
                 for track in data["tracks"]["items"] if track["track"] is not None
@@ -93,7 +102,7 @@ class Client:
                             f"Error while fetching results: {resp.status} {resp.reason}"
                         )
 
-                    next_data: dict = await resp.json()
+                    next_data: dict = await resp.json(loads=json.loads)
 
                 tracks += [
                     Track(track["track"])

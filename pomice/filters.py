@@ -8,9 +8,13 @@ class Filter:
     You can use these filters if you have the latest Lavalink version
     installed. If you do not have the latest Lavalink version,
     these filters will not work.
+
+    You must specify a tag for each filter you put on.
+    This is necessary for the removal of filters.
     """
     def __init__(self):
         self.payload = None
+        self.tag: str = None
 
 
 class Equalizer(Filter):
@@ -21,13 +25,14 @@ class Equalizer(Filter):
     The format for the levels is: List[Tuple[int, float]]
     """
 
-    def __init__(self, *, levels: list):
+    def __init__(self, *, tag: str, levels: list):
         super().__init__()
 
         self.eq = self._factory(levels)
         self.raw = levels
 
         self.payload = {"equalizer": self.eq}
+        self.tag = tag
 
     def _factory(self, levels: list):
         _dict = collections.defaultdict(int)
@@ -36,11 +41,6 @@ class Equalizer(Filter):
         _dict = [{"band": i, "gain": _dict[i]} for i in range(15)]
 
         return _dict
-
-        self.eq = self._factory(levels=self.raw)
-        self.payload = {"equalizer": self.eq}
-
-        return self.payload
 
     def __repr__(self) -> str:
         return f"<Pomice.EqualizerFilter eq={self.eq} raw={self.raw}>"
@@ -56,6 +56,7 @@ class Timescale(Filter):
     def __init__(
         self, 
         *, 
+        tag: str,
         speed: float = 1.0, 
         pitch: float = 1.0, 
         rate: float = 1.0
@@ -72,6 +73,7 @@ class Timescale(Filter):
         self.speed = speed
         self.pitch = pitch
         self.rate = rate
+        self.tag = tag
 
         self.payload = {"timescale": {"speed": self.speed,
                                       "pitch": self.pitch,
@@ -89,6 +91,7 @@ class Karaoke(Filter):
     def __init__(
         self,
         *,
+        tag: str,
         level: float = 1.0,
         mono_level: float = 1.0,
         filter_band: float = 220.0,
@@ -100,6 +103,7 @@ class Karaoke(Filter):
         self.mono_level = mono_level
         self.filter_band = filter_band
         self.filter_width = filter_width
+        self.tag = tag
 
         self.payload = {"karaoke": {"level": self.level,
                                     "monoLevel": self.mono_level,
@@ -121,6 +125,7 @@ class Tremolo(Filter):
     def __init__(
         self, 
         *, 
+        tag: str,
         frequency: float = 2.0, 
         depth: float = 0.5
     ):
@@ -135,6 +140,7 @@ class Tremolo(Filter):
 
         self.frequency = frequency
         self.depth = depth
+        self.tag = tag
 
         self.payload = {"tremolo": {"frequency": self.frequency,
                                     "depth": self.depth}}
@@ -151,6 +157,7 @@ class Vibrato(Filter):
     def __init__(
         self, 
         *, 
+        tag: str,
         frequency: float = 2.0, 
         depth: float = 0.5
     ):
@@ -165,6 +172,7 @@ class Vibrato(Filter):
 
         self.frequency = frequency
         self.depth = depth
+        self.tag = tag
 
         self.payload = {"vibrato": {"frequency": self.frequency,
                                     "depth": self.depth}}
@@ -178,10 +186,11 @@ class Rotation(Filter):
     the audio is being rotated around the listener's head
     """
 
-    def __init__(self, *, rotation_hertz: float = 5):
+    def __init__(self, *, tag: str, rotation_hertz: float = 5):
         super().__init__()
 
         self.rotation_hertz = rotation_hertz
+        self.tag = tag
         self.payload = {"rotation": {"rotationHz": self.rotation_hertz}}
 
     def __repr__(self) -> str:
@@ -196,6 +205,7 @@ class ChannelMix(Filter):
     def __init__(
         self,
         *,
+        tag: str,
         left_to_left: float = 1,
         right_to_right: float = 1,
         left_to_right: float = 0,
@@ -220,6 +230,7 @@ class ChannelMix(Filter):
         self.left_to_right = left_to_right
         self.right_to_left = right_to_left
         self.right_to_right = right_to_right
+        self.tag = tag
 
         self.payload = {"channelMix": {"leftToLeft": self.left_to_left, 
                                         "leftToRight": self.left_to_right, 
@@ -242,6 +253,7 @@ class Distortion(Filter):
     def __init__(
         self,
         *,
+        tag: str,
         sin_offset: float =  0,
         sin_scale: float = 1,
         cos_offset: float = 0,
@@ -261,6 +273,7 @@ class Distortion(Filter):
         self.tan_scale = tan_scale
         self.offset = offset
         self.scale = scale
+        self.tag = tag
 
         self.payload = {"distortion": {
             "sinOffset": self.sin_offset,
@@ -286,10 +299,11 @@ class LowPass(Filter):
     You can also do this with the Equalizer filter, but this is an easier way to do it.
     """
 
-    def __init__(self, *, smoothing: float = 20):
+    def __init__(self, *, tag: str, smoothing: float = 20):
         super().__init__()
 
         self.smoothing = smoothing
+        self.tag = tag
         self.payload = {"lowPass": {"smoothing": self.smoothing}}
 
     def __repr__(self) -> str:
