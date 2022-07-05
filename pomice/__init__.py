@@ -13,9 +13,9 @@ if not discord.__version__.startswith("2.0"):
         pass
 
     raise DiscordPyOutdated(
-        "You must have discord.py 2.0 or a discord.py fork that uses the 'discord' namespace "
-        "(a.k.a: you import the libary using 'import discord') to use this library. "
-        "Uninstall your current version and install discord.py 2.0 or a compatible fork."
+        "You must have discord.py 2.0 to use this library. "
+        "Uninstall your current version and install discord.py 2.0 "
+        "using 'pip install git+https://github.com/Rapptz/discord.py@master'"
     )
 
 __version__ = "1.1.7b"
