@@ -18,7 +18,7 @@ if not discord.__version__.startswith("2.0"):
         "Uninstall your current version and install discord.py 2.0 or a compatible fork."
     )
 
-__version__ = "1.1.7"
+__version__ = "1.1.7b"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
