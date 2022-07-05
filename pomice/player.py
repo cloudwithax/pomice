@@ -294,6 +294,9 @@ class Player(VoiceProtocol):
         if track.spotify: 
             # First lets try using the tracks ISRC, every track has one (hopefully)
             try:
+                if not track.isrc:
+                    # We have to bare raise here because theres no other way to skip this block feasibly 
+                    raise 
                 search: Track = (await self._node.get_tracks(
                 f"{track._search_type}:{track.isrc}", ctx=track.ctx))[0]
             except:

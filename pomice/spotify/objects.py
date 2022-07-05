@@ -9,7 +9,11 @@ class Track:
         self.artists = ", ".join(artist["name"] for artist in data["artists"])
         self.length = data["duration_ms"]
         self.id = data["id"]
-        self.isrc = data["external_ids"]["isrc"]
+
+        if data.get("external_ids"):
+            self.isrc = data["external_ids"]["isrc"]
+        else:
+            self.isrc = None
 
         if data.get("album") and data["album"].get("images"):
             self.image = data["album"]["images"][0]["url"]

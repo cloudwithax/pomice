@@ -43,7 +43,63 @@ class Equalizer(Filter):
         return _dict
 
     def __repr__(self) -> str:
-        return f"<Pomice.EqualizerFilter eq={self.eq} raw={self.raw}>"
+        return f"<Pomice.EqualizerFilter tag={self.tag} eq={self.eq} raw={self.raw}>"
+
+    @classmethod
+    def flat(cls):
+        """Equalizer preset which represents a flat EQ board,
+            with all levels set to their default values.
+        """
+
+        levels = [
+            (0, 0.0), (1, 0.0), (2, 0.0), (3, 0.0), (4, 0.0),
+            (5, 0.0), (6, 0.0), (7, 0.0), (8, 0.0), (9, 0.0),
+            (10, 0.0), (11, 0.0), (12, 0.0), (13, 0.0), (14, 0.0)
+        ]
+        return cls(tag="flat", levels=levels)
+
+    @classmethod
+    def boost(cls):
+        """Equalizer preset which boosts the sound of a track,
+           making it sound fun and energetic by increasing the bass
+           and the highs.
+        """
+
+        levels = [
+            (0, -0.075), (1, 0.125), (2, 0.125), (3, 0.1), (4, 0.1),
+            (5, .05), (6, 0.075), (7, 0.0), (8, 0.0), (9, 0.0),
+            (10, 0.0), (11, 0.0), (12, 0.125), (13, 0.15), (14, 0.05)
+        ]
+        return cls(tag="boost", levels=levels)
+
+    @classmethod
+    def metal(cls):
+        """Equalizer preset which increases the mids of a track, 
+            preferably one of the metal genre, to make it sound 
+            more full and concert-like.
+        """
+
+        levels = [
+            (0, 0.0), (1, 0.1), (2, 0.1), (3, 0.15), (4, 0.13),
+            (5, 0.1), (6, 0.0), (7, 0.125), (8, 0.175), (9, 0.175),
+            (10, 0.125), (11, 0.125), (12, 0.1), (13, 0.075), (14, 0.0)
+        ]
+
+        return cls(tag="metal", levels=levels)
+
+    @classmethod
+    def piano(cls):
+        """Equalizer preset which increases the mids and highs
+            of a track, preferably a piano based one, to make it 
+            stand out.
+        """
+
+        levels = [
+            (0, -0.25), (1, -0.25), (2, -0.125), (3, 0.0),
+            (4, 0.25), (5, 0.25), (6, 0.0), (7, -0.25), (8, -0.25),
+            (9, 0.0), (10, 0.0), (11, 0.5), (12, 0.25), (13, -0.025)
+        ]
+        return cls(tag="piano", levels=levels)
 
 
 class Timescale(Filter):
@@ -79,8 +135,28 @@ class Timescale(Filter):
                                       "pitch": self.pitch,
                                       "rate": self.rate}}
 
+    @classmethod
+    def vaporwave(cls):
+        """Timescale preset which slows down the currently playing track, 
+        giving it the effect of a half-speed record/casette playing.
+        
+        This preset will assign the tag 'vaporwave'.
+        """
+
+        return cls(tag="vaporwave", speed=0.8, pitch=0.8)
+
+    @classmethod
+    def nightcore(cls):
+        """Timescale preset which speeds up the currently playing track,
+        which matches up to nightcore, a genre of sped-up music
+        
+        This preset will assign the tag 'nightcore'.
+        """
+
+        return cls(tag="nightcore", speed=1.25, pitch=1.3)                    
+
     def __repr__(self):
-        return f"<Pomice.TimescaleFilter speed={self.speed} pitch={self.pitch} rate={self.rate}>"
+        return f"<Pomice.TimescaleFilter tag={self.tag} speed={self.speed} pitch={self.pitch} rate={self.rate}>"
 
 
 class Karaoke(Filter):
@@ -112,7 +188,7 @@ class Karaoke(Filter):
 
     def __repr__(self):
         return (
-            f"<Pomice.KaraokeFilter level={self.level} mono_level={self.mono_level} "
+            f"<Pomice.KaraokeFilter tag={self.tag} level={self.level} mono_level={self.mono_level} "
             f"filter_band={self.filter_band} filter_width={self.filter_width}>"
         )
 
@@ -146,7 +222,7 @@ class Tremolo(Filter):
                                     "depth": self.depth}}
 
     def __repr__(self):
-        return f"<Pomice.TremoloFilter frequency={self.frequency} depth={self.depth}>"
+        return f"<Pomice.TremoloFilter tag={self.tag} frequency={self.frequency} depth={self.depth}>"
 
 
 class Vibrato(Filter):
@@ -178,7 +254,7 @@ class Vibrato(Filter):
                                     "depth": self.depth}}
         
     def __repr__(self):
-        return f"<Pomice.VibratoFilter frequency={self.frequency} depth={self.depth}>"
+        return f"<Pomice.VibratoFilter tag={self.tag} frequency={self.frequency} depth={self.depth}>"
 
 
 class Rotation(Filter):
@@ -194,7 +270,7 @@ class Rotation(Filter):
         self.payload = {"rotation": {"rotationHz": self.rotation_hertz}}
 
     def __repr__(self) -> str:
-        return f"<Pomice.RotationFilter rotation_hertz={self.rotation_hertz}>"
+        return f"<Pomice.RotationFilter tag={self.tag} rotation_hertz={self.rotation_hertz}>"
 
 
 class ChannelMix(Filter):
@@ -241,7 +317,7 @@ class ChannelMix(Filter):
 
     def __repr__(self) -> str:
         return ( 
-        f"<Pomice.ChannelMix left_to_left={self.left_to_left} left_to_right={self.left_to_right} "
+        f"<Pomice.ChannelMix tag={self.tag} left_to_left={self.left_to_left} left_to_right={self.left_to_right} "
         f"right_to_left={self.right_to_left} right_to_right={self.right_to_right}>" 
         )
 
@@ -288,7 +364,7 @@ class Distortion(Filter):
 
     def __repr__(self) -> str:
         return (
-        f"<Pomice.Distortion sin_offset={self.sin_offset} sin_scale={self.sin_scale}> "
+        f"<Pomice.Distortion tag={self.tag} sin_offset={self.sin_offset} sin_scale={self.sin_scale}> "
         f"cos_offset={self.cos_offset} cos_scale={self.cos_scale} tan_offset={self.tan_offset} "
         f"tan_scale={self.tan_scale} offset={self.offset} scale={self.scale}"
         )
@@ -307,6 +383,6 @@ class LowPass(Filter):
         self.payload = {"lowPass": {"smoothing": self.smoothing}}
 
     def __repr__(self) -> str:
-        return f"<Pomice.LowPass smoothing={self.smoothing}>"
+        return f"<Pomice.LowPass tag={self.tag} smoothing={self.smoothing}>"
 
 
