@@ -291,7 +291,8 @@ class Player(VoiceProtocol):
         ignore_if_playing: bool = False
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
-        if track.spotify: 
+        # Make sure we've never searched the track before
+        if track.original is None:
             # First lets try using the tracks ISRC, every track has one (hopefully)
             try:
                 if not track.isrc:
