@@ -291,7 +291,8 @@ class Player(VoiceProtocol):
         ignore_if_playing: bool = False
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
-        if track.spotify: 
+        # Make sure we've never searched the track before
+        if track.original is None:
             # First lets try using the tracks ISRC, every track has one (hopefully)
             try:
                 if not track.isrc:
@@ -299,7 +300,7 @@ class Player(VoiceProtocol):
                     raise 
                 search: Track = (await self._node.get_tracks(
                 f"{track._search_type}:{track.isrc}", ctx=track.ctx))[0]
-            except:
+            except Exception:
                 # First method didn't work, lets try just searching it up
                 try:
                     search: Track = (await self._node.get_tracks(
@@ -317,6 +318,8 @@ class Player(VoiceProtocol):
                 "noReplace": ignore_if_playing
             }    
             track.original = search
+            track.track_id = search.track_id
+            # Set track_id for later lavalink searches
         else:
             data = {
                 "op": "play",
