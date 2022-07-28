@@ -300,7 +300,7 @@ class Player(VoiceProtocol):
                     raise 
                 search: Track = (await self._node.get_tracks(
                 f"{track._search_type}:{track.isrc}", ctx=track.ctx))[0]
-            except:
+            except Exception:
                 # First method didn't work, lets try just searching it up
                 try:
                     search: Track = (await self._node.get_tracks(
@@ -318,6 +318,8 @@ class Player(VoiceProtocol):
                 "noReplace": ignore_if_playing
             }    
             track.original = search
+            track.track_id = search.track_id
+            # Set track_id for later lavalink searches
         else:
             data = {
                 "op": "play",
