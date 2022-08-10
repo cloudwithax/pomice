@@ -41,9 +41,27 @@ class NodeAlgorithm(Enum):
     """
 
     # We don't have to define anything special for these, since these just serve as flags
-    by_ping = auto()
-    by_region = auto()
-    by_players = auto()
+    by_ping = "BY_PING"
+    by_region = "BY_REGION"
+    by_players = "BY_PLAYERS"
+
+    def __str__(self) -> str:
+        return self.value
+
+class LoopMode(Enum):
+    """The enum for the different loop modes.
+       This feature is exclusively for the queue utility of pomice.
+       If you are not using this feature, this class is not necessary.
+
+       LoopMode.TRACK sets the queue loop to the current track.
+
+       LoopMode.QUEUE sets the queue loop to the whole queue.
+
+    """
+    # We don't have to define anything special for these, since these just serve as flags
+    TRACK = "TRACK"
+    QUEUE = "queue"
+    
 
     def __str__(self) -> str:
         return self.value

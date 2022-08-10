@@ -39,14 +39,15 @@ class Track:
         self.identifier = info.get("identifier")
         self.isrc = info.get("isrc")
         
-        if info.get("thumbnail"):
-            self.thumbnail = info.get("thumbnail") 
-        elif SOUNDCLOUD_URL_REGEX.match(self.uri):
-            # ok so theres no feasible way of getting a Soundcloud image URL
-            # so we're just gonna leave it blank for brevity
-            self.thumbnail = None
-        else:
-            self.thumbnail = f"https://img.youtube.com/vi/{self.identifier}/mqdefault.jpg"
+        if self.uri:
+            if info.get("thumbnail"):
+                self.thumbnail = info.get("thumbnail") 
+            elif SOUNDCLOUD_URL_REGEX.match(self.uri):
+                # ok so theres no feasible way of getting a Soundcloud image URL
+                # so we're just gonna leave it blank for brevity
+                self.thumbnail = None
+            else:
+                self.thumbnail = f"https://img.youtube.com/vi/{self.identifier}/mqdefault.jpg"
 
         self.length = info.get("length")
         self.ctx = ctx

@@ -71,3 +71,16 @@ class InvalidSpotifyClientAuthorization(PomiceException):
     """No Spotify client authorization was provided for track searching."""
     pass
 
+class QueueException(Exception):
+    """Base Pomice queue exception."""
+    pass
+
+
+class QueueFull(QueueException):
+    """Exception raised when attempting to add to a full Queue."""
+    pass
+
+
+class QueueEmpty(QueueException):
+    """Exception raised when attempting to retrieve from an empty Queue."""
+    pass
