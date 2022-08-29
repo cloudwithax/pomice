@@ -15,10 +15,10 @@ if not discord.__version__.startswith("2.0"):
     raise DiscordPyOutdated(
         "You must have discord.py 2.0 to use this library. "
         "Uninstall your current version and install discord.py 2.0 "
-        "using 'pip install git+https://github.com/Rapptz/discord.py@master'"
+        "using 'pip install discord.py'"
     )
 
-__version__ = "1.1.7b"
+__version__ = "1.1.7"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
