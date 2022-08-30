@@ -2,6 +2,7 @@ import setuptools
 import re
 
 version = ''
+requirements = ['discord.py>=2.0.0', 'aiohttp>=3.7.4,<4', 'orjson']
 with open('pomice/__init__.py') as f:
     version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
 
@@ -25,8 +26,7 @@ if version.endswith(('a', 'b', 'rc')):
     except Exception:
         pass
 
-with open("requirements.txt") as f:
-    requirements = f.read().splitlines()
+
 
 with open("README.md") as f:
     readme = f.read()
