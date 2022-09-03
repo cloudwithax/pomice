@@ -14,15 +14,12 @@ from discord.ext import commands
 
 from . import (
     __version__, 
-    spotify,
 )
 
 from .enums import SearchType, NodeAlgorithm
 from .exceptions import (
-    InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
     NodeCreationError,
-    NodeException,
     NodeNotAvailable,
     NoNodesAvailable,
     TrackLoadError
@@ -51,14 +48,13 @@ URL_REGEX = re.compile(
 class Node:
     """The base class for a node. 
        This node object represents a Lavalink node. 
-       To enable Spotify searching, pass in a proper Spotify Client ID and Spotify Client Secret
     """
 
     def __init__(
         self,
         *,
         pool,
-        bot: Client,
+        bot: commands.Bot,
         host: str,
         port: int,
         password: str,
@@ -66,18 +62,15 @@ class Node:
         secure: bool = False,
         heartbeat: int = 30,
         session: Optional[aiohttp.ClientSession] = None,
-        spotify_client_id: Optional[str] = None,
-        spotify_client_secret: Optional[str] = None,
-
     ):
-        self._bot = bot
-        self._host = host
-        self._port = port
+        self._bot: commands.Bot = bot
+        self._host: str = host
+        self._port: int = port
         self._pool = pool
-        self._password = password
-        self._identifier = identifier
-        self._heartbeat = heartbeat
-        self._secure = secure
+        self._password: str = password
+        self._identifier: str = identifier
+        self._heartbeat: str = heartbeat
+        self._secure: bool = secure
 
        
         self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
@@ -98,14 +91,6 @@ class Node:
         }
 
         self._players: Dict[int, Player] = {}
-
-        self._spotify_client_id = spotify_client_id
-        self._spotify_client_secret = spotify_client_secret
-
-        if self._spotify_client_id and self._spotify_client_secret:
-            self._spotify_client = spotify.Client(
-                self._spotify_client_id, self._spotify_client_secret
-            )
 
         self._bot.add_listener(self._update_handler, "on_socket_response")
 
@@ -133,7 +118,7 @@ class Node:
 
 
     @property
-    def bot(self) -> Client:
+    def bot(self) -> commands.Bot:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
@@ -290,9 +275,6 @@ class Node:
     ):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
-           If you passed in Spotify API credentials, you can also pass in a
-           Spotify URL of a playlist, album or track and it will be parsed accordingly.
-
            You can also pass in a discord.py Context object to get a
            Context object on any track you search.
         """
@@ -300,70 +282,8 @@ class Node:
         if not URL_REGEX.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
             query = f"{search_type}:{query}"
 
-        if SPOTIFY_URL_REGEX.match(query):
-            if not self._spotify_client_id and not self._spotify_client_secret:
-                raise InvalidSpotifyClientAuthorization(
-                    "You did not provide proper Spotify client authorization credentials. "
-                    "If you would like to use the Spotify searching feature, "
-                    "please obtain Spotify API credentials here: https://developer.spotify.com/"
-                )
 
-            spotify_results = await self._spotify_client.search(query=query)
-
-            if isinstance(spotify_results, spotify.Track):
-                return [
-                    Track(
-                        track_id=spotify_results.id,
-                        ctx=ctx,
-                        search_type=search_type,
-                        spotify=True,
-                        spotify_track=spotify_results,
-                        info={
-                            "title": spotify_results.name,
-                            "author": spotify_results.artists,
-                            "length": spotify_results.length,
-                            "identifier": spotify_results.id,
-                            "uri": spotify_results.uri,
-                            "isStream": False,
-                            "isSeekable": True,
-                            "position": 0,
-                            "thumbnail": spotify_results.image,
-                            "isrc": spotify_results.isrc
-                        }
-                    )
-                ]
-
-            tracks = [
-                Track(
-                    track_id=track.id,
-                    ctx=ctx,
-                    search_type=search_type,
-                    spotify=True,
-                    spotify_track=track,
-                    info={
-                        "title": track.name,
-                        "author": track.artists,
-                        "length": track.length,
-                        "identifier": track.id,
-                        "uri": track.uri,
-                        "isStream": False,
-                        "isSeekable": True,
-                        "position": 0,
-                        "thumbnail": track.image,
-                        "isrc": track.isrc
-                    }
-                ) for track in spotify_results.tracks
-            ]
-
-            return Playlist(
-                playlist_info={"name": spotify_results.name, "selectedTrack": 0},
-                tracks=tracks,
-                ctx=ctx,
-                spotify=True,
-                spotify_playlist=spotify_results
-            )
-
-        elif discord_url := DISCORD_MP3_URL_REGEX.match(query):
+        if discord_url := DISCORD_MP3_URL_REGEX.match(query):
             async with self._session.get(
                 url=f"{self._rest_uri}/loadtracks?identifier={quote(query)}",
                 headers={"Authorization": self._password}
@@ -508,8 +428,6 @@ class NodePool:
         identifier: str,
         secure: bool = False,
         heartbeat: int = 30,
-        spotify_client_id: Optional[str] = None,
-        spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
 
     ) -> Node:
@@ -521,9 +439,8 @@ class NodePool:
 
         node = Node(
             pool=cls, bot=bot, host=host, port=port, password=password,
-            identifier=identifier, secure=secure, heartbeat=heartbeat,
-            spotify_client_id=spotify_client_id, 
-            session=session, spotify_client_secret=spotify_client_secret
+            identifier=identifier, secure=secure, heartbeat=heartbeat, 
+            session=session
         )
 
         await node.connect()

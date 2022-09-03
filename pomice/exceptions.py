@@ -52,25 +52,6 @@ class FilterTagAlreadyInUse(PomiceException):
     pass
 
 
-class SpotifyAlbumLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load an album."""
-    pass
-
-
-class SpotifyTrackLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load a track."""
-    pass
-
-
-class SpotifyPlaylistLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load a playlist."""
-    pass
-
-
-class InvalidSpotifyClientAuthorization(PomiceException):
-    """No Spotify client authorization was provided for track searching."""
-    pass
-
 class QueueException(Exception):
     """Base Pomice queue exception."""
     pass
