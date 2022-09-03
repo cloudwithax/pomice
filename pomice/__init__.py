@@ -8,12 +8,12 @@ The modern Lavalink wrapper designed for discord.py.
 """
 import discord
 
-if not discord.__version__.startswith("2.0"):
+if not discord.version_info.major >= 2:
     class DiscordPyOutdated(Exception):
         pass
 
     raise DiscordPyOutdated(
-        "You must have discord.py 2.0 to use this library. "
+        "You must have discord.py (v2.0 or greater) to use this library. "
         "Uninstall your current version and install discord.py 2.0 "
         "using 'pip install discord.py'"
     )
