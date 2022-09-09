@@ -18,11 +18,11 @@ sys.path.insert(0, os.path.abspath('.'))
 # -- Project information -----------------------------------------------------
 
 project = 'Pomice'
-copyright = '2021, cloudwithax'
+copyright = '2022, cloudwithax'
 author = 'cloudwithax'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.1'
+release = '1.1.8a'
 
 
 # -- General configuration ---------------------------------------------------

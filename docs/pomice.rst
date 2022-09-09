@@ -2,11 +2,6 @@ Pomice
 ==============
 
 
-.. toctree::
-   :maxdepth: 4
-
-   pomice.spotify
-
 
 Enums
 -------------------
@@ -60,6 +55,14 @@ Pool
 ------------------
 
 .. automodule:: pomice.pool
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Queue
+------------------
+
+.. automodule:: pomice.queue
    :members:
    :undoc-members:
    :show-inheritance:
