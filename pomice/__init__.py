@@ -18,7 +18,7 @@ if not discord.version_info.major >= 2:
         "using 'pip install discord.py'"
     )
 
-__version__ = "1.1.7"
+__version__ = "1.1.8a"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
