@@ -21,12 +21,17 @@ class Track:
         track_id: str,
         info: dict,
         ctx: Optional[commands.Context] = None,
+        spotify: bool = False,
         search_type: SearchType = SearchType.ytsearch,
+        spotify_track = None,
     ):
         self.track_id = track_id
         self.info = info
+        self.spotify = spotify
+
+        self.original: Optional[Track] = None if spotify else self
         self._search_type = search_type
-       
+        self.spotify_track = spotify_track
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -79,21 +84,29 @@ class Playlist:
         playlist_info: dict,
         tracks: list,
         ctx: Optional[commands.Context] = None,
+        spotify: bool = False,
+        spotify_playlist = None
     ):
         self.playlist_info = playlist_info
         self.tracks_raw = tracks
+        self.spotify = spotify
         self.name = playlist_info.get("name")
+        self.spotify_playlist = spotify_playlist
 
         self._thumbnail = None
         self._uri = None
         
-    
-        self.tracks = [
-            Track(track_id=track["track"], info=track["info"], ctx=ctx)
-            for track in self.tracks_raw
-        ]
-        self._thumbnail = None
-        self._uri = None
+        if self.spotify:
+            self.tracks = tracks
+            self._thumbnail = self.spotify_playlist.image
+            self._uri = self.spotify_playlist.uri
+        else:
+            self.tracks = [
+                Track(track_id=track["track"], info=track["info"], ctx=ctx)
+                for track in self.tracks_raw
+            ]
+            self._thumbnail = None
+            self._uri = None
 
         if (index := playlist_info.get("selectedTrack")) == -1:
             self.selected_track = None

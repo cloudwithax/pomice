@@ -17,7 +17,7 @@ from discord.ext import commands
 from . import events
 from .enums import SearchType
 from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
-from .exceptions import FilterInvalidArgument, FilterTagAlreadyInUse, FilterTagInvalid, TrackInvalidPosition
+from .exceptions import FilterInvalidArgument, FilterTagAlreadyInUse, FilterTagInvalid, TrackInvalidPosition, TrackLoadError
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
@@ -290,15 +290,44 @@ class Player(VoiceProtocol):
         end: int = 0,
         ignore_if_playing: bool = False
     ) -> Track:
-        """Plays a track."""
-       
-        data = {
-            "op": "play",
-            "guildId": str(self.guild.id),
-            "track": track.track_id,
-            "startTime": str(start),
-            "noReplace": ignore_if_playing
-        }
+        """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
+        # Make sure we've never searched the track before
+        if track.original is None:
+            # First lets try using the tracks ISRC, every track has one (hopefully)
+            try:
+                if not track.isrc:
+                    # We have to bare raise here because theres no other way to skip this block feasibly 
+                    raise 
+                search: Track = (await self._node.get_tracks(
+                f"{track._search_type}:{track.isrc}", ctx=track.ctx))[0]
+            except Exception:
+                # First method didn't work, lets try just searching it up
+                try:
+                    search: Track = (await self._node.get_tracks(
+                    f"{track._search_type}:{track.title} - {track.author}", ctx=track.ctx))[0]
+                except:
+                    # The song wasn't able to be found, raise error
+                    raise TrackLoadError (
+                        "No equivalent track was able to be found."
+                    )
+            data = {
+                "op": "play",
+                "guildId": str(self.guild.id),
+                "track": search.track_id,
+                "startTime": str(start),
+                "noReplace": ignore_if_playing
+            }    
+            track.original = search
+            track.track_id = search.track_id
+            # Set track_id for later lavalink searches
+        else:
+            data = {
+                "op": "play",
+                "guildId": str(self.guild.id),
+                "track": track.track_id,
+                "startTime": str(start),
+                "noReplace": ignore_if_playing
+            }
 
         if end > 0:
             data["endTime"] = str(end)
