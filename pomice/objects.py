@@ -1,9 +1,10 @@
 import re
-from typing import Optional
+from typing import List, Optional
 
 from discord.ext import commands
 
 from .enums import SearchType
+from .filters import Filter
 
 SOUNDCLOUD_URL_REGEX = re.compile(
     r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/[\w\-\.]+(\/)+[\w\-\.]+/?$"
@@ -24,10 +25,12 @@ class Track:
         spotify: bool = False,
         search_type: SearchType = SearchType.ytsearch,
         spotify_track = None,
+        filters: Optional[List[Filter]] = None
     ):
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
+        self.filters: List[Filter] = filters
 
         self.original: Optional[Track] = None if spotify else self
         self._search_type = search_type

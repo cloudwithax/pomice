@@ -4,7 +4,7 @@ import asyncio
 import json
 import random
 import re
-from typing import Dict, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING
 from urllib.parse import quote
 
 import aiohttp
@@ -27,6 +27,7 @@ from .exceptions import (
     NoNodesAvailable,
     TrackLoadError
 )
+from .filters import Filter
 from .objects import Playlist, Track
 from .utils import ExponentialBackoff, NodeStats, Ping
 
@@ -286,15 +287,19 @@ class Node:
         query: str,
         *,
         ctx: Optional[commands.Context] = None,
-        search_type: SearchType = SearchType.ytsearch
+        search_type: SearchType = SearchType.ytsearch,
+        filters: Optional[List[Filter]] = None
     ):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
            If you passed in Spotify API credentials, you can also pass in a
            Spotify URL of a playlist, album or track and it will be parsed accordingly.
 
-           You can also pass in a discord.py Context object to get a
+           You can pass in a discord.py Context object to get a
            Context object on any track you search.
+
+           You may also pass in a List of filters 
+           to be applied to your track once it plays.
         """
 
         if not URL_REGEX.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
@@ -318,6 +323,7 @@ class Node:
                         search_type=search_type,
                         spotify=True,
                         spotify_track=spotify_results,
+                        filters=filters,
                         info={
                             "title": spotify_results.name,
                             "author": spotify_results.artists,
@@ -340,6 +346,7 @@ class Node:
                     search_type=search_type,
                     spotify=True,
                     spotify_track=track,
+                    filters=filters,
                     info={
                         "title": track.name,
                         "author": track.artists,
@@ -384,7 +391,8 @@ class Node:
                         "position": info.get("position"),
                         "identifier": info.get("identifier")
                     },
-                    ctx=ctx
+                    ctx=ctx,
+                    filters=filters
                 )
             ]
 
@@ -420,7 +428,8 @@ class Node:
                 Track(
                     track_id=track["track"],
                     info=track["info"],
-                    ctx=ctx
+                    ctx=ctx,
+                    filters=filters
                 )
                 for track in data["tracks"]
             ]

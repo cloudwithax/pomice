@@ -238,7 +238,8 @@ class Player(VoiceProtocol):
         query: str,
         *,
         ctx: Optional[commands.Context] = None,
-        search_type: SearchType = SearchType.ytsearch
+        search_type: SearchType = SearchType.ytsearch,
+        filters: Optional[List[Filter]] = None
     ):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
@@ -246,10 +247,13 @@ class Player(VoiceProtocol):
         you can also pass in a Spotify URL of a playlist, album or track and it will be parsed
         accordingly.
 
-        You can also pass in a discord.py Context object to get a
+        You can pass in a discord.py Context object to get a
         Context object on any track you search.
+
+        You may also pass in a List of filters 
+        to be applied to your track once it plays.
         """
-        return await self._node.get_tracks(query, ctx=ctx, search_type=search_type)
+        return await self._node.get_tracks(query, ctx=ctx, search_type=search_type, filters=filters)
 
     async def connect(self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False):
         await self.guild.change_voice_state(channel=self.channel, self_deaf=self_deaf, self_mute=self_mute)
@@ -291,6 +295,7 @@ class Player(VoiceProtocol):
         ignore_if_playing: bool = False
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
+
         # Make sure we've never searched the track before
         if track.original is None:
             # First lets try using the tracks ISRC, every track has one (hopefully)
@@ -328,6 +333,15 @@ class Player(VoiceProtocol):
                 "startTime": str(start),
                 "noReplace": ignore_if_playing
             }
+
+        # Apply track filters
+        if track.filters:
+            # First lets remove all filters quickly 
+            await self.reset_filters()
+
+            # Now apply all filters
+            for filter in track.filters:
+                await self.add_filter(filter=filter)
 
         if end > 0:
             data["endTime"] = str(end)
