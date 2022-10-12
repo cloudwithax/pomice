@@ -466,9 +466,6 @@ class NodePool:
          Use NodeAlgorithm.by_ping if you want to get the best node
          based on the node's latency.
 
-         Use NodeAlgorithm.by_region if you want to get the best node
-         based on the node's voice region. This method will only work
-         if you set a voice region when you create a node.
 
          Use NodeAlgorithm.by_players if you want to get the best node
          based on how players it has. This method will return a node with
