@@ -17,6 +17,7 @@ from .exceptions import QueueEmpty, QueueException, QueueFull
 
 
 class Queue(Iterable[Track]):
+    """Queue for Pomice. This queue takes pomice.Track as an input and includes looping and shuffling."""
     def __init__(
         self,
         max_size: Optional[int] = None,
@@ -24,7 +25,7 @@ class Queue(Iterable[Track]):
         overflow: bool = True,
     ):
         self.max_size: Optional[int] = max_size
-        self._queue = [] # type: ignore
+        self._queue: List[Track] = [] # type: ignore
         self._overflow: bool = overflow
         self._loop_mode: Optional[LoopMode] = None
         self._current_item: Optional[Track] = None
@@ -332,3 +333,8 @@ class Queue(Iterable[Track]):
     def shuffle(self):
         """Shuffles the queue."""
         return random.shuffle(self._queue)
+
+    def clear_track_filters(self):
+        """Clears all filters applied to tracks"""
+        for track in self._queue:
+            track.filters = None

@@ -74,8 +74,8 @@ class Equalizer(Filter):
 
     @classmethod
     def metal(cls):
-        """Equalizer preset which increases the mids of a track, 
-            preferably one of the metal genre, to make it sound 
+        """Equalizer preset which increases the mids of a track,
+            preferably one of the metal genre, to make it sound
             more full and concert-like.
         """
 
@@ -90,7 +90,7 @@ class Equalizer(Filter):
     @classmethod
     def piano(cls):
         """Equalizer preset which increases the mids and highs
-            of a track, preferably a piano based one, to make it 
+            of a track, preferably a piano based one, to make it
             stand out.
         """
 
@@ -110,11 +110,11 @@ class Timescale(Filter):
     """
 
     def __init__(
-        self, 
-        *, 
+        self,
+        *,
         tag: str,
-        speed: float = 1.0, 
-        pitch: float = 1.0, 
+        speed: float = 1.0,
+        pitch: float = 1.0,
         rate: float = 1.0
     ):
         super().__init__()
@@ -137,9 +137,9 @@ class Timescale(Filter):
 
     @classmethod
     def vaporwave(cls):
-        """Timescale preset which slows down the currently playing track, 
+        """Timescale preset which slows down the currently playing track,
         giving it the effect of a half-speed record/casette playing.
-        
+
         This preset will assign the tag 'vaporwave'.
         """
 
@@ -149,11 +149,11 @@ class Timescale(Filter):
     def nightcore(cls):
         """Timescale preset which speeds up the currently playing track,
         which matches up to nightcore, a genre of sped-up music
-        
+
         This preset will assign the tag 'nightcore'.
         """
 
-        return cls(tag="nightcore", speed=1.25, pitch=1.3)                    
+        return cls(tag="nightcore", speed=1.25, pitch=1.3)
 
     def __repr__(self):
         return f"<Pomice.TimescaleFilter tag={self.tag} speed={self.speed} pitch={self.pitch} rate={self.rate}>"
@@ -199,10 +199,10 @@ class Tremolo(Filter):
     """
 
     def __init__(
-        self, 
-        *, 
+        self,
+        *,
         tag: str,
-        frequency: float = 2.0, 
+        frequency: float = 2.0,
         depth: float = 0.5
     ):
         super().__init__()
@@ -231,10 +231,10 @@ class Vibrato(Filter):
     """
 
     def __init__(
-        self, 
-        *, 
+        self,
+        *,
         tag: str,
-        frequency: float = 2.0, 
+        frequency: float = 2.0,
         depth: float = 0.5
     ):
 
@@ -252,7 +252,7 @@ class Vibrato(Filter):
 
         self.payload = {"vibrato": {"frequency": self.frequency,
                                     "depth": self.depth}}
-        
+
     def __repr__(self):
         return f"<Pomice.VibratoFilter tag={self.tag} frequency={self.frequency} depth={self.depth}>"
 
@@ -308,22 +308,22 @@ class ChannelMix(Filter):
         self.right_to_right = right_to_right
         self.tag = tag
 
-        self.payload = {"channelMix": {"leftToLeft": self.left_to_left, 
-                                        "leftToRight": self.left_to_right, 
-                                        "rightToLeft": self.right_to_left, 
+        self.payload = {"channelMix": {"leftToLeft": self.left_to_left,
+                                        "leftToRight": self.left_to_right,
+                                        "rightToLeft": self.right_to_left,
                                         "rightToRight": self.right_to_right}
                                         }
 
 
     def __repr__(self) -> str:
-        return ( 
+        return (
         f"<Pomice.ChannelMix tag={self.tag} left_to_left={self.left_to_left} left_to_right={self.left_to_right} "
-        f"right_to_left={self.right_to_left} right_to_right={self.right_to_right}>" 
+        f"right_to_left={self.right_to_left} right_to_right={self.right_to_right}>"
         )
 
 class Distortion(Filter):
     """Filter which generates a distortion effect. Useful for certain filter implementations where
-    distortion is needed. 
+    distortion is needed.
     """
 
     def __init__(
@@ -374,7 +374,6 @@ class LowPass(Filter):
     """Filter which supresses higher frequencies and allows lower frequencies to pass.
     You can also do this with the Equalizer filter, but this is an easier way to do it.
     """
-
     def __init__(self, *, tag: str, smoothing: float = 20):
         super().__init__()
 

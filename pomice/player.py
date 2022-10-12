@@ -21,6 +21,7 @@ from .exceptions import FilterInvalidArgument, FilterTagAlreadyInUse, FilterTagI
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
+from .queue import Queue
 
 class Filters:
     """Helper class for filters"""
@@ -53,6 +54,7 @@ class Filters:
     def reset_filters(self):
         """Removes all filters from the list"""
         self._filters = []
+        
         
 
     def get_all_payloads(self):
@@ -373,7 +375,7 @@ class Player(VoiceProtocol):
         self._volume = volume
         return self._volume
 
-    async def add_filter(self, filter: Filter, fast_apply=False) -> Filter:
+    async def add_filter(self, filter: Filter, fast_apply: bool = False) -> Filter:
         """Adds a filter to the player. Takes a pomice.Filter object.
            This will only work if you are using a version of Lavalink that supports filters.
            If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
@@ -389,7 +391,7 @@ class Player(VoiceProtocol):
         
         return self._filters
 
-    async def remove_filter(self, filter_tag: str, fast_apply=False) -> Filter:
+    async def remove_filter(self, filter_tag: str, fast_apply: bool = False) -> Filter:
         """Removes a filter from the player. Takes a filter tag.
            This will only work if you are using a version of Lavalink that supports filters.
            If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
@@ -405,7 +407,7 @@ class Player(VoiceProtocol):
         
         return self._filters
 
-    async def reset_filters(self, *, fast_apply=False):
+    async def reset_filters(self, *, fast_apply: bool = False):
         """Resets all currently applied filters to their default parameters.
             You must have filters applied in order for this to work.
             If you would like the filters to be removed instantly, set the `fast_apply` arg to `True`.
@@ -419,6 +421,8 @@ class Player(VoiceProtocol):
             )
         self._filters.reset_filters()
         await self._node.send(op="filters", guildId=str(self.guild.id))
+
+
         if fast_apply:
             await self.seek(self.position)
         
