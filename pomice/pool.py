@@ -305,6 +305,9 @@ class Node:
         if not URL_REGEX.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
             query = f"{search_type}:{query}"
 
+        for filter in filters:
+            filter.set_preload()
+
         if SPOTIFY_URL_REGEX.match(query):
             if not self._spotify_client_id and not self._spotify_client_secret:
                 raise InvalidSpotifyClientAuthorization(

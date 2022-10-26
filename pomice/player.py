@@ -366,11 +366,10 @@ class Player(VoiceProtocol):
 
         # Check if theres no global filters and if the track has any filters
         # that need to be applied
+        print(f"global filters: {self.filters.has_global}")
         if not self.filters.has_global and track.filters:
             # Now apply all filters
             for filter in track.filters:
-                # Set preload for filter
-                filter.set_preload()
                 await self.add_filter(filter=filter)
                 
         if end > 0:
