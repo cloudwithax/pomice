@@ -364,7 +364,9 @@ class Player(VoiceProtocol):
         # So if no global filters are detected, lets apply any 
         # necessary track filters  
 
-        if self.filters.empty and track.filters:
+        # Check if theres no global filters and if the track has any filters
+        # that need to be applied
+        if not self.filters.has_global and track.filters:
             # Now apply all filters
             for filter in track.filters:
                 # Set preload for filter
