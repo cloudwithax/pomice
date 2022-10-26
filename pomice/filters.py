@@ -15,6 +15,12 @@ class Filter:
     def __init__(self):
         self.payload = None
         self.tag: str = None
+        self.preload: bool = False
+
+    def set_preload(self) -> bool:
+        """Internal method to set whether or not the filter was preloaded."""
+        self.preload = True
+        return self.preload
 
 
 class Equalizer(Filter):

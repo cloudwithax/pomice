@@ -28,6 +28,17 @@ class Filters:
     def __init__(self):
         self._filters: List[Filter] = []
 
+    @property
+    def has_preload(self):
+        """Property which checks if any applied filters were preloaded"""
+        return any(f for f in self._filters if f.preload == True)
+
+    @property
+    def empty(self):
+        """Property which checks if the filter list is empty"""
+        return len(self._filters) == 0
+
+
     def add_filter(self, *, filter: Filter):
         """Adds a filter to the list of filters applied"""
         if any(f for f in self._filters if f.tag == filter.tag):
@@ -35,7 +46,7 @@ class Filters:
                 "A filter with that tag is already in use."
             )
         self._filters.append(filter)
-    
+
     def remove_filter(self, *, filter_tag: str):
         """Removes a filter from the list of filters applied using its filter tag"""
         if not any(f for f in self._filters if f.tag == filter_tag):
@@ -54,8 +65,10 @@ class Filters:
     def reset_filters(self):
         """Removes all filters from the list"""
         self._filters = []
-        
-        
+
+    def get_preload_filters(self):
+        """Get all preloaded filters"""
+        return [f for f in self._filters if f.preload == True]  
 
     def get_all_payloads(self):
         """Returns a formatted dict of all the filter payloads"""
@@ -336,15 +349,23 @@ class Player(VoiceProtocol):
                 "noReplace": ignore_if_playing
             }
 
-        # Apply track filters
-        if track.filters:
-            # First lets remove all filters quickly 
-            await self.reset_filters()
 
+        # Remove preloaded filters if last track had any
+        if self.filters.has_preload:
+            for filter in self.filters.get_preload_filters():
+                await self.remove_filter(filter_tag=filter.tag)
+
+        # Global filters take precedence over track filters
+        # So if no global filters are detected, lets apply any 
+        # necessary track filters  
+
+        if self.filters.empty and track.filters:
             # Now apply all filters
             for filter in track.filters:
+                # Set preload for filter
+                filter.set_preload()
                 await self.add_filter(filter=filter)
-
+                
         if end > 0:
             data["endTime"] = str(end)
 
