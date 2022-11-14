@@ -118,15 +118,14 @@ class Queue(Iterable[Track]):
     def _index(self, item: Track) -> int:
         return self._queue.index(item)
 
-
     def _put(self, item: Track) -> None:
         self._queue.append(item)
 
     def _insert(self, index: int, item: Track) -> None:
         self._queue.insert(index, item)
 
-    def _remove(self, index: int) -> None:
-        self._queue.remove(index)
+    def _remove(self, item: Track) -> None:
+        self._queue.remove(item)
 
     def _get_random_float(self) -> float:
         return random.random()
@@ -233,7 +232,7 @@ class Queue(Iterable[Track]):
         Removes a item within the queue.
         Raises ValueError if item is not in queue.
         """
-        return self._remove(self._index(self._check_track(item)))
+        return self._remove(self._check_track(item))
 
 
     def find_position(self, item: Track) -> int:
