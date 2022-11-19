@@ -21,7 +21,7 @@ class Player(pomice.Player):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
  
-        self.queue = asyncio.Queue()
+        self.queue = pomice.Queue()
         self.controller: discord.Message = None
         # Set context here so we can send a now playing embed
         self.context: commands.Context = None
@@ -49,8 +49,8 @@ class Player(pomice.Player):
 
        # Queue up the next track, else teardown the player
         try:
-            track: pomice.Track = self.queue.get_nowait()
-        except asyncio.queues.QueueEmpty:  
+            track: pomice.Track = self.queue.get()
+        except pomice.QueueEmpty:  
             return await self.teardown()
 
         await self.play(track)
@@ -143,7 +143,7 @@ class Music(commands.Cog):
     async def on_pomice_track_exception(self, player: Player, track, _):
         await player.do_next()
         
-    @commands.command(aliases=['join', 'joi', 'j', 'summon', 'su', 'con'])
+    @commands.command(aliases=['joi', 'j', 'summon', 'su', 'con', 'connect'])
     async def join(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None) -> None:
         if not channel:
             channel = getattr(ctx.author.voice, "channel", None)
@@ -157,7 +157,7 @@ class Music(commands.Cog):
         player: Player = ctx.voice_client
 
         # Set the player context so we can use it so send messages
-        player.set_context(ctx=ctx)
+        await player.set_context(ctx=ctx)
         await ctx.send(f"Joined the voice channel `{channel.name}`")
 
     @commands.command(aliases=['disconnect', 'dc', 'disc', 'lv', 'fuckoff'])
@@ -172,7 +172,9 @@ class Music(commands.Cog):
     async def play(self, ctx: commands.Context, *, search: str) -> None:
         # Checks if the player is in the channel before we play anything
         if not (player := ctx.voice_client):
-            await ctx.invoke(self.join)   
+            await ctx.author.voice.channel.connect(cls=Player)
+            player: Player = ctx.voice_client
+            await player.set_context(ctx=ctx)   
 
         # If you search a keyword, Pomice will automagically search the result using YouTube
         # You can pass in "search_type=" as an argument to change the search type
@@ -187,10 +189,10 @@ class Music(commands.Cog):
         
         if isinstance(results, pomice.Playlist):
             for track in results.tracks:
-                await player.queue.put(track)
+                player.queue.put(track)
         else:
             track = results[0]
-            await player.queue.put(track)
+            player.queue.put(track)
 
         if not player.is_playing:
             await player.do_next()
@@ -315,7 +317,7 @@ class Music(commands.Cog):
         if self.is_privileged(ctx):
             await ctx.send('An admin or DJ has shuffled the queue.', delete_after=10)
             player.shuffle_votes.clear()
-            return random.shuffle(player.queue._queue)
+            return player.queue.shuffle()
 
         required = self.required(ctx)
         player.shuffle_votes.add(ctx.author)
@@ -323,7 +325,7 @@ class Music(commands.Cog):
         if len(player.shuffle_votes) >= required:
             await ctx.send('Vote to shuffle passed. Shuffling the queue.', delete_after=10)
             player.shuffle_votes.clear()
-            random.shuffle(player.queue._queue)
+            player.queue.shuffle()
         else:
             await ctx.send(f'{ctx.author.mention} has voted to shuffle the queue. Votes: {len(player.shuffle_votes)}/{required}', delete_after=15)
 
@@ -348,7 +350,7 @@ class Music(commands.Cog):
     
 
 
-def setup(bot: commands.Bot):
-    bot.add_cog(Music(bot))
+async def setup(bot: commands.Bot):
+    await bot.add_cog(Music(bot))
 
 
