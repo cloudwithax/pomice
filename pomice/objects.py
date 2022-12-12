@@ -25,12 +25,14 @@ class Track:
         spotify: bool = False,
         search_type: SearchType = SearchType.ytsearch,
         spotify_track = None,
-        filters: Optional[List[Filter]] = None
+        filters: Optional[List[Filter]] = None,
+        timestamp: Optional[float] = None
     ):
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
         self.filters: List[Filter] = filters
+        self.timestamp: Optional[float] = None
 
         self.original: Optional[Track] = None if spotify else self
         self._search_type = search_type
