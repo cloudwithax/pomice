@@ -182,7 +182,7 @@ class Queue(Iterable[Track]):
         return self._queue
 
 
-    def get(self) -> Track:
+    def get(self):
         """Return next immediately available item in queue if any.
         Raises QueueEmpty if no items in queue.
         """
