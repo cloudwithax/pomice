@@ -414,20 +414,20 @@ class Node:
                     filters=filters
                 )
             ]
-
-        # If YouTube url contains a timestamp, capture it for use later.
-
-        if (match := YOUTUBE_TIMESTAMP_REGEX.match(query)):
-            timestamp = float(match.group("time"))
-
-        # If query is a video thats part of a playlist, get the video and queue that instead
-        # (I can't tell you how much i've wanted to implement this in here)
-
-        if (match := YOUTUBE_PLAYLIST_REGEX.match(query)):   
-            query = match.group("video")
    
 
         else:
+            # If YouTube url contains a timestamp, capture it for use later.
+
+            if (match := YOUTUBE_TIMESTAMP_REGEX.match(query)):
+                timestamp = float(match.group("time"))
+
+            # If query is a video thats part of a playlist, get the video and queue that instead
+            # (I can't tell you how much i've wanted to implement this in here)
+
+            if (match := YOUTUBE_PLAYLIST_REGEX.match(query)):   
+                query = match.group("video")
+                
             async with self._session.get(
                 url=f"{self._rest_uri}/loadtracks?identifier={quote(query)}",
                 headers={"Authorization": self._password}
