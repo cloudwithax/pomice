@@ -419,6 +419,7 @@ class Node:
 
         if (match := YOUTUBE_TIMESTAMP_REGEX.match(query)):
             timestamp = float(match.group("time"))
+            print(f"timestamp: {timestamp}")
 
         # If query is a video thats part of a playlist, get the video and queue that instead
         # (I can't tell you how much i've wanted to implement this in here)

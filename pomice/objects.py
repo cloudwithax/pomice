@@ -32,7 +32,7 @@ class Track:
         self.info = info
         self.spotify = spotify
         self.filters: List[Filter] = filters
-        self.timestamp: Optional[float] = None
+        self.timestamp: Optional[float] = timestamp
 
         self.original: Optional[Track] = None if spotify else self
         self._search_type = search_type
