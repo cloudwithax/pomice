@@ -1,5 +1,6 @@
 import re
-from typing import List, Optional
+from typing import List, Optional, Union
+from discord import Member, User
 
 from discord.ext import commands
 
@@ -26,7 +27,8 @@ class Track:
         search_type: SearchType = SearchType.ytsearch,
         spotify_track = None,
         filters: Optional[List[Filter]] = None,
-        timestamp: Optional[float] = None
+        timestamp: Optional[float] = None,
+        requester: Optional[Union[Member, User]] = None
     ):
         self.track_id = track_id
         self.info = info
@@ -56,7 +58,10 @@ class Track:
 
         self.length = info.get("length")
         self.ctx = ctx
-        self.requester = self.ctx.author if ctx else None
+        if requester:
+            self.requester = requester
+        else:
+            self.requester = self.ctx.author if ctx else None
         self.is_stream = info.get("isStream")
         self.is_seekable = info.get("isSeekable")
         self.position = info.get("position")

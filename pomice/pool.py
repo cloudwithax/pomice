@@ -22,10 +22,10 @@ from .exceptions import (
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
     NodeCreationError,
-    NodeException,
     NodeNotAvailable,
     NoNodesAvailable,
-    TrackLoadError
+    TrackLoadError,
+    SpotifyTrackLoadFailed
 )
 from .filters import Filter
 from .objects import Playlist, Track
@@ -466,6 +466,38 @@ class Node:
                 for track in data["tracks"]
             ]
 
+    async def get_recommendations(self, *, query: str, ctx: Optional[commands.Context] = None):
+        """
+        Gets recommendations from Spotify. Query must be a valid Spotify Track URL.
+
+        You can pass in a discord.py Context object to get a
+        Context object on all tracks that get recommended.
+        """
+        results = await self._spotify_client.get_recommendations(query=query)
+        tracks = [
+                Track(
+                    track_id=track.id,
+                    ctx=ctx,
+                    spotify=True,
+                    spotify_track=track,
+                    info={
+                        "title": track.name,
+                        "author": track.artists,
+                        "length": track.length,
+                        "identifier": track.id,
+                        "uri": track.uri,
+                        "isStream": False,
+                        "isSeekable": True,
+                        "position": 0,
+                        "thumbnail": track.image,
+                        "isrc": track.isrc
+                    },
+                    requester=self.bot.user
+                ) for track in results
+            ]
+
+        return tracks
+             
 
 class NodePool:
     """The base class for the node pool.

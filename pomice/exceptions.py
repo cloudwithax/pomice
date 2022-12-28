@@ -71,6 +71,16 @@ class InvalidSpotifyClientAuthorization(PomiceException):
     """No Spotify client authorization was provided for track searching."""
     pass
 
+class SpotifyRequestException(PomiceException):
+    """An error occurred when making a request to the Spotify API"""
+    pass
+
+
+class InvalidSpotifyURL(PomiceException):
+    """An invalid Spotify URL was passed"""
+    pass
+
+
 class QueueException(Exception):
     """Base Pomice queue exception."""
     pass
