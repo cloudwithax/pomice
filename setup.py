@@ -55,6 +55,6 @@ setuptools.setup(
         'Topic :: Software Development :: Libraries',
         "Topic :: Internet"
     ],
-    python_requires='>=3.8',
+    python_requires='>=3.9',
     keywords=['pomice', 'lavalink', "discord.py"],
 )
