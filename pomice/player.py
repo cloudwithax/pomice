@@ -129,6 +129,8 @@ class Player(VoiceProtocol):
 
         self._voice_state = {}
 
+        self._player_endpoint_uri = f'sessions/{self._node._session_id}/players'
+
     def __repr__(self):
         return (
             f"<Pomice.player bot={self.bot} guildId={self.guild.id} "
@@ -217,9 +219,10 @@ class Player(VoiceProtocol):
             return
 
         await self._node.send(
-            op="voiceUpdate",
-            guildId=str(self.guild.id),
-            **voice_data
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={"voice": voice_data}
         )
 
     async def on_voice_server_update(self, data: dict):
@@ -283,7 +286,12 @@ class Player(VoiceProtocol):
     async def stop(self):
         """Stops the currently playing track."""
         self._current = None
-        await self._node.send(op="stop", guildId=str(self.guild.id))
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={'encodedTrack': None}
+        )
 
     async def disconnect(self, *, force: bool = False):
         """Disconnects the player from voice."""
@@ -304,7 +312,7 @@ class Player(VoiceProtocol):
             assert self.channel is None and not self.is_connected
 
         self._node._players.pop(self.guild.id)
-        await self._node.send(op="destroy", guildId=str(self.guild.id))
+        await self._node.send(method="DELETE", path=self._player_endpoint_uri, guild_id=self._guild.id)
 
     async def play(
         self,
@@ -336,22 +344,18 @@ class Player(VoiceProtocol):
                         "No equivalent track was able to be found."
                     )
             data = {
-                "op": "play",
-                "guildId": str(self.guild.id),
-                "track": search.track_id,
-                "startTime": str(start),
-                "noReplace": ignore_if_playing
+                "encodedTrack": search.track_id,
+                "position": str(start),
+                "endTime": str(end)
             }    
             track.original = search
             track.track_id = search.track_id
             # Set track_id for later lavalink searches
         else:
             data = {
-                "op": "play",
-                "guildId": str(self.guild.id),
-                "track": track.track_id,
-                "startTime": str(start),
-                "noReplace": ignore_if_playing
+                "encodedTrack": track.track_id,
+                "position": str(start),
+                "endTime": str(end)
             }
 
 
@@ -374,7 +378,13 @@ class Player(VoiceProtocol):
         if end > 0:
             data["endTime"] = str(end)
 
-        await self._node.send(**data)
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data=data, 
+            query=f"noReplace={ignore_if_playing}"
+        )
 
         self._current = track
         return self._current
@@ -386,18 +396,33 @@ class Player(VoiceProtocol):
                 "Seek position must be between 0 and the track length"
             )
 
-        await self._node.send(op="seek", guildId=str(self.guild.id), position=position)
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={"position": position}
+        )
         return self._position
 
     async def set_pause(self, pause: bool) -> bool:
         """Sets the pause state of the currently playing track."""
-        await self._node.send(op="pause", guildId=str(self.guild.id), pause=pause)
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={"paused": pause}
+        )
         self._paused = pause
         return self._paused
 
     async def set_volume(self, volume: int) -> int:
         """Sets the volume of the player as an integer. Lavalink accepts values from 0 to 500."""
-        await self._node.send(op="volume", guildId=str(self.guild.id), volume=volume)
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={"volume": volume}
+        )
         self._volume = volume
         return self._volume
 
@@ -411,7 +436,12 @@ class Player(VoiceProtocol):
         
         self._filters.add_filter(filter=filter)
         payload = self._filters.get_all_payloads()
-        await self._node.send(op="filters", guildId=str(self.guild.id), **payload)
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={"filters": payload}
+        )
         if fast_apply:
             await self.seek(self.position)
         
@@ -427,7 +457,12 @@ class Player(VoiceProtocol):
         
         self._filters.remove_filter(filter_tag=filter_tag)
         payload = self._filters.get_all_payloads()
-        await self._node.send(op="filters", guildId=str(self.guild.id), **payload)
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={"filters": payload}
+        )
         if fast_apply:
             await self.seek(self.position)
         
@@ -446,14 +481,45 @@ class Player(VoiceProtocol):
                 "You must have filters applied first in order to use this method."
             )
         self._filters.reset_filters()
-        await self._node.send(op="filters", guildId=str(self.guild.id))
-
+        await self._node.send(
+            method="PATCH", 
+            path=self._player_endpoint_uri, 
+            guild_id=self._guild.id, 
+            data={"filters": {}}
+        )
 
         if fast_apply:
             await self.seek(self.position)
         
 
 
+class QueuePlayer(Player):
+    """Player class, but with pomice.Queue included"""
 
-        
+    def __init__(self, client: Optional[Client] = None, channel: Optional[VoiceChannel] = None, *, node: Node = None):
+        super().__init__(client, channel, node=node)
+        self._queue = Queue
+
+
+    async def get_tracks(
+        self,
+        query: str,
+        *,
+        ctx: Optional[commands.Context] = None,
+        search_type: SearchType = SearchType.ytsearch,
+        filters: Optional[List[Filter]] = None
+    ):
+        """Fetches tracks from the node's REST api to parse into Lavalink.
+
+        If you passed in Spotify API credentials when you created the node,
+        you can also pass in a Spotify URL of a playlist, album or track and it will be parsed
+        accordingly.
+
+        You can pass in a discord.py Context object to get a
+        Context object on any track you search.
+
+        You may also pass in a List of filters 
+        to be applied to your track once it plays.
+        """
+        super()
         

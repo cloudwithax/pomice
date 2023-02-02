@@ -18,6 +18,10 @@ class NodeConnectionClosed(NodeException):
     """The node's connection is closed."""
     pass
 
+class NodeRestException(NodeException):
+    """A request made using the node's REST uri failed"""
+    pass
+
 
 class NodeNotAvailable(PomiceException):
     """The node is currently unavailable."""

@@ -3,8 +3,10 @@ from __future__ import annotations
 import asyncio
 import json
 import random
+import secrets
+import string
 import re
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING, Union
 from urllib.parse import quote
 
 import aiohttp
@@ -25,6 +27,7 @@ from .exceptions import (
     NodeException,
     NodeNotAvailable,
     NoNodesAvailable,
+    NodeRestException,
     TrackLoadError
 )
 from .filters import Filter
@@ -81,14 +84,14 @@ class Node:
         self._secure = secure
 
        
-        self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
+        self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}/v3/websocket"    
         self._rest_uri = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
 
         self._session = session or aiohttp.ClientSession()
         self._websocket: aiohttp.ClientWebSocketResponse = None
         self._task: asyncio.Task = None
 
-        self._connection_id = None
+        self._session_id = None
         self._metadata = None
         self._available = None
 
@@ -153,6 +156,7 @@ class Node:
         """Property which returns the latency of the node"""
         return Ping(self._host, port=self._port).get_ping()
 
+
     async def _update_handler(self, data: dict):
         await self._bot.wait_until_ready()
 
@@ -208,13 +212,32 @@ class Node:
         elif op == "playerUpdate":
             await player._update_state(data)
 
-    async def send(self, **data):
+    async def send(
+        self, 
+        method: str, 
+        path: str, 
+        guild_id: Optional[Union[int, str]], 
+        query: Optional[str], 
+        data: Optional[Union[dict, str]]
+    ):
         if not self._available:
             raise NodeNotAvailable(
                 f"The node '{self._identifier}' is unavailable."
             )
 
-        await self._websocket.send_str(json.dumps(data))
+        uri: str = f'{self._rest_uri}/' \
+                   f'v3/' \
+                   f'{path}' \
+                   f'{f"/{guild_id}" if guild_id else ""}' \
+                   f'{f"?{query}" if query else ""}'
+
+        async with self._session.request(method=method, url=uri, json=data or {}) as resp:
+            if resp.status >= 300:
+                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}')
+
+            return await resp.json()
+
+        
 
     def get_player(self, guild_id: int):
         """Takes a guild ID as a parameter. Returns a pomice Player object."""
@@ -230,6 +253,14 @@ class Node:
             )
             self._task = self._bot.loop.create_task(self._listen())
             self._available = True
+            self._session_id = f"pomice_{secrets.token_hex(20)}"
+            async with self._session.get(f'{self._host}/v3/version') as resp:
+                version: str = await resp.text()
+                # To make version comparasion easier, lets remove the periods
+                # from the version numbers and compare them like whole numbers
+                version = int(version.translate(str.maketrans('', '', string.punctuation)).replace(" ", ""))
+                print(version)
+                
             return self
 
         except aiohttp.ClientConnectorError:
@@ -270,7 +301,7 @@ class Node:
         """
 
         async with self._session.get(
-            f"{self._rest_uri}/decodetrack?",
+            f"{self._rest_uri}/v3/decodetrack?",
             headers={"Authorization": self._password},
             params={"track": identifier}
         ) as resp:
@@ -376,7 +407,7 @@ class Node:
 
         elif discord_url := DISCORD_MP3_URL_REGEX.match(query):
             async with self._session.get(
-                url=f"{self._rest_uri}/loadtracks?identifier={quote(query)}",
+                url=f"{self._rest_uri}/v3/loadtracks?identifier={quote(query)}",
                 headers={"Authorization": self._password}
             ) as response:
                 data: dict = await response.json()
@@ -402,7 +433,7 @@ class Node:
 
         else:
             async with self._session.get(
-                url=f"{self._rest_uri}/loadtracks?identifier={quote(query)}",
+                url=f"{self._rest_uri}/v3/loadtracks?identifier={quote(query)}",
                 headers={"Authorization": self._password}
             ) as response:
                 data = await response.json()
