@@ -254,7 +254,7 @@ class Node:
             self._task = self._bot.loop.create_task(self._listen())
             self._available = True
             self._session_id = f"pomice_{secrets.token_hex(20)}"
-            async with self._session.get(f'{self._rest_uri}/v3/version') as resp:
+            async with self._session.get(f'{self._rest_uri}/version') as resp:
                 version: str = await resp.text()
                 # To make version comparasion easier, lets remove the periods
                 # from the version numbers and compare them like whole numbers
