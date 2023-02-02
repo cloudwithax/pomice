@@ -218,11 +218,17 @@ class Player(VoiceProtocol):
         if {"sessionId", "event"} != self._voice_state.keys():
             return
 
+        data = {
+            "token": voice_data['event']['token'],
+            "endpoint": voice_data['event']['endpoint'],
+            "sessionId": voice_data['sessionId'],
+        }
+
         await self._node.send(
             method="PATCH", 
             path=self._player_endpoint_uri, 
             guild_id=self._guild.id, 
-            data={"voice": voice_data}
+            data={"voice": data}
         )
 
     async def on_voice_server_update(self, data: dict):
@@ -492,34 +498,4 @@ class Player(VoiceProtocol):
             await self.seek(self.position)
         
 
-
-class QueuePlayer(Player):
-    """Player class, but with pomice.Queue included"""
-
-    def __init__(self, client: Optional[Client] = None, channel: Optional[VoiceChannel] = None, *, node: Node = None):
-        super().__init__(client, channel, node=node)
-        self._queue = Queue
-
-
-    async def get_tracks(
-        self,
-        query: str,
-        *,
-        ctx: Optional[commands.Context] = None,
-        search_type: SearchType = SearchType.ytsearch,
-        filters: Optional[List[Filter]] = None
-    ):
-        """Fetches tracks from the node's REST api to parse into Lavalink.
-
-        If you passed in Spotify API credentials when you created the node,
-        you can also pass in a Spotify URL of a playlist, album or track and it will be parsed
-        accordingly.
-
-        You can pass in a discord.py Context object to get a
-        Context object on any track you search.
-
-        You may also pass in a List of filters 
-        to be applied to your track once it plays.
-        """
-        super()
         
