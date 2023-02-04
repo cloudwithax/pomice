@@ -17,6 +17,7 @@ from discord.ext import commands
 from . import (
     __version__, 
     spotify,
+    applemusic
 )
 
 from .enums import SearchType, NodeAlgorithm
@@ -46,6 +47,11 @@ DISCORD_MP3_URL_REGEX = re.compile(
     r"(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
 )
 
+AM_URL_REGEX = re.compile(
+    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)"
+)
+
+
 URL_REGEX = re.compile(
     r"https?://(?:www\.)?.+"
 )
@@ -56,6 +62,7 @@ class Node:
     """The base class for a node. 
        This node object represents a Lavalink node. 
        To enable Spotify searching, pass in a proper Spotify Client ID and Spotify Client Secret
+       To enable Apple music, set the "apple_music" parameter to "True"
     """
 
     def __init__(
@@ -72,6 +79,7 @@ class Node:
         session: Optional[aiohttp.ClientSession] = None,
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
+        apple_music: bool = False
 
     ):
         self._bot = bot
@@ -91,7 +99,7 @@ class Node:
         self._websocket: aiohttp.ClientWebSocketResponse = None
         self._task: asyncio.Task = None
 
-        self._session_id = None
+        self._session_id: str = None
         self._metadata = None
         self._available = None
 
@@ -110,6 +118,9 @@ class Node:
             self._spotify_client = spotify.Client(
                 self._spotify_client_id, self._spotify_client_secret
             )
+
+        if apple_music:
+            self._apple_music_client = applemusic.Client()
 
         self._bot.add_listener(self._update_handler, "on_socket_response")
 
@@ -204,8 +215,12 @@ class Node:
             self._stats = NodeStats(data)
             return
 
-        if not (player := self._players.get(int(data["guildId"]))):
-            return
+        if op == "ready":
+            self._session_id = data.get("sessionId")
+
+        if "guildId" in data:
+            if not (player := self._players.get(int(data["guildId"]))):
+                return
 
         if op == "event":
             await player._dispatch_event(data)
@@ -216,9 +231,9 @@ class Node:
         self, 
         method: str, 
         path: str, 
-        guild_id: Optional[Union[int, str]], 
-        query: Optional[str], 
-        data: Optional[Union[dict, str]]
+        guild_id: Optional[Union[int, str]] = None, 
+        query: Optional[str] = None, 
+        data: Optional[Union[dict, str]] = None
     ):
         if not self._available:
             raise NodeNotAvailable(
@@ -231,10 +246,13 @@ class Node:
                    f'{f"/{guild_id}" if guild_id else ""}' \
                    f'{f"?{query}" if query else ""}'
 
-        async with self._session.request(method=method, url=uri, json=data or {}) as resp:
+        async with self._session.request(method=method, url=uri, headers={"Authorization": self._password}, json=data or {}) as resp:
             if resp.status >= 300:
                 raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}')
 
+            if method == "DELETE":
+                return await resp.json(content_type=None)
+           
             return await resp.json()
 
         
@@ -253,12 +271,10 @@ class Node:
             )
             self._task = self._bot.loop.create_task(self._listen())
             self._available = True
-            self._session_id = f"pomice_{secrets.token_hex(20)}"
-            async with self._session.get(f'{self._rest_uri}/version') as resp:
+            async with self._session.get(f'{self._rest_uri}/version', headers={"Authorization": self._password}) as resp:
                 version: str = await resp.text()
                 # To make version comparasion easier, lets remove the periods
                 # from the version numbers and compare them like whole numbers
-                version = int(version.translate(str.maketrans('', '', string.punctuation)).replace(" ", ""))
                 print(version)
                 
             return self
@@ -340,7 +356,12 @@ class Node:
             for filter in filters:
                 filter.set_preload()
 
-        if SPOTIFY_URL_REGEX.match(query):
+        
+        if AM_URL_REGEX.match(query):
+            await self._apple_music_client.search(query=query)
+
+
+        elif SPOTIFY_URL_REGEX.match(query):
             if not self._spotify_client_id and not self._spotify_client_secret:
                 raise InvalidSpotifyClientAuthorization(
                     "You did not provide proper Spotify client authorization credentials. "
