@@ -22,6 +22,7 @@ from . import (
 
 from .enums import SearchType, NodeAlgorithm
 from .exceptions import (
+    AppleMusicNotEnabled,
     InvalidSpotifyClientAuthorization,
     NodeConnectionFailure,
     NodeCreationError,
@@ -358,6 +359,12 @@ class Node:
 
         
         if AM_URL_REGEX.match(query):
+            if not self._apple_music_client:
+                raise AppleMusicNotEnabled(
+                    "You must have Apple Music functionality enabled in order to play Apple Music tracks."
+                    "Please set apple_music to True in your Node class."
+                )
+
             await self._apple_music_client.search(query=query)
 
 
@@ -573,6 +580,7 @@ class NodePool:
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
+        apple_music: bool = False
 
     ) -> Node:
         """Creates a Node object to be then added into the node pool.
@@ -585,7 +593,8 @@ class NodePool:
             pool=cls, bot=bot, host=host, port=port, password=password,
             identifier=identifier, secure=secure, heartbeat=heartbeat,
             spotify_client_id=spotify_client_id, 
-            session=session, spotify_client_secret=spotify_client_secret
+            session=session, spotify_client_secret=spotify_client_secret,
+            apple_music=apple_music
         )
 
         await node.connect()

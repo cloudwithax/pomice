@@ -75,6 +75,10 @@ class InvalidSpotifyClientAuthorization(PomiceException):
     """No Spotify client authorization was provided for track searching."""
     pass
 
+class AppleMusicNotEnabled(PomiceException):
+    """An Apple Music Link was passed in when Apple Music functionality was not enabled."""
+    pass
+
 class QueueException(Exception):
     """Base Pomice queue exception."""
     pass

@@ -2,6 +2,8 @@ import re
 import aiohttp
 import json
 
+from .objects import *
+
 AM_URL_REGEX = re.compile(r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)")
 AM_SINGLE_IN_ALBUM_REGEX = re.compile(r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)")
 AM_REQ_URL = "https://api.music.apple.com/v1/catalog/{country}/{type}s/{id}"
@@ -56,29 +58,27 @@ class Client:
         
         print(self.token)
 
-
-        if type == "playlist":
-            async with self.session.get(request_url, headers=self.headers) as resp:
-                print(resp.status)
-                data = await resp.json()
-                
-        elif type == "album":
-            async with self.session.get(request_url, headers=self.headers) as resp:
-                print(resp.status)
-                data = await resp.json()
-
-        elif type == "song":
-            async with self.session.get(request_url, headers=self.headers) as resp:
-                print(resp.status)
-                data = await resp.json()
-
-        elif type == "artist":
-            async with self.session.get(request_url, headers=self.headers) as resp:
-                print(resp.status)
-                data = await resp.json()
+        async with self.session.get(request_url, headers=self.headers) as resp:
+            print(resp.status)
+            data = await resp.json()
 
         with open('yes.txt', 'w') as file:
             file.write(json.dumps(data))
+                
+        if type == "playlist":
+            return Playlist(data)
+            
+        elif type == "album":
+            return Album(data)
+
+        elif type == "song":
+            return Song(data)
+            
+        elif type == "artist":
+            return Artist(data)
+            
+
+        
 
         
 
