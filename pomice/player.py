@@ -33,10 +33,6 @@ class Filters:
         """Property which checks if any applied filters were preloaded"""
         return any(f for f in self._filters if f.preload == True)
 
-    @property
-    def has_global(self):
-        """Property which checks if any applied filters are global"""
-        return any(f for f in self._filters if f.preload == False)
 
     @property
     def empty(self):
@@ -283,6 +279,14 @@ class Player(VoiceProtocol):
         to be applied to your track once it plays.
         """
         return await self._node.get_tracks(query, ctx=ctx, search_type=search_type, filters=filters)
+
+    async def get_recommendations(self, *, query: str, ctx: Optional[commands.Context] = None):
+        """
+        Gets recommendations from Spotify. Query must be a valid Spotify Track URL.
+        You can pass in a discord.py Context object to get a
+        Context object on all tracks that get recommended.
+        """
+        return await self._node.get_recommendations(query=query, ctx=ctx)
 
     async def connect(self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False):
         await self.guild.change_voice_state(channel=self.channel, self_deaf=self_deaf, self_mute=self_mute)

@@ -5,10 +5,10 @@ class Track:
     """The base class for a Spotify Track"""
 
     def __init__(self, data: dict, image = None) -> None:
-        self.name = data["name"]
+        self.name: str = data["name"]
         self.artists = ", ".join(artist["name"] for artist in data["artists"])
-        self.length = data["duration_ms"]
-        self.id = data["id"]
+        self.length: float = data["duration_ms"]
+        self.id: str = data["id"]
 
         if data.get("external_ids"):
             self.isrc = data["external_ids"]["isrc"]

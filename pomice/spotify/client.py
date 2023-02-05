@@ -111,3 +111,31 @@ class Client:
                 next_page_url = next_data["next"]
 
             return Playlist(data, tracks)
+
+    async def get_recommendations(self, *, query: str):
+        if not self._bearer_token or time.time() >= self._expiry:
+            await self._fetch_bearer_token()
+
+        result = SPOTIFY_URL_REGEX.match(query)
+        spotify_type = result.group("type")
+        spotify_id = result.group("id")
+
+        if not result:
+            raise InvalidSpotifyURL("The Spotify link provided is not valid.")
+
+        if not spotify_type == "track":
+            raise InvalidSpotifyURL("The provided query is not a Spotify track.")
+
+        request_url = REQUEST_URL.format(type="recommendation", id=f"?seed_tracks={spotify_id}")
+
+        async with self.session.get(request_url, headers=self._bearer_headers) as resp:
+            if resp.status != 200:
+                raise SpotifyRequestException(
+                    f"Error while fetching results: {resp.status} {resp.reason}"
+                )
+
+            data: dict = await resp.json(loads=json.loads)
+
+        tracks = [Track(track) for track in data["tracks"]]
+
+        return tracks

@@ -48,6 +48,14 @@ DISCORD_MP3_URL_REGEX = re.compile(
     r"(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
 )
 
+YOUTUBE_PLAYLIST_REGEX = re.compile(
+    r"(?P<video>^.*?v.*?)(?P<list>&list.*)"
+)
+
+YOUTUBE_TIMESTAMP_REGEX = re.compile(
+    r"(?P<video>^.*?)(\?t|&start)=(?P<time>\d+)?.*"
+)
+
 AM_URL_REGEX = re.compile(
     r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)"
 )
@@ -167,6 +175,11 @@ class Node:
     def latency(self):
         """Property which returns the latency of the node"""
         return Ping(self._host, port=self._port).get_ping()
+
+    @property
+    def ping(self):
+        """Alias for `Node.latency`, returns the latency of the node"""
+        return self.latency
 
 
     async def _update_handler(self, data: dict):
@@ -350,6 +363,8 @@ class Node:
            to be applied to your track once it plays.
         """
 
+        timestamp = None
+
         if not URL_REGEX.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
             query = f"{search_type}:{query}"
 
@@ -460,6 +475,17 @@ class Node:
             ]
 
         else:
+            # If YouTube url contains a timestamp, capture it for use later.
+
+            if (match := YOUTUBE_TIMESTAMP_REGEX.match(query)):
+                timestamp = float(match.group("time"))
+
+            # If query is a video thats part of a playlist, get the video and queue that instead
+            # (I can't tell you how much i've wanted to implement this in here)
+
+            if (match := YOUTUBE_PLAYLIST_REGEX.match(query)):   
+                query = match.group("video")
+                
             async with self._session.get(
                 url=f"{self._rest_uri}/v3/loadtracks?identifier={quote(query)}",
                 headers={"Authorization": self._password}
@@ -492,10 +518,42 @@ class Node:
                     track_id=track["track"],
                     info=track["info"],
                     ctx=ctx,
-                    filters=filters
+                    filters=filters,
+                    timestamp=timestamp
                 )
                 for track in data["tracks"]
             ]
+
+    async def get_recommendations(self, *, query: str, ctx: Optional[commands.Context] = None):
+        """
+        Gets recommendations from Spotify. Query must be a valid Spotify Track URL.
+        You can pass in a discord.py Context object to get a
+        Context object on all tracks that get recommended.
+        """
+        results = await self._spotify_client.get_recommendations(query=query)
+        tracks = [
+                Track(
+                    track_id=track.id,
+                    ctx=ctx,
+                    spotify=True,
+                    spotify_track=track,
+                    info={
+                        "title": track.name,
+                        "author": track.artists,
+                        "length": track.length,
+                        "identifier": track.id,
+                        "uri": track.uri,
+                        "isStream": False,
+                        "isSeekable": True,
+                        "position": 0,
+                        "thumbnail": track.image,
+                        "isrc": track.isrc
+                    },
+                    requester=self.bot.user
+                ) for track in results
+            ]
+
+        return tracks
 
 
 
@@ -505,7 +563,7 @@ class NodePool:
        This holds all the nodes that are to be used by the bot.
     """
 
-    _nodes = {}
+    _nodes: dict = {}
 
     def __repr__(self):
         return f"<Pomice.NodePool node_count={self.node_count}>"
