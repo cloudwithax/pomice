@@ -4,7 +4,7 @@
 
 The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed for [discord.py](https://github.com/Rapptz/discord.py)
 
-[![GPL](https://img.shields.io/badge/license-GPL-2f2f2f)](https://github.com/cloudwithax/pomice/blob/main/LICENSE) ![](https://img.shields.io/badge/python-3.8-2f2f2f) 
+[![GPL](https://img.shields.io/badge/license-GPL-2f2f2f)](https://github.com/cloudwithax/pomice/blob/main/LICENSE) ![](https://img.shields.io/badge/python-3.9-2f2f2f) 
 [![Discord](https://img.shields.io/discord/899324069235810315)](https://discord.gg/r64qjTSHG8) [![Read the Docs](https://readthedocs.org/projects/pomice/badge/?version=latest)](https://pomice.readthedocs.io/en/latest/)
 
 
@@ -14,8 +14,12 @@ This library is heavily based off of/uses code from the following libraries:
 - [Granitepy](https://github.com/twitch0001/granitepy)
 
 
+# 2.0 Notice
+
+We now support Lavalink 3.7! If you would like to use the new Lavalink, please either install Pomice 2.0 or upgrade to Pomice 2.0 using your preferred package management solution.
+
 # Install
-To install the library, you need the lastest version of pip and minimum Python 3.8
+To install the library, you need the lastest version of pip and minimum Python 3.9
 
 > Stable version
 ```
