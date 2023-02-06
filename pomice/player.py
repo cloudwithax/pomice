@@ -33,6 +33,11 @@ class Filters:
         """Property which checks if any applied filters were preloaded"""
         return any(f for f in self._filters if f.preload == True)
 
+    @property
+    def has_global(self):
+        """Property which checks if any applied filters are global"""
+        return any(f for f in self._filters if f.preload == False)
+
 
     @property
     def empty(self):

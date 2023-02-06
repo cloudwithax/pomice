@@ -7,6 +7,11 @@ from discord.ext import commands
 from .enums import SearchType
 from .filters import Filter
 
+from . import (
+    spotify,
+    applemusic
+)
+
 SOUNDCLOUD_URL_REGEX = re.compile(
     r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/[\w\-\.]+(\/)+[\w\-\.]+/?$"
 )
@@ -24,8 +29,10 @@ class Track:
         info: dict,
         ctx: Optional[commands.Context] = None,
         spotify: bool = False,
+        apple_music: bool = False,
+        am_track: applemusic.Song = None,
         search_type: SearchType = SearchType.ytsearch,
-        spotify_track = None,
+        spotify_track: spotify.Track = None,
         filters: Optional[List[Filter]] = None,
         timestamp: Optional[float] = None,
         requester: Optional[Union[Member, User]] = None
@@ -33,12 +40,17 @@ class Track:
         self.track_id = track_id
         self.info = info
         self.spotify = spotify
+        self.apple_music = apple_music
         self.filters: List[Filter] = filters
         self.timestamp: Optional[float] = timestamp
 
-        self.original: Optional[Track] = None if spotify else self
+        if spotify or apple_music:
+            self.original: Optional[Track] = None 
+        else:
+            self.original = self
         self._search_type = search_type
         self.spotify_track = spotify_track
+        self.am_track = am_track
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -95,13 +107,17 @@ class Playlist:
         tracks: list,
         ctx: Optional[commands.Context] = None,
         spotify: bool = False,
-        spotify_playlist = None
+        spotify_playlist: spotify.Playlist = None,
+        apple_music: bool = False,
+        am_playlist: applemusic.Playlist = None
     ):
         self.playlist_info = playlist_info
         self.tracks_raw = tracks
         self.spotify = spotify
         self.name = playlist_info.get("name")
         self.spotify_playlist = spotify_playlist
+        self.apple_music = apple_music
+        self.am_playlist = am_playlist
 
         self._thumbnail = None
         self._uri = None
@@ -110,6 +126,12 @@ class Playlist:
             self.tracks = tracks
             self._thumbnail = self.spotify_playlist.image
             self._uri = self.spotify_playlist.uri
+        
+        elif self.apple_music:
+            self.tracks = tracks
+            self._thumbnail = self.am_playlist.image
+            self._uri = self.am_playlist.url
+
         else:
             self.tracks = [
                 Track(track_id=track["track"], info=track["info"], ctx=ctx)
@@ -133,10 +155,10 @@ class Playlist:
 
     @property
     def uri(self) -> Optional[str]:
-        """Spotify album/playlist URI, or None if not a Spotify object."""
+        """Returns either an Apple Music/Spotify URL/URI, or None if its neither of those."""
         return self._uri
 
     @property
     def thumbnail(self) -> Optional[str]:
-        """Spotify album/playlist thumbnail, or None if not a Spotify object."""
+        """Returns either an Apple Music/Spotify album/playlist thumbnail, or None if its neither of those."""
         return self._thumbnail

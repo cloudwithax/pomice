@@ -345,9 +345,6 @@ class Music(commands.Cog):
         await player.set_volume(vol)
         await ctx.send(f'Set the volume to **{vol}**%', delete_after=7)
 
-    
-
-
 async def setup(bot: commands.Bot):
     await bot.add_cog(Music(bot))
 

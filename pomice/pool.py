@@ -380,7 +380,61 @@ class Node:
                     "Please set apple_music to True in your Node class."
                 )
 
-            await self._apple_music_client.search(query=query)
+            apple_music_results = await self._apple_music_client.search(query=query)
+            if isinstance(apple_music_results, applemusic.Song):
+                return [
+                    Track(
+                        track_id=apple_music_results.id,
+                        ctx=ctx,
+                        search_type=search_type,
+                        apple_music=True,
+                        am_track=apple_music_results,
+                        filters=filters,
+                        info={
+                            "title": apple_music_results.name,
+                            "author": apple_music_results.artists,
+                            "length": apple_music_results.length,
+                            "identifier": apple_music_results.id,
+                            "uri": apple_music_results.url,
+                            "isStream": False,
+                            "isSeekable": True,
+                            "position": 0,
+                            "thumbnail": apple_music_results.image,
+                            "isrc": apple_music_results.isrc
+                        }
+                    )
+                ]
+
+            tracks = [
+                Track(
+                    track_id=track.id,
+                    ctx=ctx,
+                    search_type=search_type,
+                    apple_music=True,
+                    am_track=track,
+                    filters=filters,
+                    info={
+                        "title": track.name,
+                        "author": track.artists,
+                        "length": track.length,
+                        "identifier": track.id,
+                        "uri": track.url,
+                        "isStream": False,
+                        "isSeekable": True,
+                        "position": 0,
+                        "thumbnail": track.image,
+                        "isrc": track.isrc
+                    }
+                ) for track in apple_music_results.tracks
+            ]
+
+            return Playlist(
+                playlist_info={"name": apple_music_results.name, "selectedTrack": 0},
+                tracks=tracks,
+                ctx=ctx,
+                apple_music=True,
+                am_playlist=apple_music_results
+            )
 
 
         elif SPOTIFY_URL_REGEX.match(query):
