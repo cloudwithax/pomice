@@ -21,6 +21,7 @@ from .enums import SearchType, NodeAlgorithm
 from .exceptions import (
     AppleMusicNotEnabled,
     InvalidSpotifyClientAuthorization,
+    LavalinkVersionIncompatible,
     NodeConnectionFailure,
     NodeCreationError,
     NodeNotAvailable,
@@ -283,9 +284,12 @@ class Node:
             self._available = True
             async with self._session.get(f'{self._rest_uri}/version', headers={"Authorization": self._password}) as resp:
                 version: str = await resp.text()
-                # To make version comparasion easier, lets remove the periods
-                # from the version numbers and compare them like whole numbers
-                print(version)
+                version = version.replace(".", "")
+                if int(version) < 370:
+                    raise LavalinkVersionIncompatible(
+                        "The Lavalink version you're using is incompatible."
+                        "Lavalink version 3.7.0 or above is required to use this library."
+                    )
                 
             return self
 

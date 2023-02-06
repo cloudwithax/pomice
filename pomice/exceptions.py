@@ -92,3 +92,7 @@ class QueueFull(QueueException):
 class QueueEmpty(QueueException):
     """Exception raised when attempting to retrieve from an empty Queue."""
     pass
+
+class LavalinkVersionIncompatible(PomiceException):
+    """Lavalink version is incompatible. Must be using Lavalink > 3.7.0 to avoid this error."""
+    pass
