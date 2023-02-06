@@ -18,16 +18,16 @@ if not discord.version_info.major >= 2:
         "using 'pip install discord.py'"
     )
 
-__version__ = "2.0a"
+__version__ = "2.0"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
-from .enums import SearchType
+from .enums import *
 from .events import *
 from .exceptions import *
 from .filters import *
 from .objects import *
 from .queue import *
-from .player import Player
+from .player import *
 from .pool import *
 

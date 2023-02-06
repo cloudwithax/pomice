@@ -1,8 +1,6 @@
 from __future__ import annotations
 import random
-from collections import deque
 from copy import copy
-from re import L
 from typing import (
     Iterable,
     Iterator,

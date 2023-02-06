@@ -21,7 +21,6 @@ from .exceptions import FilterInvalidArgument, FilterTagAlreadyInUse, FilterTagI
 from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
-from .queue import Queue
 
 class Filters:
     """Helper class for filters"""
