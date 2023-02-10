@@ -120,6 +120,8 @@ class Node:
         self._spotify_client_id = spotify_client_id
         self._spotify_client_secret = spotify_client_secret
 
+        self._apple_music_client = None
+
         if self._spotify_client_id and self._spotify_client_secret:
             self._spotify_client = spotify.Client(
                 self._spotify_client_id, self._spotify_client_secret
