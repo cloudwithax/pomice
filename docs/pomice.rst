@@ -1,21 +1,6 @@
 Pomice
 ==============
 
-Spotify
--------------------
-
-.. automodule:: pomice.spotify
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Apple Music
--------------------
-
-.. automodule:: pomice.applemusic
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 
 Enums
