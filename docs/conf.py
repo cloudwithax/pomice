@@ -12,13 +12,13 @@
 #
 import os
 import sys
-sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../'))
 
 
 # -- Project information -----------------------------------------------------
 
 project = 'Pomice'
-copyright = '2022, cloudwithax'
+copyright = '2023, cloudwithax'
 author = 'cloudwithax'
 
 # The full version, including alpha/beta/rc tags
