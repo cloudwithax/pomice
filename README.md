@@ -10,10 +10,6 @@
 Pomice is a fully asynchronous Python library designed for communicating with [Lavalink](https://github.com/freyacodes/Lavalink) seamlessly within the [discord.py](https://github.com/Rapptz/discord.py) library. It features 100% API coverage of the entire [Lavalink](https://github.com/freyacodes/Lavalink) spec that can be accessed with easy-to-understand functions. We also include Spotify and Apple Music querying capabilites using built-in custom clients, making it easier to develop your next big music bot. 
 
 
-# 2.0 Notice
-
-We now support Lavalink 3.7! If you would like to use the new Lavalink, please either install Pomice 2.0 or upgrade to Pomice 2.0 using your preferred package management solution.
-
 # Install
 To install the library, you need the lastest version of pip and minimum Python 3.9
 
