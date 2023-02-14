@@ -2,16 +2,12 @@
 
 ![](https://raw.githubusercontent.com/cloudwithax/pomice/main/banner.jpg)
 
-The modern [Lavalink](https://github.com/freyacodes/Lavalink) wrapper designed for [discord.py](https://github.com/Rapptz/discord.py)
 
 [![GPL](https://img.shields.io/badge/license-GPL-2f2f2f)](https://github.com/cloudwithax/pomice/blob/main/LICENSE) ![](https://img.shields.io/badge/python-3.9-2f2f2f) 
 [![Discord](https://img.shields.io/discord/899324069235810315)](https://discord.gg/r64qjTSHG8) [![Read the Docs](https://readthedocs.org/projects/pomice/badge/?version=latest)](https://pomice.readthedocs.io/en/latest/)
 
 
-This library is heavily based off of/uses code from the following libraries:
-- [Wavelink](https://github.com/PythonistaGuild/Wavelink)
-- [Slate](https://github.com/Axelancerr/slate)
-- [Granitepy](https://github.com/twitch0001/granitepy)
+Pomice is a fully asynchronous Python library designed for communicating with [Lavalink](https://github.com/freyacodes/Lavalink) seamlessly within the [discord.py](https://github.com/Rapptz/discord.py) library. It features 100% API coverage of the entire [Lavalink](https://github.com/freyacodes/Lavalink) spec that can be accessed with easy-to-understand functions. We also include Spotify and Apple Music querying capabilites using built-in custom clients, making it easier to develop your next big music bot. 
 
 
 # 2.0 Notice
