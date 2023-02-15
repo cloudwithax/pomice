@@ -11,7 +11,7 @@ Pomice is a fully asynchronous Python library designed for communicating with [L
 
 
 # Install
-To install the library, you need the lastest version of pip and minimum Python 3.9
+To install the library, you need the lastest version of pip and minimum Python 3.8
 
 > Stable version
 ```
