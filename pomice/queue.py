@@ -336,3 +336,9 @@ class Queue(Iterable[Track]):
         """Clears all filters applied to tracks"""
         for track in self._queue:
             track.filters = None
+
+    def jump(self, item: Track):
+        """Returns a new queue with the specified track at the beginning."""
+        index = self.find_position(item)
+        new_queue = self._queue[index:self.size]
+        self._queue = new_queue
