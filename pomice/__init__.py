@@ -18,7 +18,7 @@ if not discord.version_info.major >= 2:
         "using 'pip install discord.py'"
     )
 
-__version__ = "2.0.1a"
+__version__ = "2.1"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 
@@ -30,4 +30,5 @@ from .objects import *
 from .queue import *
 from .player import *
 from .pool import *
+from .routeplanner import *
 

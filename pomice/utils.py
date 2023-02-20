@@ -1,8 +1,11 @@
 import random
 import time
 import socket
+
+from .enums import RouteStrategy, RouteIPType
 from timeit import default_timer as timer
 from itertools import zip_longest
+from datetime import datetime
 
 
 __all__ = [
@@ -83,6 +86,44 @@ class NodeStats:
 
     def __repr__(self) -> str:
         return f"<Pomice.NodeStats total_players={self.players_total!r} playing_active={self.players_active!r}>"
+
+class FailingIPBlock:
+    """
+    The base class for the failing IP block object from the route planner stats.
+    Gives critical information about any failing addresses on the block 
+    and the time they failed.
+    """
+    def __init__(self, data: dict) -> None:
+        self.address = data.get("address")
+        self.failing_time = datetime.fromtimestamp(float(data.get("failingTimestamp")))
+
+    def __repr__(self) -> str:
+        return f"<Pomice.FailingIPBlock address={self.address} failing_time={self.failing_time}>"
+        
+
+class RouteStats:
+    """
+    The base class for the route planner stats object.
+    Gives critical information about the route planner strategy on the node.
+    """
+
+    def __init__(self, data: dict) -> None:
+        self.strategy = RouteStrategy(data.get("class"))
+
+        details: dict = data.get("details")
+
+        ip_block: dict = details.get("ipBlock")
+        self.ip_block_type = RouteIPType(ip_block.get("type"))
+        self.ip_block_size = ip_block.get("size")
+        self.failing_addresses = [FailingIPBlock(data) for data in details.get("failingAddresses")]
+
+        self.block_index = details.get("blockIndex")
+        self.address_index = details.get("currentAddressIndex")
+
+        
+
+    def __repr__(self) -> str:
+        return f"<Pomice.RouteStats route_strategy={self.strategy!r} failing_addresses={len(self.failing_addresses)}>"
 
 
 class Ping:

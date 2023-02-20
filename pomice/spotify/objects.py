@@ -43,7 +43,7 @@ class Playlist:
         if data.get("images") and len(data["images"]):
             self.image: str = data["images"][0]["url"]
         else:
-            self.image = None
+            self.image = self.tracks[0].image 
         self.uri = data["external_urls"]["spotify"]
 
     def __repr__(self) -> str:

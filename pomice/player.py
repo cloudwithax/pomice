@@ -3,7 +3,8 @@ from typing import (
     Any,
     Dict,
     List,
-    Optional
+    Optional,
+    Union
 )
 
 from discord import (
@@ -15,11 +16,11 @@ from discord import (
 from discord.ext import commands
 
 from . import events
-from .enums import SearchType
+from .enums import SearchType, PlatformRecommendation
 from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
 from .exceptions import FilterInvalidArgument, FilterTagAlreadyInUse, FilterTagInvalid, TrackInvalidPosition, TrackLoadError
 from .filters import Filter
-from .objects import Track
+from .objects import Track, Playlist
 from .pool import Node, NodePool
 
 class Filters:
@@ -111,7 +112,7 @@ class Player(VoiceProtocol):
         node: Node = None
     ):
         self.client = client
-        self._bot = client
+        self._bot: Union[Client, commands.Bot] = client
         self.channel = channel
         self._guild = channel.guild if channel else None
 
@@ -197,7 +198,7 @@ class Player(VoiceProtocol):
         return self._filters
 
     @property
-    def bot(self) -> Client:
+    def bot(self) -> Union[Client, commands.Bot]:
         """Property which returns the bot associated with this player instance"""
         return self._bot
 
@@ -284,13 +285,18 @@ class Player(VoiceProtocol):
         """
         return await self._node.get_tracks(query, ctx=ctx, search_type=search_type, filters=filters)
 
-    async def get_recommendations(self, *, query: str, ctx: Optional[commands.Context] = None):
+    async def get_recommendations(
+        self, 
+        *, 
+        track: Track, 
+        ctx: Optional[commands.Context] = None
+    ) -> Union[List[Track], None]:
         """
-        Gets recommendations from Spotify. Query must be a valid Spotify Track URL.
+        Gets recommendations from either YouTube or Spotify.
         You can pass in a discord.py Context object to get a
         Context object on all tracks that get recommended.
         """
-        return await self._node.get_recommendations(query=query, ctx=ctx)
+        return await self._node.get_recommendations(track=track, ctx=ctx)
 
     async def connect(self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False):
         await self.guild.change_voice_state(channel=self.channel, self_deaf=self_deaf, self_mute=self_mute)
@@ -373,6 +379,11 @@ class Player(VoiceProtocol):
             }
 
 
+        # Lets set the current track before we play it so any
+        # corresponding events can capture it correctly
+
+        self._current = track
+
         # Remove preloaded filters if last track had any
         if self.filters.has_preload:
             for filter in self.filters.get_preload_filters():
@@ -384,6 +395,7 @@ class Player(VoiceProtocol):
 
         # Check if theres no global filters and if the track has any filters
         # that need to be applied
+
         if track.filters and not self.filters.has_global:
             # Now apply all filters
             for filter in track.filters:
@@ -400,7 +412,6 @@ class Player(VoiceProtocol):
             query=f"noReplace={ignore_if_playing}"
         )
 
-        self._current = track
         return self._current
 
     async def seek(self, position: float) -> float:

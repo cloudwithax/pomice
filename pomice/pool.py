@@ -17,7 +17,7 @@ from . import (
     applemusic
 )
 
-from .enums import SearchType, NodeAlgorithm
+from .enums import *
 from .exceptions import (
     AppleMusicNotEnabled,
     InvalidSpotifyClientAuthorization,
@@ -32,36 +32,10 @@ from .exceptions import (
 from .filters import Filter
 from .objects import Playlist, Track
 from .utils import ExponentialBackoff, NodeStats, Ping
+from .routeplanner import RoutePlanner
 
 if TYPE_CHECKING:
     from .player import Player
-
-SPOTIFY_URL_REGEX = re.compile(
-    r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)"
-)
-
-DISCORD_MP3_URL_REGEX = re.compile(
-    r"https?://cdn.discordapp.com/attachments/(?P<channel_id>[0-9]+)/"
-    r"(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
-)
-
-YOUTUBE_PLAYLIST_REGEX = re.compile(
-    r"(?P<video>^.*?v.*?)(?P<list>&list.*)"
-)
-
-YOUTUBE_TIMESTAMP_REGEX = re.compile(
-    r"(?P<video>^.*?)(\?t|&start)=(?P<time>\d+)?.*"
-)
-
-AM_URL_REGEX = re.compile(
-    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)"
-)
-
-
-URL_REGEX = re.compile(
-    r"https?://(?:www\.)?.+"
-)
-
 
 
 class Node:
@@ -75,7 +49,7 @@ class Node:
         self,
         *,
         pool,
-        bot: Client,
+        bot: Union[Client, commands.Bot],
         host: str,
         port: int,
         password: str,
@@ -108,6 +82,8 @@ class Node:
         self._session_id: str = None
         self._metadata = None
         self._available = None
+        self._version: str = None
+        self._route_planner = RoutePlanner(self)
 
         self._headers = {
             "Authorization": self._password,
@@ -156,7 +132,7 @@ class Node:
 
 
     @property
-    def bot(self) -> Client:
+    def bot(self) -> Union[Client, commands.Bot]:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
 
@@ -240,10 +216,37 @@ class Node:
         elif op == "playerUpdate":
             await player._update_state(data)
 
+    def _get_type(self, query: str):
+        if match := URLRegex.LAVALINK_SEARCH.match(query):
+            type = match.group("type")
+            if type == "sc":
+                return TrackType.SOUNDCLOUD
+            
+            return TrackType.YOUTUBE
+
+
+        elif URLRegex.YOUTUBE_URL.match(query):
+            if URLRegex.YOUTUBE_PLAYLIST_URL.match(query):
+                return PlaylistType.YOUTUBE
+
+            return TrackType.YOUTUBE
+
+        elif URLRegex.SOUNDCLOUD_URL.match(query):
+            if URLRegex.SOUNDCLOUD_TRACK_IN_SET_URL.match(query):
+                return TrackType.SOUNDCLOUD
+            if URLRegex.SOUNDCLOUD_PLAYLIST_URL.match(query):
+                return PlaylistType.SOUNDCLOUD
+
+            return TrackType.SOUNDCLOUD 
+
+        else:
+            return TrackType.HTTP
+
     async def send(
         self, 
-        method: str, 
+        method: str,
         path: str, 
+        include_version: bool = True, 
         guild_id: Optional[Union[int, str]] = None, 
         query: Optional[str] = None, 
         data: Optional[Union[dict, str]] = None
@@ -254,17 +257,20 @@ class Node:
             )
 
         uri: str = f'{self._rest_uri}/' \
-                   f'v3/' \
+                   f'{f"v{self._version}/" if include_version else ""}' \
                    f'{path}' \
                    f'{f"/{guild_id}" if guild_id else ""}' \
                    f'{f"?{query}" if query else ""}'
 
-        async with self._session.request(method=method, url=uri, headers={"Authorization": self._password}, json=data or {}) as resp:
+        async with self._session.request(method=method, url=uri, headers=self._headers, json=data or {}) as resp:
             if resp.status >= 300:
                 raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}')
 
-            if method == "DELETE":
+            if method == "DELETE" or resp.status == 204:
                 return await resp.json(content_type=None)
+
+            if resp.content_type == "text/plain":
+                return await resp.text()
            
             return await resp.json()
 
@@ -284,15 +290,15 @@ class Node:
             )
             self._task = self._bot.loop.create_task(self._listen())
             self._available = True
-            async with self._session.get(f'{self._rest_uri}/version', headers={"Authorization": self._password}) as resp:
-                version: str = await resp.text()
-                version = version.replace(".", "")
-                if int(version) < 370:
-                    raise LavalinkVersionIncompatible(
-                        "The Lavalink version you're using is incompatible."
-                        "Lavalink version 3.7.0 or above is required to use this library."
-                    )
-                
+            version = await self.send(method="GET", path="version", include_version=False)
+            version = version.replace(".", "")
+            if int(version) < 370:
+                raise LavalinkVersionIncompatible(
+                    "The Lavalink version you're using is incompatible."
+                    "Lavalink version 3.7.0 or above is required to use this library."
+                )
+
+            self._version = version[:1]      
             return self
 
         except aiohttp.ClientConnectorError:
@@ -332,18 +338,10 @@ class Node:
         Context object on the track it builds.
         """
 
-        async with self._session.get(
-            f"{self._rest_uri}/v3/decodetrack?",
-            headers={"Authorization": self._password},
-            params={"track": identifier}
-        ) as resp:
-            if not resp.status == 200:
-                raise TrackLoadError(
-                    f"Failed to build track. Check if the identifier is correct and try again."
-                )
+        
 
-            data: dict = await resp.json()
-            return Track(track_id=identifier, ctx=ctx, info=data)
+        data: dict = await self.send(method="GET", path="decodetrack", query=f"encodedTrack={identifier}")
+        return Track(track_id=identifier, ctx=ctx, info=data)
 
     async def get_tracks(
         self,
@@ -365,32 +363,30 @@ class Node:
            to be applied to your track once it plays.
         """
 
-        timestamp = None
+        timestamp = None  
 
-        if not URL_REGEX.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
+        if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
             query = f"{search_type}:{query}"
 
         if filters:
             for filter in filters:
                 filter.set_preload()
-
         
-        if AM_URL_REGEX.match(query):
+        if URLRegex.AM_URL.match(query):
             if not self._apple_music_client:
                 raise AppleMusicNotEnabled(
                     "You must have Apple Music functionality enabled in order to play Apple Music tracks."
                     "Please set apple_music to True in your Node class."
                 )
 
-            apple_music_results = await self._apple_music_client.search(query=query)
+            apple_music_results = await self._apple_music_client.search(query=query) 
             if isinstance(apple_music_results, applemusic.Song):
                 return [
                     Track(
                         track_id=apple_music_results.id,
                         ctx=ctx,
+                        track_type=TrackType.APPLE_MUSIC,
                         search_type=search_type,
-                        apple_music=True,
-                        am_track=apple_music_results,
                         filters=filters,
                         info={
                             "title": apple_music_results.name,
@@ -411,9 +407,8 @@ class Node:
                 Track(
                     track_id=track.id,
                     ctx=ctx,
+                    track_type=TrackType.APPLE_MUSIC,
                     search_type=search_type,
-                    apple_music=True,
-                    am_track=track,
                     filters=filters,
                     info={
                         "title": track.name,
@@ -433,13 +428,13 @@ class Node:
             return Playlist(
                 playlist_info={"name": apple_music_results.name, "selectedTrack": 0},
                 tracks=tracks,
-                ctx=ctx,
-                apple_music=True,
-                am_playlist=apple_music_results
+                playlist_type=PlaylistType.APPLE_MUSIC,
+                thumbnail=apple_music_results.image,
+                uri=apple_music_results.url
             )
 
 
-        elif SPOTIFY_URL_REGEX.match(query):
+        elif URLRegex.SPOTIFY_URL.match(query):
             if not self._spotify_client_id and not self._spotify_client_secret:
                 raise InvalidSpotifyClientAuthorization(
                     "You did not provide proper Spotify client authorization credentials. "
@@ -454,9 +449,8 @@ class Node:
                     Track(
                         track_id=spotify_results.id,
                         ctx=ctx,
+                        track_type=TrackType.SPOTIFY,
                         search_type=search_type,
-                        spotify=True,
-                        spotify_track=spotify_results,
                         filters=filters,
                         info={
                             "title": spotify_results.name,
@@ -477,9 +471,8 @@ class Node:
                 Track(
                     track_id=track.id,
                     ctx=ctx,
+                    track_type=TrackType.SPOTIFY,
                     search_type=search_type,
-                    spotify=True,
-                    spotify_track=track,
                     filters=filters,
                     info={
                         "title": track.name,
@@ -499,17 +492,14 @@ class Node:
             return Playlist(
                 playlist_info={"name": spotify_results.name, "selectedTrack": 0},
                 tracks=tracks,
-                ctx=ctx,
-                spotify=True,
-                spotify_playlist=spotify_results
+                playlist_type=PlaylistType.SPOTIFY,
+                thumbnail=spotify_results.image,
+                uri=spotify_results.uri
             )
 
-        elif discord_url := DISCORD_MP3_URL_REGEX.match(query):
-            async with self._session.get(
-                url=f"{self._rest_uri}/v3/loadtracks?identifier={quote(query)}",
-                headers={"Authorization": self._password}
-            ) as response:
-                data: dict = await response.json()
+        elif discord_url := URLRegex.DISCORD_MP3_URL.match(query):
+          
+            data: dict = await self.send(method="GET", path="loadtracks", query=f"identifier={quote(query)}")
 
             track: dict = data["tracks"][0]
             info: dict = track.get("info")
@@ -526,6 +516,7 @@ class Node:
                         "identifier": info.get("identifier")
                     },
                     ctx=ctx,
+                    track_type=TrackType.HTTP,
                     filters=filters
                 )
             ]
@@ -533,23 +524,20 @@ class Node:
         else:
             # If YouTube url contains a timestamp, capture it for use later.
 
-            if (match := YOUTUBE_TIMESTAMP_REGEX.match(query)):
+            if (match := URLRegex.YOUTUBE_TIMESTAMP.match(query)):
                 timestamp = float(match.group("time"))
 
             # If query is a video thats part of a playlist, get the video and queue that instead
             # (I can't tell you how much i've wanted to implement this in here)
 
-            if (match := YOUTUBE_PLAYLIST_REGEX.match(query)):   
+            if (match := URLRegex.YOUTUBE_VID_IN_PLAYLIST.match(query)):   
                 query = match.group("video")
                 
-            async with self._session.get(
-                url=f"{self._rest_uri}/v3/loadtracks?identifier={quote(query)}",
-                headers={"Authorization": self._password}
-            ) as response:
-                data = await response.json()
-
+            data: dict = await self.send(method="GET", path="loadtracks", query=f"identifier={quote(query)}")
 
         load_type = data.get("loadType")
+
+        query_type = self._get_type(query)
 
         if not load_type:
             raise TrackLoadError("There was an error while trying to load this track.")
@@ -562,10 +550,21 @@ class Node:
             return None
 
         elif load_type == "PLAYLIST_LOADED":
+            if query_type == PlaylistType.SOUNDCLOUD:
+                track_type = TrackType.SOUNDCLOUD
+            else:
+                track_type = TrackType.YOUTUBE
+
+            tracks = [
+                    Track(track_id=track["track"], info=track["info"], ctx=ctx, track_type=track_type)
+                    for track in data["tracks"]
+            ]
             return Playlist(
                 playlist_info=data["playlistInfo"],
-                tracks=data["tracks"],
-                ctx=ctx
+                tracks=tracks,
+                playlist_type=query_type,
+                thumbnail=tracks[0].thumbnail,
+                uri=query
             )
 
         elif load_type == "SEARCH_RESULT" or load_type == "TRACK_LOADED":
@@ -574,45 +573,56 @@ class Node:
                     track_id=track["track"],
                     info=track["info"],
                     ctx=ctx,
+                    track_type=query_type,
                     filters=filters,
                     timestamp=timestamp
                 )
                 for track in data["tracks"]
             ]
 
-    async def get_recommendations(self, *, query: str, ctx: Optional[commands.Context] = None):
+    async def get_recommendations(
+        self, 
+        *, 
+        track: Track, 
+        ctx: Optional[commands.Context] = None
+    ) -> Union[List[Track], None]:
         """
-        Gets recommendations from Spotify. Query must be a valid Spotify Track URL.
+        Gets recommendations from either YouTube or Spotify.
+        The track that is passed in must be either from 
+        YouTube or Spotify or else this will not work.
         You can pass in a discord.py Context object to get a
         Context object on all tracks that get recommended.
         """
-        results = await self._spotify_client.get_recommendations(query=query)
-        tracks = [
-                Track(
-                    track_id=track.id,
-                    ctx=ctx,
-                    spotify=True,
-                    spotify_track=track,
-                    info={
-                        "title": track.name,
-                        "author": track.artists,
-                        "length": track.length,
-                        "identifier": track.id,
-                        "uri": track.uri,
-                        "isStream": False,
-                        "isSeekable": True,
-                        "position": 0,
-                        "thumbnail": track.image,
-                        "isrc": track.isrc
-                    },
-                    requester=self.bot.user
-                ) for track in results
-            ]
+        if track.track_type == TrackType.SPOTIFY:
+            results = await self._spotify_client.get_recommendations(query=track.uri)
+            tracks = [
+                    Track(
+                        track_id=track.id,
+                        ctx=ctx,
+                        track_type=TrackType.SPOTIFY,
+                        info={
+                            "title": track.name,
+                            "author": track.artists,
+                            "length": track.length,
+                            "identifier": track.id,
+                            "uri": track.uri,
+                            "isStream": False,
+                            "isSeekable": True,
+                            "position": 0,
+                            "thumbnail": track.image,
+                            "isrc": track.isrc
+                        },
+                        requester=self.bot.user
+                    ) for track in results
+                ]
 
-        return tracks
-
-
-
+            return tracks
+        elif track.track_type == TrackType.YOUTUBE: 
+            tracks = await self.get_tracks(query=f"ytsearch:https://www.youtube.com/watch?v={track.identifier}&list=RD{track.identifier}", ctx=ctx)
+            return tracks
+        else:
+            raise TrackLoadError("The specfied track must be either a YouTube or Spotify track to recieve recommendations.")
+            
 
 class NodePool:
     """The base class for the node pool.

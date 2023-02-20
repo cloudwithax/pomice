@@ -1,19 +1,15 @@
-import re
+from __future__ import annotations
 from typing import List, Optional, Union
 from discord import Member, User
 
 from discord.ext import commands
 
-from .enums import SearchType
+from .enums import SearchType, TrackType, PlaylistType
 from .filters import Filter
 
 from . import (
     spotify,
     applemusic
-)
-
-SOUNDCLOUD_URL_REGEX = re.compile(
-    r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/[\w\-\.]+(\/)+[\w\-\.]+/?$"
 )
 
 
@@ -28,29 +24,25 @@ class Track:
         track_id: str,
         info: dict,
         ctx: Optional[commands.Context] = None,
-        spotify: bool = False,
-        apple_music: bool = False,
-        am_track: applemusic.Song = None,
+        track_type: TrackType,
         search_type: SearchType = SearchType.ytsearch,
-        spotify_track: spotify.Track = None,
         filters: Optional[List[Filter]] = None,
         timestamp: Optional[float] = None,
-        requester: Optional[Union[Member, User]] = None
+        requester: Optional[Union[Member, User]] = None,
     ):
         self.track_id = track_id
         self.info = info
-        self.spotify = spotify
-        self.apple_music = apple_music
-        self.filters: List[Filter] = filters
+        self.track_type: TrackType = track_type
+        self.filters: Optional[List[Filter]] = filters
         self.timestamp: Optional[float] = timestamp
 
-        if spotify or apple_music:
+        if self.track_type == TrackType.SPOTIFY or self.track_type == TrackType.APPLE_MUSIC:
             self.original: Optional[Track] = None 
         else:
             self.original = self
         self._search_type = search_type
-        self.spotify_track = spotify_track
-        self.am_track = am_track
+
+        self.playlist: Playlist = None
 
         self.title = info.get("title")
         self.author = info.get("author")
@@ -61,7 +53,7 @@ class Track:
         if self.uri:
             if info.get("thumbnail"):
                 self.thumbnail = info.get("thumbnail") 
-            elif SOUNDCLOUD_URL_REGEX.match(self.uri):
+            elif self.track_type == TrackType.SOUNDCLOUD:
                 # ok so theres no feasible way of getting a Soundcloud image URL
                 # so we're just gonna leave it blank for brevity
                 self.thumbnail = None
@@ -105,40 +97,20 @@ class Playlist:
         *,
         playlist_info: dict,
         tracks: list,
-        ctx: Optional[commands.Context] = None,
-        spotify: bool = False,
-        spotify_playlist: spotify.Playlist = None,
-        apple_music: bool = False,
-        am_playlist: applemusic.Playlist = None
+        playlist_type: PlaylistType,
+        thumbnail: Optional[str] = None,
+        uri: Optional[str] = None
     ):
         self.playlist_info = playlist_info
-        self.tracks_raw = tracks
-        self.spotify = spotify
+        self.tracks: List[Track] = tracks
         self.name = playlist_info.get("name")
-        self.spotify_playlist = spotify_playlist
-        self.apple_music = apple_music
-        self.am_playlist = am_playlist
+        self.playlist_type = playlist_type
 
-        self._thumbnail = None
-        self._uri = None
-        
-        if self.spotify:
-            self.tracks = tracks
-            self._thumbnail = self.spotify_playlist.image
-            self._uri = self.spotify_playlist.uri
-        
-        elif self.apple_music:
-            self.tracks = tracks
-            self._thumbnail = self.am_playlist.image
-            self._uri = self.am_playlist.url
+        self._thumbnail = thumbnail
+        self._uri = uri
 
-        else:
-            self.tracks = [
-                Track(track_id=track["track"], info=track["info"], ctx=ctx)
-                for track in self.tracks_raw
-            ]
-            self._thumbnail = None
-            self._uri = None
+        for track in self.tracks:
+            track.playlist = self
 
         if (index := playlist_info.get("selectedTrack")) == -1:
             self.selected_track = None

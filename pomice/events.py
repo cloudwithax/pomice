@@ -1,6 +1,14 @@
+from __future__ import annotations
 from discord import Client
+from discord.ext import commands
 
 from .pool import NodePool
+
+
+from typing import TYPE_CHECKING, Union
+if TYPE_CHECKING:
+    from .player import Player
+
 
 
 class PomiceEvent:
@@ -15,7 +23,7 @@ class PomiceEvent:
     name = "event"
     handler_args = ()
 
-    def dispatch(self, bot: Client):
+    def dispatch(self, bot: Union[Client, commands.Bot]):
         bot.dispatch(f"pomice_{self.name}", *self.handler_args)
 
 
@@ -25,7 +33,7 @@ class TrackStartEvent(PomiceEvent):
     """
     name = "track_start"
 
-    def __init__(self, data: dict, player):
+    def __init__(self, data: dict, player: Player):
         self.player = player
         self.track = self.player._current
 
@@ -42,7 +50,7 @@ class TrackEndEvent(PomiceEvent):
     """
     name = "track_end"
 
-    def __init__(self, data: dict, player):
+    def __init__(self, data: dict, player: Player):
         self.player = player
         self.track = self.player._ending_track
         self.reason: str = data["reason"]
@@ -64,7 +72,7 @@ class TrackStuckEvent(PomiceEvent):
     """
     name = "track_stuck"
 
-    def __init__(self, data: dict, player):
+    def __init__(self, data: dict, player: Player):
         self.player = player
         self.track = self.player._ending_track
         self.threshold: float = data["thresholdMs"]
@@ -83,7 +91,7 @@ class TrackExceptionEvent(PomiceEvent):
     """
     name = "track_exception"
 
-    def __init__(self, data: dict, player):
+    def __init__(self, data: dict, player: Player):
         self.player = player
         self.track = self.player._ending_track
         if data.get('error'):

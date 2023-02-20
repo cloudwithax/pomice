@@ -6,6 +6,7 @@ from typing import List
 class Song:
     """The base class for an Apple Music song"""
     def __init__(self, data: dict) -> None:
+       
         self.name: str = data["attributes"]["name"]
         self.url: str = data["attributes"]["url"]
         self.isrc: str = data["attributes"]["isrc"]
@@ -36,6 +37,7 @@ class Playlist:
         # we'll use the first song's image as the image for the playlist
         # because apple dynamically generates playlist covers client-side
         self.image = self.tracks[0].image 
+        print("worked")
 
     def __repr__(self) -> str:
         return (

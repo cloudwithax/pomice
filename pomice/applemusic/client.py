@@ -93,13 +93,16 @@ class Client:
             return Artist(data, tracks=tracks)
 
         else: 
-            tracks = [Song(track) for track in data["relationships"]["tracks"]["data"]]
+
+            track_data: dict = data["relationships"]["tracks"]
+           
+            tracks = [Song(track) for track in track_data.get("data")]
 
             if not len(tracks):
                 raise AppleMusicRequestException("This playlist is empty and therefore cannot be queued.")
 
-            if data["relationships"]["tracks"]["next"]:         
-                next_page_url = AM_BASE_URL + data["relationships"]["tracks"]["next"]
+            if track_data.get("next"):         
+                next_page_url = AM_BASE_URL + track_data.get("next")
 
                 while next_page_url is not None:
                     async with self.session.get(next_page_url, headers=self.headers) as resp:
@@ -112,12 +115,10 @@ class Client:
 
                     tracks += [Song(track) for track in next_data["data"]]
                     if next_data.get("next"):
-                        next_page_url = AM_BASE_URL + next_data["next"]
+                        next_page_url = AM_BASE_URL + next_data.get("next")
                     else:
                         next_page_url = None
 
-            return Playlist(data, tracks)
-            
-            
-
         
+
+            return Playlist(data, tracks) 
