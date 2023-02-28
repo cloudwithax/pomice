@@ -1,3 +1,5 @@
 discord.py[voice]
 aiohttp
 orjson
+myst_parser
+furo
