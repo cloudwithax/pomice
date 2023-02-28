@@ -36,8 +36,9 @@ release = '2.1.1'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.linkcode',
     'myst_parser'
-    ]
+]
 
 myst_enable_extensions = [
     "amsmath",
@@ -99,3 +100,11 @@ html_theme_options: Dict[str, Any] = {
     "source_branch": "main",
     "source_directory": "docs/",
 }
+
+def linkcode_resolve(domain, info):
+    if domain != 'py':
+        return None
+    if not info['module']:
+        return None
+    filename = info['module'].replace('.', '/')
+    return f"https://github.com/cloudwithax/pomice/blob/main/pomice/{filename}.py"

@@ -29,7 +29,7 @@ your application. Here are all the definitions:
 - `Event.TrackExceptionEvent()` -> `on_pomice_track_exception`
 - `Event.TrackStartEvent()` -> `on_pomice_track_start`
 - `Event.TrackStuckEvent()` -> `on_pomice_track_stuck`
-- `Event.WebsoocketClosedEvent()` -> `on_pomice_websocket_closed`
+- `Event.WebsocketClosedEvent()` -> `on_pomice_websocket_closed`
 - `Event.WebsocketOpenEvent()` -> `on_pomice_websocket_open`
 
 
@@ -38,13 +38,15 @@ and properties for further evaluation. They also carry a `Track` object so you c
 
 `Event.TrackEndEvent()` carries the reason for the track ending. If the track ends suddenly, you can use the reason provided to determine a solution.
 
-`Event.TrackExceptionEvent()` carries the exception, or reason why the track failed to play. The format for the exception is `REASON [SEVERITY]`.
+`Event.TrackExceptionEvent()` carries the exception, or reason why the track failed to play. The format for the exception is `REASON: [SEVERITY]`.
 
 `Event.TrackStuckEvent()` carries the threshold, or amount of time Lavalink will wait before it discards the stuck track and stops it from playing.
 
+`Event.WebsocketClosedEvent()` carries a payload object that contains a `Guild` object, the code number, the reason for disconnect and whether or not it was by the
+remote, or the node.
 
-
-
+`Event.WebsocketOpenEvent()` carries a target, which is usually the node IP, and the SSRC, a 32-bit integer uniquely identifying the source of the RTP packets sent from 
+Lavalink.
 
 
 
