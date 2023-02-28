@@ -459,7 +459,13 @@ await Player.reset_filters()
 
 ```
 
+After you have initialized your function, you can optionally include the `fast_apply` parameter, which is a boolean. If this is set to `True`, it'll remove all filters (almost) instantly if theres a track playing.
 
+```py
+
+await Player.reset_filters(fast_apply=<True/False>)
+
+```
 
 
 
