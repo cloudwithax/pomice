@@ -404,6 +404,61 @@ await Player.add_filter(
 
 After running this function, you should see your currently playing track sound different depending on the filter you chose.
 
+### Removing a filter
+
+
+To remove a filter, we need to use `Player.remove_filter()`
+
+```py
+
+await Player.remove_filter(...)
+
+```
+
+
+After you have initialized your function, we need to fill in the proper parameters:
+
+:::{list-table}
+:header-rows: 1
+
+* - Name
+  - Type
+  - Description
+
+* - `filter`
+  - `Filter`
+  - The filter to remove
+
+* - `fast_apply`
+  - `bool`
+  - If set to `True`, the specified filter will be removed (almost) instantly if a song is playing. Default value is `False`.
+
+:::
+
+After you set those parameters, your function should look something like this:
+
+```py
+
+await Player.remove_filter(
+    filter=<your filter object here>,
+    fast_apply=<True/False>
+)
+
+```
+
+After running this function, you should see your currently playing track sound different depending on the filter you chose to remove.
+
+
+### Resetting all filters
+
+To reset all filters, we need to use `Player.reset_filters()`
+
+```py
+
+await Player.reset_filters()
+
+```
+
 
 
 
