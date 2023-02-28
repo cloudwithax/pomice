@@ -4,3 +4,4 @@ __pycache/
 dist/
 pomice.egg-info/
 docs/_build/
+build/
