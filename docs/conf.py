@@ -10,6 +10,8 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
+import importlib
+import inspect
 import os
 import sys
 from typing import Any, Dict
@@ -106,5 +108,26 @@ def linkcode_resolve(domain, info):
         return None
     if not info['module']:
         return None
-    filename = info['module'].replace('.', '/')
-    return f"https://github.com/cloudwithax/pomice/blob/main/{filename}.py"
+        
+
+    mod = importlib.import_module(info["module"])
+    if "." in info["fullname"]:
+        objname, attrname = info["fullname"].split(".")
+        obj = getattr(mod, objname)
+        try:
+            obj = getattr(obj, attrname)
+        except AttributeError:
+            return None
+    else:
+        obj = getattr(mod, info["fullname"])
+
+    try:
+        file = inspect.getsourcefile(obj)
+        lines = inspect.getsourcelines(obj)
+    except TypeError:
+        # e.g. object is a typing.Union
+        return None
+    file = os.path.relpath(file, os.path.abspath(".."))
+    start, end = lines[1], lines[1] + len(lines[0]) - 1
+
+    return f"https://github.com/cloudwithax/pomice/blob/main/{file}#L{start}-L{end}"
