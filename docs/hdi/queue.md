@@ -109,5 +109,126 @@ If you have a queue loop mode set, this behavior will be overridden since the qu
 
 :::
 
+## Removing a track from the queue
+
+
+To remove a track from the queue, we must use `Queue.remove()`
+
+```py
+
+Queue.remove()
+
+```
+
+After you have initialized your function, we need to include the `item` parameter, which is a `Track`:
+
+```py
+
+Queue.remove(item=<your Track here>)
+
+```
+
+:::{important}
+
+Your `Track` object must be in the queue if you want to remove it. Make sure you follow [](queue.md#getting-a-track-from-the-queue) before running this function.
+
+:::
+
+After running this function, your track should be removed from the queue.
+
+
+## Shuffling the queue
+
+To shuffle the queue, we must use `Queue.shuffle()`
+
+```py
+
+Queue.shuffle()
+
+```
+
+After running this function, your queue should be in a different order than it was originally.
+
+:::{tip}
+
+This function works best if theres atleast **3** tracks in the queue. The more tracks, the more variation the shuffle has.
+
+:::
+
+
+## Looping the queue
+
+To loop the queue, we must use `Queue.set_loop_mode()`
+
+```py
+
+Queue.set_loop_mode(...)
+
+```
+
+After you have initialized your function, we need to include the `mode` parameter, which is a `LoopMode` enum:
+
+```py
+
+Queue.set_loop_mode(mode=LoopMode.<mode>)
+
+```
+
+The two types of `LoopMode` enums are `LoopMode.QUEUE` and `LoopMode.TRACK`. `QUEUE` loops the entire queue and `TRACK` loops the current track.
+
+After running the function, your queue will now loop using the mode you specify.
+
+### Resetting the loop mode
+
+To reset the loop mode, we must use `Queue.disable_loop()`
+
+```py
+
+Queue.disable_loop()
+
+```
+
+:::{important}
+
+You must have a loop mode set before using this function. It will **not work** if you do not a loop mode set
+
+:::
+
+After running the function, your queue should return to its normal functionality.
+
+## Jumping to a track in the queue
+
+To jump to a track in the queue, we must use `Queue.jump()`
+
+
+```py
+
+Queue.jump(...)
+
+```
+
+After you have initialized your function, we need to include the `item` parameter, which is a `Track`:
+
+```py
+
+Queue.jump(item=<your Track here>)
+
+```
+
+:::{important}
+
+Your `Track` object must be in the queue if you want to remove it. Make sure you follow [](queue.md#getting-a-track-from-the-queue) before running this function.
+
+:::
+
+After running this function, any items before the specified item will be removed, effectively "jumping" to the specified item in the queue. The next item obtained using `Queue.get()` will be your specified track.
+
+
+
+
+
+
+
+
 
 

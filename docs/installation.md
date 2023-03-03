@@ -25,6 +25,8 @@ If you need more than just a quick example, get our drop-in [advanced cog](https
 to take advantage of all of Pomice's features. 
 You are free to use this as a base to add on to for any music features you want to implement within your application.
 
-If you want to use anything outside the provided examples, refer to the [API Reference](api/index.md) section.
+If you want to jump into the library and learn how to do everything you need, refer to the [How Do I?](hdi/index.md) section.
+
+If you want a deeper look into how the library works beyond the [How Do I?](hdi/index.md) guide, refer to the [API Reference](api/index.md) section.
 
 
