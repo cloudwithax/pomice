@@ -217,7 +217,7 @@ Queue.jump(item=<your Track here>)
 
 :::{important}
 
-Your `Track` object must be in the queue if you want to remove it. Make sure you follow [](queue.md#getting-a-track-from-the-queue) before running this function.
+Your `Track` object must be in the queue if you want to jump to it. Make sure you follow [](queue.md#getting-a-track-from-the-queue) before running this function.
 
 :::
 
