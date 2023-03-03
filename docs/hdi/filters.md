@@ -53,6 +53,8 @@ Here are the different types and what they do:
   - `pomice.Vibrato()`
   - Rapidly changes the pitch of the track.
 
+:::
+
 
 Each filter has individual values you can adjust to fine-tune the sound of the filter. If you want to see what values each filter has, refer to [](../api/filters.md).
 
