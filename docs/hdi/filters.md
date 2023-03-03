@@ -16,7 +16,6 @@ Here are the different types and what they do:
   - Class
   - Description
 
-
 * - Channel Mix
   - `pomice.ChannelMix()`
   - Adjusts stereo panning of a track.
@@ -39,7 +38,7 @@ Here are the different types and what they do:
 
 * - Rotation
   - `pomice.Rotation()`
--  Produces a stereo-like panning effect, which sounds like the audio is being rotated around the listener’s head
+  -  Produces a stereo-like panning effect, which sounds like the audio is being rotated around the listener’s head
 
 * - Timescale
   - `pomice.Timescale()`
