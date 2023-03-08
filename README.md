@@ -109,7 +109,7 @@ bot.run("token here")
 # FAQ
 Why is it saying "Cannot connect to host"?
 
-- You need to have a Lavalink node setup before you can use this library. Download it [here](https://github.com/freyacodes/Lavalink/releases/tag/3.3.2.5)
+- You need to have a Lavalink node setup before you can use this library. Download it [here](https://github.com/freyacodes/Lavalink/releases/latest)
 
 What experience do I need?
 
