@@ -2,7 +2,6 @@ __all__ = (
     'PomiceException',
     'NodeException',
     'NodeCreationError',
-    'NodeConnectionError',
     'NodeConnectionFailure',
     'NodeConnectionClosed',
     'NodeRestException',
