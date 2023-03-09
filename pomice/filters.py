@@ -13,7 +13,7 @@ class Filter:
     This is necessary for the removal of filters.
     """
     def __init__(self):
-        self.payload = None
+        self.payload: dict = None
         self.tag: str = None
         self.preload: bool = False
 
@@ -132,12 +132,12 @@ class Timescale(Filter):
         if rate < 0:
             raise FilterInvalidArgument("Timescale rate must be more than 0.")
 
-        self.speed = speed
-        self.pitch = pitch
-        self.rate = rate
-        self.tag = tag
+        self.speed: float = speed
+        self.pitch: float = pitch
+        self.rate: float = rate
+        self.tag: str = tag
 
-        self.payload = {"timescale": {"speed": self.speed,
+        self.payload: dict = {"timescale": {"speed": self.speed,
                                       "pitch": self.pitch,
                                       "rate": self.rate}}
 
@@ -181,13 +181,13 @@ class Karaoke(Filter):
     ):
         super().__init__()
 
-        self.level = level
-        self.mono_level = mono_level
-        self.filter_band = filter_band
-        self.filter_width = filter_width
-        self.tag = tag
+        self.level: float = level
+        self.mono_level: float = mono_level
+        self.filter_band: float = filter_band
+        self.filter_width: float = filter_width
+        self.tag: str = tag
 
-        self.payload = {"karaoke": {"level": self.level,
+        self.payload: dict = {"karaoke": {"level": self.level,
                                     "monoLevel": self.mono_level,
                                     "filterBand": self.filter_band,
                                     "filterWidth": self.filter_width}}
@@ -220,11 +220,11 @@ class Tremolo(Filter):
             raise FilterInvalidArgument(
                 "Tremolo depth must be between 0 and 1.")
 
-        self.frequency = frequency
-        self.depth = depth
-        self.tag = tag
+        self.frequency: float = frequency
+        self.depth: float = depth
+        self.tag: str = tag
 
-        self.payload = {"tremolo": {"frequency": self.frequency,
+        self.payload: dict = {"tremolo": {"frequency": self.frequency,
                                     "depth": self.depth}}
 
     def __repr__(self):
@@ -252,11 +252,11 @@ class Vibrato(Filter):
             raise FilterInvalidArgument(
                 "Vibrato depth must be between 0 and 1.")
 
-        self.frequency = frequency
-        self.depth = depth
-        self.tag = tag
+        self.frequency: float = frequency
+        self.depth: float = depth
+        self.tag: str = tag
 
-        self.payload = {"vibrato": {"frequency": self.frequency,
+        self.payload: dict = {"vibrato": {"frequency": self.frequency,
                                     "depth": self.depth}}
 
     def __repr__(self):
@@ -271,9 +271,9 @@ class Rotation(Filter):
     def __init__(self, *, tag: str, rotation_hertz: float = 5):
         super().__init__()
 
-        self.rotation_hertz = rotation_hertz
-        self.tag = tag
-        self.payload = {"rotation": {"rotationHz": self.rotation_hertz}}
+        self.rotation_hertz: float = rotation_hertz
+        self.tag: str = tag
+        self.payload: dict = {"rotation": {"rotationHz": self.rotation_hertz}}
 
     def __repr__(self) -> str:
         return f"<Pomice.RotationFilter tag={self.tag} rotation_hertz={self.rotation_hertz}>"
@@ -308,13 +308,13 @@ class ChannelMix(Filter):
             raise ValueError(
                 "'right_to_left' value must be more than or equal to 0 or less than or equal to 1.")
 
-        self.left_to_left = left_to_left
-        self.left_to_right = left_to_right
-        self.right_to_left = right_to_left
-        self.right_to_right = right_to_right
-        self.tag = tag
+        self.left_to_left: float = left_to_left
+        self.left_to_right: float = left_to_right
+        self.right_to_left: float = right_to_left
+        self.right_to_right: float = right_to_right
+        self.tag: str = tag
 
-        self.payload = {"channelMix": {"leftToLeft": self.left_to_left,
+        self.payload: dict = {"channelMix": {"leftToLeft": self.left_to_left,
                                         "leftToRight": self.left_to_right,
                                         "rightToLeft": self.right_to_left,
                                         "rightToRight": self.right_to_right}
@@ -347,17 +347,17 @@ class Distortion(Filter):
     ):
         super().__init__()
 
-        self.sin_offset = sin_offset
-        self.sin_scale = sin_scale
-        self.cos_offset = cos_offset
-        self.cos_scale = cos_scale
-        self.tan_offset = tan_offset
-        self.tan_scale = tan_scale
-        self.offset = offset
-        self.scale = scale
-        self.tag = tag
+        self.sin_offset: float = sin_offset
+        self.sin_scale: float = sin_scale
+        self.cos_offset: float = cos_offset
+        self.cos_scale: float = cos_scale
+        self.tan_offset: float = tan_offset
+        self.tan_scale: float = tan_scale
+        self.offset: float = offset
+        self.scale: float = scale
+        self.tag: str = tag
 
-        self.payload = {"distortion": {
+        self.payload: dict = {"distortion": {
             "sinOffset": self.sin_offset,
             "sinScale": self.sin_scale,
             "cosOffset": self.cos_offset,
@@ -383,9 +383,9 @@ class LowPass(Filter):
     def __init__(self, *, tag: str, smoothing: float = 20):
         super().__init__()
 
-        self.smoothing = smoothing
-        self.tag = tag
-        self.payload = {"lowPass": {"smoothing": self.smoothing}}
+        self.smoothing: float = smoothing
+        self.tag: str = tag
+        self.payload: dict = {"lowPass": {"smoothing": self.smoothing}}
 
     def __repr__(self) -> str:
         return f"<Pomice.LowPass tag={self.tag} smoothing={self.smoothing}>"

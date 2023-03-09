@@ -26,8 +26,8 @@ class Track:
         timestamp: Optional[float] = None,
         requester: Optional[Union[Member, User]] = None,
     ):
-        self.track_id = track_id
-        self.info = info
+        self.track_id: str = track_id
+        self.info: dict = info
         self.track_type: TrackType = track_type
         self.filters: Optional[List[Filter]] = filters
         self.timestamp: Optional[float] = timestamp
@@ -36,35 +36,35 @@ class Track:
             self.original: Optional[Track] = None 
         else:
             self.original = self
-        self._search_type = search_type
+        self._search_type: SearchType = search_type
 
         self.playlist: Playlist = None
 
-        self.title = info.get("title")
-        self.author = info.get("author")
-        self.uri = info.get("uri")
-        self.identifier = info.get("identifier")
-        self.isrc = info.get("isrc")
+        self.title: str = info.get("title")
+        self.author: str = info.get("author")
+        self.uri: str = info.get("uri")
+        self.identifier: str = info.get("identifier")
+        self.isrc: str = info.get("isrc")
         
         if self.uri:
             if info.get("thumbnail"):
-                self.thumbnail = info.get("thumbnail") 
+                self.thumbnail: str = info.get("thumbnail") 
             elif self.track_type == TrackType.SOUNDCLOUD:
                 # ok so theres no feasible way of getting a Soundcloud image URL
                 # so we're just gonna leave it blank for brevity
                 self.thumbnail = None
             else:
-                self.thumbnail = f"https://img.youtube.com/vi/{self.identifier}/mqdefault.jpg"
+                self.thumbnail: str = f"https://img.youtube.com/vi/{self.identifier}/mqdefault.jpg"
 
-        self.length = info.get("length")
-        self.ctx = ctx
+        self.length: int = info.get("length")
+        self.ctx: commands.Context = ctx
         if requester:
-            self.requester = requester
+            self.requester: Optional[Union[Member, User]] = requester
         else:
-            self.requester = self.ctx.author if ctx else None
-        self.is_stream = info.get("isStream")
-        self.is_seekable = info.get("isSeekable")
-        self.position = info.get("position")
+            self.requester: Optional[Union[Member, User]] = self.ctx.author if ctx else None
+        self.is_stream: bool = info.get("isStream")
+        self.is_seekable: bool = info.get("isSeekable")
+        self.position: int = info.get("position")
 
     def __eq__(self, other):
         if not isinstance(other, Track):
@@ -97,13 +97,13 @@ class Playlist:
         thumbnail: Optional[str] = None,
         uri: Optional[str] = None
     ):
-        self.playlist_info = playlist_info
+        self.playlist_info: dict = playlist_info
         self.tracks: List[Track] = tracks
-        self.name = playlist_info.get("name")
-        self.playlist_type = playlist_type
+        self.name: str = playlist_info.get("name")
+        self.playlist_type: PlaylistType = playlist_type
 
-        self._thumbnail = thumbnail
-        self._uri = uri
+        self._thumbnail: str = thumbnail
+        self._uri: str = uri
 
         for track in self.tracks:
             track.playlist = self
@@ -111,9 +111,9 @@ class Playlist:
         if (index := playlist_info.get("selectedTrack")) == -1:
             self.selected_track = None
         else:
-            self.selected_track = self.tracks[index]
+            self.selected_track: Track = self.tracks[index]
 
-        self.track_count = len(self.tracks)
+        self.track_count: int = len(self.tracks)
 
     def __str__(self):
         return self.name

@@ -3,6 +3,7 @@ from discord import Client
 from discord.ext import commands
 
 from .pool import NodePool
+from .objects import Track
 
 
 from typing import TYPE_CHECKING, Union
@@ -34,8 +35,8 @@ class TrackStartEvent(PomiceEvent):
     name = "track_start"
 
     def __init__(self, data: dict, player: Player):
-        self.player = player
-        self.track = self.player._current
+        self.player: Player = player
+        self.track: Track = self.player._current
 
         # on_pomice_track_start(player, track)
         self.handler_args = self.player, self.track
@@ -51,8 +52,8 @@ class TrackEndEvent(PomiceEvent):
     name = "track_end"
 
     def __init__(self, data: dict, player: Player):
-        self.player = player
-        self.track = self.player._ending_track
+        self.player: Player = player
+        self.track: Track = self.player._ending_track
         self.reason: str = data["reason"]
 
         # on_pomice_track_end(player, track, reason)
@@ -73,8 +74,8 @@ class TrackStuckEvent(PomiceEvent):
     name = "track_stuck"
 
     def __init__(self, data: dict, player: Player):
-        self.player = player
-        self.track = self.player._ending_track
+        self.player: Player = player
+        self.track: Track = self.player._ending_track
         self.threshold: float = data["thresholdMs"]
 
         # on_pomice_track_stuck(player, track, threshold)
@@ -92,8 +93,8 @@ class TrackExceptionEvent(PomiceEvent):
     name = "track_exception"
 
     def __init__(self, data: dict, player: Player):
-        self.player = player
-        self.track = self.player._ending_track
+        self.player: Player = player
+        self.track: Track = self.player._ending_track
         if data.get('error'):
             # User is running Lavalink <= 3.3
             self.exception: str = data["error"]
@@ -110,7 +111,7 @@ class TrackExceptionEvent(PomiceEvent):
 
 class WebSocketClosedPayload:
     def __init__(self, data: dict):
-        self.guild = NodePool.get_node().bot.get_guild(int(data["guildId"]))
+        self.guild: Guild = NodePool.get_node().bot.get_guild(int(data["guildId"]))
         self.code: int = data["code"]
         self.reason: str = data["code"]
         self.by_remote: bool = data["byRemote"]
@@ -127,7 +128,7 @@ class WebSocketClosedEvent(PomiceEvent):
     name = "websocket_closed"
 
     def __init__(self, data: dict, _):
-        self.payload = WebSocketClosedPayload(data)
+        self.payload: WebSocketClosedPayload = WebSocketClosedPayload(data)
 
         # on_pomice_websocket_closed(payload)
         self.handler_args = self.payload,

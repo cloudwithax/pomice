@@ -175,13 +175,12 @@ class Queue(Iterable[Track]):
         return len(self._queue)
 
 
-
     def get_queue(self) -> List:
         """Returns the queue as a List"""
         return self._queue
 
 
-    def get(self):
+    def get(self) -> Track:
         """Return next immediately available item in queue if any.
         Raises QueueEmpty if no items in queue.
         """
@@ -297,7 +296,7 @@ class Queue(Iterable[Track]):
         """Remove all items from the queue."""
         self._queue.clear()
 
-    def set_loop_mode(self, mode: LoopMode):
+    def set_loop_mode(self, mode: LoopMode) -> None:
         """
         Sets the loop mode of the queue. 
         Takes the LoopMode enum as an argument.
@@ -313,7 +312,7 @@ class Queue(Iterable[Track]):
             self._current_item = self._queue[index]
             
 
-    def disable_loop(self):
+    def disable_loop(self) -> None:
         """
         Disables loop mode if set.
         Raises QueueException if loop mode is already None.
@@ -328,17 +327,17 @@ class Queue(Iterable[Track]):
         self._loop_mode = None
         
 
-    def shuffle(self):
+    def shuffle(self) -> None:
         """Shuffles the queue."""
         return random.shuffle(self._queue)
 
-    def clear_track_filters(self):
+    def clear_track_filters(self) -> None:
         """Clears all filters applied to tracks"""
         for track in self._queue:
             track.filters = None
 
-    def jump(self, item: Track):
-        """Returns a new queue with the specified track at the beginning."""
+    def jump(self, item: Track) -> None:
+        """Mutates the queue so that all tracks before the specified track are removed."""
         index = self.find_position(item)
         new_queue = self._queue[index:self.size]
         self._queue = new_queue

@@ -65,27 +65,26 @@ class Node:
         fallback: bool = False
 
     ):
-        self._bot = bot
-        self._host = host
-        self._port = port
-        self._pool = pool
-        self._password = password
-        self._identifier = identifier
-        self._heartbeat = heartbeat
-        self._secure = secure
-        self.fallback = fallback
+        self._bot: Union[Client, commands.Bot] = bot
+        self._host: str = host
+        self._port: int = port
+        self._pool: NodePool = pool
+        self._password: str = password
+        self._identifier: str = identifier
+        self._heartbeat: int = heartbeat
+        self._secure: bool = secure
+        self.fallback: bool = fallback
 
        
-        self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}/v3/websocket"    
-        self._rest_uri = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
+        self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}/v3/websocket"    
+        self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
 
-        self._session = session or aiohttp.ClientSession()
+        self._session: ClientSession = session or aiohttp.ClientSession()
         self._websocket: aiohttp.ClientWebSocketResponse = None
         self._task: asyncio.Task = None
 
         self._session_id: str = None
-        self._metadata = None
-        self._available = None
+        self._available: bool = False
         self._version: str = None
         self._route_planner = RoutePlanner(self)
 
@@ -97,13 +96,13 @@ class Node:
 
         self._players: Dict[int, Player] = {}
 
-        self._spotify_client_id = spotify_client_id
-        self._spotify_client_secret = spotify_client_secret
+        self._spotify_client_id: str = spotify_client_id
+        self._spotify_client_secret: str = spotify_client_secret
 
-        self._apple_music_client = None
+        self._apple_music_client: Optional[applemusic.Client] = None
 
         if self._spotify_client_id and self._spotify_client_secret:
-            self._spotify_client = spotify.Client(
+            self._spotify_client: spotify.Client = spotify.Client(
                 self, self._spotify_client_id, self._spotify_client_secret
             )
 

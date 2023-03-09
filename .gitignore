@@ -5,3 +5,5 @@ dist/
 pomice.egg-info/
 docs/_build/
 build/
+.gitpod.yml
+.python-verson

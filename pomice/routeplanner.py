@@ -4,6 +4,7 @@ if TYPE_CHECKING:
     from .pool import Node
 
 from .utils import RouteStats
+from aiohttp import ClientSession
 
 class RoutePlanner:
     """
@@ -12,14 +13,13 @@ class RoutePlanner:
     """
 
     def __init__(self, node: Node) -> None:
-        self.node = node
-        self.session = node._session
+        self.node: Node = node
+        self.session: ClientSession = node._session
 
-    async def get_status(self):
+    async def get_status(self) -> RouteStats:
         """Gets the status of the route planner API."""
         data: dict = await self.node.send(method="GET", path="routeplanner/status")
         return RouteStats(data)
-
 
     async def free_address(self, ip: str):
         """Frees an address using the route planner API"""

@@ -41,6 +41,7 @@ setuptools.setup(
     description="The modern Lavalink wrapper designed for Discord.py",
     long_description=readme,
     long_description_content_type="text/markdown",
+    package_data={"pomice": ["py.typed"]},
     include_package_data=True,
     install_requires=requirements,
     extra_require=None,

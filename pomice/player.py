@@ -25,6 +25,8 @@ from .pool import Node, NodePool
 
 class Filters:
     """Helper class for filters"""
+    __slots__ = ('_filters')
+
     def __init__(self):
         self._filters: List[Filter] = []
 
@@ -97,6 +99,24 @@ class Player(VoiceProtocol):
        ```
     """
 
+    __slots__ = (
+        'client',
+        '_bot',
+        'channel',
+        '_guild',
+        '_node',
+        '_current',
+        '_filters',
+        '_volume',
+        '_paused',
+        '_is_connected',
+        '_position',
+        '_last_position',
+        '_last_update',
+        '_ending_track',
+        '_player_endpoint_uri'
+        )
+
     def __call__(self, client: Client, channel: VoiceChannel):
         self.client: Client = client
         self.channel: VoiceChannel = channel
@@ -117,7 +137,7 @@ class Player(VoiceProtocol):
         self._guild: Guild = channel.guild if channel else None
 
         self._node: Node = node if node else NodePool.get_node()
-        self._current: Track = None
+        self._current: Optional[Track] = None
         self._filters: Filters = Filters()
         self._volume: int = 100
         self._paused: bool = False
@@ -130,9 +150,9 @@ class Player(VoiceProtocol):
 
         self._voice_state: dict = {}
 
-        self._player_endpoint_uri = f'sessions/{self._node._session_id}/players'
+        self._player_endpoint_uri: str = f'sessions/{self._node._session_id}/players'
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<Pomice.player bot={self.bot} guildId={self.guild.id} "
             f"is_connected={self.is_connected} is_playing={self.is_playing}>"

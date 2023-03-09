@@ -2,6 +2,12 @@ import re
 
 from enum import Enum
 
+__all__ = (
+    'SearchType',
+    'TrackType',
+    'PlaylistType'
+)
+
 
 class SearchType(Enum):
     """
