@@ -5,7 +5,12 @@ from enum import Enum
 __all__ = (
     'SearchType',
     'TrackType',
-    'PlaylistType'
+    'PlaylistType',
+    'NodeAlgorithm',
+    'LoopMode',
+    'RouteStrategy',
+    'RouteIPType',
+    'URLRegex'
 )
 
 

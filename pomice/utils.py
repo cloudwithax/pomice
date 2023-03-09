@@ -8,10 +8,13 @@ from itertools import zip_longest
 from datetime import datetime
 
 
-__all__ = [
-    "ExponentialBackoff",
-    "NodeStats"
-]
+__all__ = (
+    'ExponentialBackoff',
+    'NodeStats',
+    'FailingIPBlock',
+    'RouteStats',
+    'Ping'
+)
 
 
 class ExponentialBackoff:

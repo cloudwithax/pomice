@@ -23,6 +23,8 @@ from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
 
+__all__ = ('Filters', 'Player')
+
 class Filters:
     """Helper class for filters"""
     __slots__ = ('_filters')

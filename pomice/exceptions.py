@@ -1,3 +1,26 @@
+__all__ = (
+    'PomiceException',
+    'NodeException',
+    'NodeCreationError',
+    'NodeConnectionError',
+    'NodeConnectionFailure',
+    'NodeConnectionClosed',
+    'NodeRestException',
+    'NodeNotAvailable',
+    'NoNodesAvailable',
+    'TrackInvalidPosition',
+    'TrackLoadError',
+    'FilterInvalidArgument',
+    'FilterTagInvalid',
+    'FilterTagAlreadyInUse',
+    'InvalidSpotifyClientAuthorization',
+    'AppleMusicNotEnabled',
+    'QueueException',
+    'QueueFull',
+    'QueueEmpty',
+    'LavalinkVersionIncompatible'
+)
+
 class PomiceException(Exception):
     """Base of all Pomice exceptions."""
 
@@ -53,21 +76,6 @@ class FilterTagInvalid(PomiceException):
 
 class FilterTagAlreadyInUse(PomiceException):
     """A filter with a tag is already in use by another filter"""
-    pass
-
-
-class SpotifyAlbumLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load an album."""
-    pass
-
-
-class SpotifyTrackLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load a track."""
-    pass
-
-
-class SpotifyPlaylistLoadFailed(PomiceException):
-    """The pomice Spotify client was unable to load a playlist."""
     pass
 
 

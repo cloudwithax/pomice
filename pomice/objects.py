@@ -7,6 +7,7 @@ from discord.ext import commands
 from .enums import SearchType, TrackType, PlaylistType
 from .filters import Filter
 
+__all__ = ('Track', 'Playlist')
 
 
 class Track:

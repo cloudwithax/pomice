@@ -37,8 +37,7 @@ from .routeplanner import RoutePlanner
 if TYPE_CHECKING:
     from .player import Player
 
-_log = logging.getLogger(__name__)
-
+__all__ = ('Node', 'NodePool')
 
 class Node:
     """The base class for a node. 
@@ -168,7 +167,6 @@ class Node:
 
         if data["t"] == "VOICE_SERVER_UPDATE":
             guild_id = int(data["d"]["guild_id"])
-            _log.debug(f"Recieved voice server update message from guild ID: {guild_id}")
             try:
                 player = self._players[guild_id]
                 await player.on_voice_server_update(data["d"])
@@ -180,7 +178,6 @@ class Node:
                 return
 
             guild_id = int(data["d"]["guild_id"])
-            _log.debug(f"Recieved voice state update message from guild ID: {guild_id}")
             try:
                 player = self._players[guild_id]
                 await player.on_voice_state_update(data["d"])
