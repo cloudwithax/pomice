@@ -73,9 +73,10 @@ class Node:
         self._heartbeat: int = heartbeat
         self._secure: bool = secure
         self.fallback: bool = fallback
+        self._version: str = None
 
        
-        self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}/v3/websocket"    
+        self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
 
         self._session: Optional[ClientSession] = session
@@ -84,7 +85,7 @@ class Node:
 
         self._session_id: str = None
         self._available: bool = False
-        self._version: str = None
+        
         self._route_planner = RoutePlanner(self)
 
         self._headers = {
@@ -275,18 +276,22 @@ class Node:
                     "Lavalink version 3.7.0 or above is required to use this library."
                 )
             
-            self._websocket = await self._session.ws_connect(
-                self._websocket_uri, headers=self._headers, heartbeat=self._heartbeat
-            )
-            if not self._task:
-                self._task = asyncio.create_task(self._listen())
-            
-            self._available = True 
             if version.endswith('-SNAPSHOT'):
                 # we're just gonna assume all snapshot versions correlate with v4
                 self._version = 4
             else:
                 self._version = version[:1]  
+
+            self._websocket = await self._session.ws_connect(
+                f"{self._websocket_uri}/v{self._version}/websocket",
+                headers=self._headers, 
+                heartbeat=self._heartbeat
+            )
+            
+            if not self._task:
+                self._task = asyncio.create_task(self._listen())
+
+            self._available = True 
             return self
 
         except (aiohttp.ClientConnectorError, ConnectionRefusedError):
