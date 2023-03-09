@@ -78,7 +78,7 @@ class Node:
         self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}/v3/websocket"    
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
 
-        self._session: Optional[ClientSession] = session or aiohttp.ClientSession()
+        self._session: Optional[ClientSession] = session
         self._websocket: aiohttp.ClientWebSocketResponse = None
         self._task: asyncio.Task = None
 
@@ -261,6 +261,9 @@ class Node:
     async def connect(self):
         """Initiates a connection with a Lavalink node and adds it to the node pool."""
         await self._bot.wait_until_ready()
+
+        if not self._session:
+            self._session = aiohttp.ClientSession()
 
         try:
             version = await self.send(method="GET", path="version", ignore_if_available=True, include_version=False)
