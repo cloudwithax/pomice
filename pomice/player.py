@@ -16,11 +16,11 @@ from discord import (
 from discord.ext import commands
 
 from . import events
-from .enums import SearchType, PlatformRecommendation
+from .enums import SearchType
 from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
 from .exceptions import FilterInvalidArgument, FilterTagAlreadyInUse, FilterTagInvalid, TrackInvalidPosition, TrackLoadError
 from .filters import Filter
-from .objects import Track, Playlist
+from .objects import Track
 from .pool import Node, NodePool
 
 class Filters:
@@ -111,24 +111,24 @@ class Player(VoiceProtocol):
         *, 
         node: Node = None
     ):
-        self.client = client
+        self.client: Optional[Client] = client
         self._bot: Union[Client, commands.Bot] = client
-        self.channel = channel
-        self._guild = channel.guild if channel else None
+        self.channel: Optional[VoiceChannel] = channel
+        self._guild: Guild = channel.guild if channel else None
 
-        self._node = node if node else NodePool.get_node()
+        self._node: Node = node if node else NodePool.get_node()
         self._current: Track = None
         self._filters: Filters = Filters()
-        self._volume = 100
-        self._paused = False
-        self._is_connected = False
+        self._volume: int = 100
+        self._paused: bool = False
+        self._is_connected: bool = False
 
-        self._position = 0
-        self._last_position = 0
-        self._last_update = 0
+        self._position: int = 0
+        self._last_position: int = 0
+        self._last_update: int = 0
         self._ending_track: Optional[Track] = None
 
-        self._voice_state = {}
+        self._voice_state: dict = {}
 
         self._player_endpoint_uri = f'sessions/{self._node._session_id}/players'
 
@@ -211,7 +211,7 @@ class Player(VoiceProtocol):
 
     async def _update_state(self, data: dict):
         state: dict = data.get("state")
-        self._last_update = time.time() * 1000
+        self._last_update = int(state.get("time")) * 1000
         self._is_connected = state.get("connected")
         self._last_position = state.get("position")
 
@@ -366,7 +366,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": search.track_id,
                 "position": str(start),
-                "endTime": str(end)
+                "endTime": str(track.length)
             }    
             track.original = search
             track.track_id = search.track_id
@@ -375,7 +375,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": track.track_id,
                 "position": str(start),
-                "endTime": str(end)
+                "endTime": str(track.length)
             }
 
 
@@ -400,7 +400,12 @@ class Player(VoiceProtocol):
             # Now apply all filters
             for filter in track.filters:
                 await self.add_filter(filter=filter)
-                
+
+        # Lavalink v4 changed the way the end time parameter works
+        # so now the end time cannot be zero.
+        # If it isnt zero, it'll match the length of the track,
+        # otherwise itll be set here:
+               
         if end > 0:
             data["endTime"] = str(end)
 

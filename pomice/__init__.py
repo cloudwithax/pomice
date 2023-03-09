@@ -3,8 +3,9 @@ Pomice
 ~~~~~~
 The modern Lavalink wrapper designed for discord.py.
 
-:copyright: 2023, cloudwithax
-:license: GPL-3.0
+Copyright (c) 2023, cloudwithax
+
+Licensed under GPL-3.0
 """
 import discord
 
@@ -18,9 +19,11 @@ if not discord.version_info.major >= 2:
         "using 'pip install discord.py'"
     )
 
-__version__ = "2.1.1"
+__version__ = "2.2a"
 __title__ = "pomice"
 __author__ = "cloudwithax"
+__license__ = "GPL-3.0"
+__copyright__ = "Copyright (c) 2023, cloudwithax"
 
 from .enums import *
 from .events import *

@@ -120,8 +120,6 @@ class RouteStats:
         self.block_index = details.get("blockIndex")
         self.address_index = details.get("currentAddressIndex")
 
-        
-
     def __repr__(self) -> str:
         return f"<Pomice.RouteStats route_strategy={self.strategy!r} failing_addresses={len(self.failing_addresses)}>"
 

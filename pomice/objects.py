@@ -7,10 +7,6 @@ from discord.ext import commands
 from .enums import SearchType, TrackType, PlaylistType
 from .filters import Filter
 
-from . import (
-    spotify,
-    applemusic
-)
 
 
 class Track:

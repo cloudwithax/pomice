@@ -3,13 +3,13 @@ from __future__ import annotations
 import asyncio
 import random
 import re
-from typing import Dict, List, Optional, TYPE_CHECKING, Union
-from urllib.parse import quote
-
+import logging
 import aiohttp
+
 from discord import Client
 from discord.ext import commands
-
+from typing import Dict, List, Optional, TYPE_CHECKING, Union
+from urllib.parse import quote
 
 from . import (
     __version__, 
@@ -37,6 +37,8 @@ from .routeplanner import RoutePlanner
 if TYPE_CHECKING:
     from .player import Player
 
+_log = logging.getLogger(__name__)
+
 
 class Node:
     """The base class for a node. 
@@ -48,7 +50,7 @@ class Node:
     def __init__(
         self,
         *,
-        pool,
+        pool: NodePool,
         bot: Union[Client, commands.Bot],
         host: str,
         port: int,
@@ -59,7 +61,8 @@ class Node:
         session: Optional[aiohttp.ClientSession] = None,
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
-        apple_music: bool = False
+        apple_music: bool = False,
+        fallback: bool = False
 
     ):
         self._bot = bot
@@ -70,6 +73,7 @@ class Node:
         self._identifier = identifier
         self._heartbeat = heartbeat
         self._secure = secure
+        self.fallback = fallback
 
        
         self._websocket_uri = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}/v3/websocket"    
@@ -100,11 +104,11 @@ class Node:
 
         if self._spotify_client_id and self._spotify_client_secret:
             self._spotify_client = spotify.Client(
-                self._spotify_client_id, self._spotify_client_secret
+                self, self._spotify_client_id, self._spotify_client_secret
             )
 
         if apple_music:
-            self._apple_music_client = applemusic.Client()
+            self._apple_music_client = applemusic.Client(self)
 
         self._bot.add_listener(self._update_handler, "on_socket_response")
 
@@ -165,6 +169,7 @@ class Node:
 
         if data["t"] == "VOICE_SERVER_UPDATE":
             guild_id = int(data["d"]["guild_id"])
+            _log.debug(f"Recieved voice server update message from guild ID: {guild_id}")
             try:
                 player = self._players[guild_id]
                 await player.on_voice_server_update(data["d"])
@@ -176,6 +181,7 @@ class Node:
                 return
 
             guild_id = int(data["d"]["guild_id"])
+            _log.debug(f"Recieved voice state update message from guild ID: {guild_id}")
             try:
                 player = self._players[guild_id]
                 await player.on_voice_state_update(data["d"])
@@ -187,13 +193,13 @@ class Node:
 
         while True:
             msg = await self._websocket.receive()
-            if msg.type == aiohttp.WSMsgType.CLOSED:
+            if msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
                 retry = backoff.delay()
                 await asyncio.sleep(retry)
-                if not self.is_connected:
-                    self._bot.loop.create_task(self.connect())
+                if not self.is_connected:           
+                    asyncio.create_task(self.connect())     
             else:
-                self._bot.loop.create_task(self._handle_payload(msg.json()))
+                asyncio.create_task(self._handle_payload(msg.json()))
 
     async def _handle_payload(self, data: dict):
         op = data.get("op", None)
@@ -216,32 +222,6 @@ class Node:
         elif op == "playerUpdate":
             await player._update_state(data)
 
-    def _get_type(self, query: str):
-        if match := URLRegex.LAVALINK_SEARCH.match(query):
-            type = match.group("type")
-            if type == "sc":
-                return TrackType.SOUNDCLOUD
-            
-            return TrackType.YOUTUBE
-
-
-        elif URLRegex.YOUTUBE_URL.match(query):
-            if URLRegex.YOUTUBE_PLAYLIST_URL.match(query):
-                return PlaylistType.YOUTUBE
-
-            return TrackType.YOUTUBE
-
-        elif URLRegex.SOUNDCLOUD_URL.match(query):
-            if URLRegex.SOUNDCLOUD_TRACK_IN_SET_URL.match(query):
-                return TrackType.SOUNDCLOUD
-            if URLRegex.SOUNDCLOUD_PLAYLIST_URL.match(query):
-                return PlaylistType.SOUNDCLOUD
-
-            return TrackType.SOUNDCLOUD 
-
-        else:
-            return TrackType.HTTP
-
     async def send(
         self, 
         method: str,
@@ -249,9 +229,10 @@ class Node:
         include_version: bool = True, 
         guild_id: Optional[Union[int, str]] = None, 
         query: Optional[str] = None, 
-        data: Optional[Union[dict, str]] = None
+        data: Optional[Union[dict, str]] = None,
+        ignore_if_available: bool = False,
     ):
-        if not self._available:
+        if not ignore_if_available and not self._available:
             raise NodeNotAvailable(
                 f"The node '{self._identifier}' is unavailable."
             )
@@ -264,7 +245,8 @@ class Node:
 
         async with self._session.request(method=method, url=uri, headers=self._headers, json=data or {}) as resp:
             if resp.status >= 300:
-                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}')
+                data: dict = await resp.json()
+                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}: {data["message"]}')
 
             if method == "DELETE" or resp.status == 204:
                 return await resp.json(content_type=None)
@@ -285,34 +267,42 @@ class Node:
         await self._bot.wait_until_ready()
 
         try:
+            version = await self.send(method="GET", path="version", ignore_if_available=True, include_version=False)
+            version = version.replace(".", "")
+            if not version.endswith('-SNAPSHOT') and int(version) < 370:
+                self._available = False
+                raise LavalinkVersionIncompatible(
+                    "The Lavalink version you're using is incompatible. "
+                    "Lavalink version 3.7.0 or above is required to use this library."
+                )
+            
             self._websocket = await self._session.ws_connect(
                 self._websocket_uri, headers=self._headers, heartbeat=self._heartbeat
             )
-            self._task = self._bot.loop.create_task(self._listen())
-            self._available = True
-            version = await self.send(method="GET", path="version", include_version=False)
-            version = version.replace(".", "")
-            if int(version) < 370:
-                raise LavalinkVersionIncompatible(
-                    "The Lavalink version you're using is incompatible."
-                    "Lavalink version 3.7.0 or above is required to use this library."
-                )
-
-            self._version = version[:1]      
+            if not self._task:
+                self._task = asyncio.create_task(self._listen())
+            
+            self._available = True 
+            if version.endswith('-SNAPSHOT'):
+                # we're just gonna assume all snapshot versions correlate with v4
+                self._version = 4
+            else:
+                self._version = version[:1]  
             return self
 
-        except aiohttp.ClientConnectorError:
+        except (aiohttp.ClientConnectorError, ConnectionRefusedError):
             raise NodeConnectionFailure(
                 f"The connection to node '{self._identifier}' failed."
-            )
+            ) from None
         except aiohttp.WSServerHandshakeError:
             raise NodeConnectionFailure(
                 f"The password for node '{self._identifier}' is invalid."
-            )
+            ) from None
         except aiohttp.InvalidURL:
             raise NodeConnectionFailure(
                 f"The URI for node '{self._identifier}' is invalid."
-            )
+            ) from None
+
 
     async def disconnect(self):
         """Disconnects a connected Lavalink node and removes it from the node pool.
@@ -322,7 +312,8 @@ class Node:
             await player.destroy()
 
         await self._websocket.close()
-        del self._pool.nodes[self._identifier]
+        await self._session.close()
+        del self._pool._nodes[self._identifier]
         self.available = False
         self._task.cancel()
 
@@ -337,8 +328,6 @@ class Node:
         You can also pass in a discord.py Context object to get a
         Context object on the track it builds.
         """
-
-        
 
         data: dict = await self.send(method="GET", path="decodetrack", query=f"encodedTrack={identifier}")
         return Track(track_id=identifier, ctx=ctx, info=data)
@@ -537,8 +526,6 @@ class Node:
 
         load_type = data.get("loadType")
 
-        query_type = self._get_type(query)
-
         if not load_type:
             raise TrackLoadError("There was an error while trying to load this track.")
 
@@ -550,19 +537,14 @@ class Node:
             return None
 
         elif load_type == "PLAYLIST_LOADED":
-            if query_type == PlaylistType.SOUNDCLOUD:
-                track_type = TrackType.SOUNDCLOUD
-            else:
-                track_type = TrackType.YOUTUBE
-
             tracks = [
-                    Track(track_id=track["track"], info=track["info"], ctx=ctx, track_type=track_type)
+                    Track(track_id=track["encoded"], info=track["info"], ctx=ctx, track_type=TrackType(track["info"]["sourceName"]))
                     for track in data["tracks"]
             ]
             return Playlist(
                 playlist_info=data["playlistInfo"],
                 tracks=tracks,
-                playlist_type=query_type,
+                playlist_type=PlaylistType(tracks[0].track_type.value),
                 thumbnail=tracks[0].thumbnail,
                 uri=query
             )
@@ -570,10 +552,10 @@ class Node:
         elif load_type == "SEARCH_RESULT" or load_type == "TRACK_LOADED":
             return [
                 Track(
-                    track_id=track["track"],
+                    track_id=track["encoded"],
                     info=track["info"],
                     ctx=ctx,
-                    track_type=query_type,
+                    track_type=TrackType(track["info"]["sourceName"]),
                     filters=filters,
                     timestamp=timestamp
                 )
@@ -629,7 +611,7 @@ class NodePool:
        This holds all the nodes that are to be used by the bot.
     """
 
-    _nodes: dict = {}
+    _nodes: Dict[str, Node] = {}
 
     def __repr__(self):
         return f"<Pomice.NodePool node_count={self.node_count}>"
@@ -658,7 +640,7 @@ class NodePool:
          based on how players it has. This method will return a node with
          the least amount of players
         """
-        available_nodes = [node for node in cls._nodes.values() if node._available]
+        available_nodes: List[Node] = [node for node in cls._nodes.values() if node._available]
 
         if not available_nodes:
             raise NoNodesAvailable("There are no nodes available.")
@@ -704,7 +686,8 @@ class NodePool:
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
-        apple_music: bool = False
+        apple_music: bool = False,
+        fallback: bool = False
 
     ) -> Node:
         """Creates a Node object to be then added into the node pool.
@@ -718,7 +701,7 @@ class NodePool:
             identifier=identifier, secure=secure, heartbeat=heartbeat,
             spotify_client_id=spotify_client_id, 
             session=session, spotify_client_secret=spotify_client_secret,
-            apple_music=apple_music
+            apple_music=apple_music, fallback=fallback
         )
 
         await node.connect()

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import re
 import aiohttp
 import orjson as json
@@ -6,6 +8,10 @@ import base64
 from datetime import datetime
 from .objects import *
 from .exceptions import *
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..pool import Node
 
 AM_URL_REGEX = re.compile(r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)")
 AM_SINGLE_IN_ALBUM_REGEX = re.compile(r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)")
@@ -18,10 +24,11 @@ class Client:
     and translating it to a valid Lavalink track. No client auth is required here.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, node: Node) -> None:
         self.token: str = None
         self.expiry: datetime = None
-        self.session: aiohttp.ClientSession = aiohttp.ClientSession()
+        self.node = node
+        self.session = self.node._session
         self.headers = None
 
 

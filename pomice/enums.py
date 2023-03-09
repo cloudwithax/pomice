@@ -42,11 +42,11 @@ class TrackType(Enum):
     """
 
     # We don't have to define anything special for these, since these just serve as flags
-    YOUTUBE = "youtube_track"
-    SOUNDCLOUD = "soundcloud_track"
-    SPOTIFY = "spotify_track"
-    APPLE_MUSIC = "apple_music_track"
-    HTTP = "http_source"
+    YOUTUBE = "youtube"
+    SOUNDCLOUD = "soundcloud"
+    SPOTIFY = "spotify"
+    APPLE_MUSIC = "apple_music"
+    HTTP = "http"
 
     def __str__(self) -> str:
         return self.value
@@ -65,10 +65,10 @@ class PlaylistType(Enum):
     """
 
     # We don't have to define anything special for these, since these just serve as flags
-    YOUTUBE = "youtube_playlist"
-    SOUNDCLOUD = "soundcloud_playlist"
-    SPOTIFY = "spotify_playlist"
-    APPLE_MUSIC = "apple_music_list"
+    YOUTUBE = "youtube"
+    SOUNDCLOUD = "soundcloud"
+    SPOTIFY = "spotify"
+    APPLE_MUSIC = "apple_music"
 
     def __str__(self) -> str:
         return self.value
@@ -112,27 +112,6 @@ class LoopMode(Enum):
     # We don't have to define anything special for these, since these just serve as flags
     TRACK = "track"
     QUEUE = "queue"
-    
-
-    def __str__(self) -> str:
-        return self.value
-
-class PlatformRecommendation(Enum):
-
-    """
-    The enum for choosing what platform you want for recommendations.
-    This feature is exclusively for the recommendations function.
-    If you are not using this feature, this class is not necessary.
-
-    PlatformRecommendation.SPOTIFY sets the recommendations to come from Spotify
-
-    PlatformRecommendation.YOUTUBE sets the recommendations to come from YouTube
-
-    """
-
-    # We don't have to define anything special for these, since these just serve as flags
-    SPOTIFY = "spotify"
-    YOUTUBE = "youtube"
     
 
     def __str__(self) -> str:
