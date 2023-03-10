@@ -5,7 +5,6 @@ import random
 import re
 import logging
 import aiohttp
-import websockets
 
 from discord import Client
 from discord.ext import commands
