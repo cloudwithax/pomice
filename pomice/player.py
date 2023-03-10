@@ -240,7 +240,7 @@ class Player(VoiceProtocol):
     async def _dispatch_voice_update(self, voice_data: Dict[str, Any]):
         if {"sessionId", "event"} != self._voice_state.keys():
             return
-
+        
         data = {
             "token": voice_data['event']['token'],
             "endpoint": voice_data['event']['endpoint'],

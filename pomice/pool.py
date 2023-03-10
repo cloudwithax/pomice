@@ -5,6 +5,7 @@ import random
 import re
 import logging
 import aiohttp
+import websockets
 
 from discord import Client
 from discord.ext import commands
@@ -79,8 +80,8 @@ class Node:
         self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
 
-        self._session: Optional[ClientSession] = session
-        self._websocket: aiohttp.ClientWebSocketResponse = None
+        self._session: Optional[aiohttp.ClientSession] = session
+        self._websocket = None
         self._task: asyncio.Task = None
 
         self._session_id: str = None
@@ -194,9 +195,9 @@ class Node:
                 retry = backoff.delay()
                 await asyncio.sleep(retry)
                 if not self.is_connected:           
-                    asyncio.create_task(self.connect())     
+                    self._bot.loop.create_task(self.connect())     
             else:
-                asyncio.create_task(self._handle_payload(msg.json()))
+                self._bot.loop.create_task(self._handle_payload(msg.json()))
 
     async def _handle_payload(self, data: dict):
         op = data.get("op", None)
@@ -243,7 +244,7 @@ class Node:
         async with self._session.request(method=method, url=uri, headers=self._headers, json=data or {}) as resp:
             if resp.status >= 300:
                 data: dict = await resp.json()
-                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}: {data["message"]}')
+                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}: {data}')
 
             if method == "DELETE" or resp.status == 204:
                 return await resp.json(content_type=None)
@@ -282,14 +283,15 @@ class Node:
             else:
                 self._version = version[:1]  
 
+
             self._websocket = await self._session.ws_connect(
                 f"{self._websocket_uri}/v{self._version}/websocket",
                 headers=self._headers, 
                 heartbeat=self._heartbeat
             )
-            
+
             if not self._task:
-                self._task = asyncio.create_task(self._listen())
+                self._task = self._bot.loop.create_task(self._listen())
 
             self._available = True 
             return self
