@@ -89,7 +89,7 @@ class PlaylistType(Enum):
 class NodeAlgorithm(Enum):
     """
     The enum for the different node algorithms in Pomice.
-    
+
     The enums in this class are to only differentiate different
     methods, since the actual method is handled in the
     get_best_node() method.
@@ -123,7 +123,7 @@ class LoopMode(Enum):
     # We don't have to define anything special for these, since these just serve as flags
     TRACK = "track"
     QUEUE = "queue"
-    
+
 
     def __str__(self) -> str:
         return self.value
@@ -135,16 +135,16 @@ class RouteStrategy(Enum):
     This feature is exclusively for the RoutePlanner class.
     If you are not using this feature, this class is not necessary.
 
-    RouteStrategy.ROTATE_ON_BAN specifies that the node is rotating IPs 
+    RouteStrategy.ROTATE_ON_BAN specifies that the node is rotating IPs
     whenever they get banned by Youtube.
 
     RouteStrategy.LOAD_BALANCE specifies that the node is selecting
     random IPs to balance out requests between them.
 
-    RouteStrategy.NANO_SWITCH specifies that the node is switching 
+    RouteStrategy.NANO_SWITCH specifies that the node is switching
     between IPs every CPU clock cycle.
 
-    RouteStrategy.ROTATING_NANO_SWITCH specifies that the node is switching 
+    RouteStrategy.ROTATING_NANO_SWITCH specifies that the node is switching
     between IPs every CPU clock cycle and is rotating between IP blocks on
     ban.
 

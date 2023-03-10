@@ -12,7 +12,7 @@ from typing import Dict, List, Optional, TYPE_CHECKING, Union
 from urllib.parse import quote
 
 from . import (
-    __version__, 
+    __version__,
     spotify,
     applemusic
 )
@@ -40,8 +40,8 @@ if TYPE_CHECKING:
 __all__ = ('Node', 'NodePool')
 
 class Node:
-    """The base class for a node. 
-       This node object represents a Lavalink node. 
+    """The base class for a node.
+       This node object represents a Lavalink node.
        To enable Spotify searching, pass in a proper Spotify Client ID and Spotify Client Secret
        To enable Apple music, set the "apple_music" parameter to "True"
     """
@@ -74,10 +74,10 @@ class Node:
         self._heartbeat: int = heartbeat
         self._secure: bool = secure
         self.fallback: bool = fallback
-        
 
-       
-        self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
+
+
+        self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
 
         self._session: Optional[aiohttp.ClientSession] = session
@@ -88,7 +88,7 @@ class Node:
         self._session_id: str = None
         self._available: bool = False
         self._version: str = None
-        
+
         self._route_planner = RoutePlanner(self)
 
         self._headers = {
@@ -196,8 +196,8 @@ class Node:
             if msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
                 retry = backoff.delay()
                 await asyncio.sleep(retry)
-                if not self.is_connected:           
-                    self._loop.create_task(self.connect())     
+                if not self.is_connected:
+                    self._loop.create_task(self.connect())
             else:
                 self._loop.create_task(self._handle_payload(msg.json()))
 
@@ -223,12 +223,12 @@ class Node:
             await player._update_state(data)
 
     async def send(
-        self, 
+        self,
         method: str,
-        path: str, 
-        include_version: bool = True, 
-        guild_id: Optional[Union[int, str]] = None, 
-        query: Optional[str] = None, 
+        path: str,
+        include_version: bool = True,
+        guild_id: Optional[Union[int, str]] = None,
+        query: Optional[str] = None,
         data: Optional[Union[dict, str]] = None,
         ignore_if_available: bool = False,
     ):
@@ -253,10 +253,10 @@ class Node:
 
             if resp.content_type == "text/plain":
                 return await resp.text()
-           
+
             return await resp.json()
 
-        
+
 
     def get_player(self, guild_id: int):
         """Takes a guild ID as a parameter. Returns a pomice Player object."""
@@ -278,24 +278,24 @@ class Node:
                     "The Lavalink version you're using is incompatible. "
                     "Lavalink version 3.7.0 or above is required to use this library."
                 )
-            
+
             if version.endswith('-SNAPSHOT'):
                 # we're just gonna assume all snapshot versions correlate with v4
                 self._version = 4
             else:
-                self._version = version[:1]  
+                self._version = version[:1]
 
 
             self._websocket = await self._session.ws_connect(
                 f"{self._websocket_uri}/v{self._version}/websocket",
-                headers=self._headers, 
+                headers=self._headers,
                 heartbeat=self._heartbeat
             )
 
             if not self._task:
                 self._task = self._loop.create_task(self._listen())
 
-            self._available = True 
+            self._available = True
             return self
 
         except (aiohttp.ClientConnectorError, ConnectionRefusedError):
@@ -322,11 +322,11 @@ class Node:
         await self._websocket.close()
         await self._session.close()
         if self._spotify_client:
-            await self._spotify_client.session.close()
+            await self._spotify_client.close()
 
         if self._apple_music_client:
-            await self._apple_music_client.session.close()
-            
+            await self._apple_music_client.close()
+
         del self._pool._nodes[self._identifier]
         self.available = False
         self._task.cancel()
@@ -362,11 +362,11 @@ class Node:
            You can pass in a discord.py Context object to get a
            Context object on any track you search.
 
-           You may also pass in a List of filters 
+           You may also pass in a List of filters
            to be applied to your track once it plays.
         """
 
-        timestamp = None  
+        timestamp = None
 
         if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
             query = f"{search_type}:{query}"
@@ -374,7 +374,7 @@ class Node:
         if filters:
             for filter in filters:
                 filter.set_preload()
-        
+
         if URLRegex.AM_URL.match(query):
             if not self._apple_music_client:
                 raise AppleMusicNotEnabled(
@@ -382,7 +382,7 @@ class Node:
                     "Please set apple_music to True in your Node class."
                 )
 
-            apple_music_results = await self._apple_music_client.search(query=query) 
+            apple_music_results = await self._apple_music_client.search(query=query)
             if isinstance(apple_music_results, applemusic.Song):
                 return [
                     Track(
@@ -501,7 +501,7 @@ class Node:
             )
 
         elif discord_url := URLRegex.DISCORD_MP3_URL.match(query):
-          
+
             data: dict = await self.send(method="GET", path="loadtracks", query=f"identifier={quote(query)}")
 
             track: dict = data["tracks"][0]
@@ -533,9 +533,9 @@ class Node:
             # If query is a video thats part of a playlist, get the video and queue that instead
             # (I can't tell you how much i've wanted to implement this in here)
 
-            if (match := URLRegex.YOUTUBE_VID_IN_PLAYLIST.match(query)):   
+            if (match := URLRegex.YOUTUBE_VID_IN_PLAYLIST.match(query)):
                 query = match.group("video")
-                
+
             data: dict = await self.send(method="GET", path="loadtracks", query=f"identifier={quote(query)}")
 
         load_type = data.get("loadType")
@@ -577,14 +577,14 @@ class Node:
             ]
 
     async def get_recommendations(
-        self, 
-        *, 
-        track: Track, 
+        self,
+        *,
+        track: Track,
         ctx: Optional[commands.Context] = None
     ) -> Union[List[Track], None]:
         """
         Gets recommendations from either YouTube or Spotify.
-        The track that is passed in must be either from 
+        The track that is passed in must be either from
         YouTube or Spotify or else this will not work.
         You can pass in a discord.py Context object to get a
         Context object on all tracks that get recommended.
@@ -613,12 +613,12 @@ class Node:
                 ]
 
             return tracks
-        elif track.track_type == TrackType.YOUTUBE: 
+        elif track.track_type == TrackType.YOUTUBE:
             tracks = await self.get_tracks(query=f"ytsearch:https://www.youtube.com/watch?v={track.identifier}&list=RD{track.identifier}", ctx=ctx)
             return tracks
         else:
             raise TrackLoadError("The specfied track must be either a YouTube or Spotify track to recieve recommendations.")
-            
+
 
 class NodePool:
     """The base class for the node pool.
@@ -666,7 +666,7 @@ class NodePool:
         elif algorithm == NodeAlgorithm.by_players:
             tested_nodes = {node: len(node.players.keys()) for node in available_nodes}
             return min(tested_nodes, key=tested_nodes.get)
-    
+
 
     @classmethod
     def get_node(cls, *, identifier: str = None) -> Node:
@@ -714,7 +714,7 @@ class NodePool:
         node = Node(
             pool=cls, bot=bot, host=host, port=port, password=password,
             identifier=identifier, secure=secure, heartbeat=heartbeat,
-            loop=loop, spotify_client_id=spotify_client_id, 
+            loop=loop, spotify_client_id=spotify_client_id,
             session=session, spotify_client_secret=spotify_client_secret,
             apple_music=apple_music, fallback=fallback
         )

@@ -18,7 +18,7 @@ class Player(pomice.Player):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
- 
+
         self.queue = pomice.Queue()
         self.controller: discord.Message = None
         # Set context here so we can send a now playing embed
@@ -43,12 +43,12 @@ class Player(pomice.Player):
         if self.controller:
             with suppress(discord.HTTPException):
                 await self.controller.delete()
-            
+
 
        # Queue up the next track, else teardown the player
         try:
             track: pomice.Track = self.queue.get()
-        except pomice.QueueEmpty:  
+        except pomice.QueueEmpty:
             return await self.teardown()
 
         await self.play(track)
@@ -68,12 +68,12 @@ class Player(pomice.Player):
         with suppress((discord.HTTPException), (KeyError)):
             await self.destroy()
             if self.controller:
-                await self.controller.delete() 
+                await self.controller.delete()
 
     async def set_context(self, ctx: commands.Context):
         """Set context for the player"""
-        self.context = ctx 
-        self.dj = ctx.author 
+        self.context = ctx
+        self.dj = ctx.author
 
 
 
@@ -81,20 +81,20 @@ class Player(pomice.Player):
 class Music(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        
+
         # In order to initialize a node, or really do anything in this library,
         # you need to make a node pool
         self.pomice = pomice.NodePool()
 
         # Start the node
         bot.loop.create_task(self.start_nodes())
-    
+
     async def start_nodes(self):
         # Waiting for the bot to get ready before connecting to nodes.
         await self.bot.wait_until_ready()
-        
+
         # You can pass in Spotify credentials to enable Spotify querying.
-        # If you do not pass in valid Spotify credentials, Spotify querying will not work 
+        # If you do not pass in valid Spotify credentials, Spotify querying will not work
         await self.pomice.create_node(
             bot=self.bot,
             host="127.0.0.1",
@@ -128,7 +128,7 @@ class Music(commands.Cog):
     # we can just skip to the next track
 
     # Of course, you can modify this to do whatever you like
-    
+
     @commands.Cog.listener()
     async def on_pomice_track_end(self, player: Player, track, _):
         await player.do_next()
@@ -140,7 +140,7 @@ class Music(commands.Cog):
     @commands.Cog.listener()
     async def on_pomice_track_exception(self, player: Player, track, _):
         await player.do_next()
-        
+
     @commands.command(aliases=['joi', 'j', 'summon', 'su', 'con', 'connect'])
     async def join(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None) -> None:
         if not channel:
@@ -165,14 +165,14 @@ class Music(commands.Cog):
 
         await player.destroy()
         await ctx.send("Player has left the channel.")
-        
+
     @commands.command(aliases=['pla', 'p'])
     async def play(self, ctx: commands.Context, *, search: str) -> None:
         # Checks if the player is in the channel before we play anything
         if not (player := ctx.voice_client):
             await ctx.author.voice.channel.connect(cls=Player)
             player: Player = ctx.voice_client
-            await player.set_context(ctx=ctx)   
+            await player.set_context(ctx=ctx)
 
         # If you search a keyword, Pomice will automagically search the result using YouTube
         # You can pass in "search_type=" as an argument to change the search type
@@ -180,11 +180,11 @@ class Music(commands.Cog):
         # will search up any keyword results on YouTube Music
 
         # We will also set the context here to get special features, like a track.requester object
-        results = await player.get_tracks(search, ctx=ctx)     
-        
+        results = await player.get_tracks(search, ctx=ctx)
+
         if not results:
             return await ctx.send("No results were found for that search term", delete_after=7)
-        
+
         if isinstance(results, pomice.Playlist):
             for track in results.tracks:
                 player.queue.put(track)

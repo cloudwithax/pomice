@@ -9,22 +9,22 @@ class MyBot(commands.Bot):
             command_prefix="!",
             activity=discord.Activity(type=discord.ActivityType.listening, name="to music!")
         )
-  
+
         self.add_cog(Music(self))
         self.loop.create_task(self.cogs["Music"].start_nodes())
 
     async def on_ready(self) -> None:
         print("I'm online!")
-     
-        
+
+
 class Music(commands.Cog):
     def __init__(self, bot: commands.Bot) -> None:
         self.bot = bot
-        
+
         # In order to initialize a node, or really do anything in this library,
         # you need to make a node pool
         self.pomice = pomice.NodePool()
-    
+
     async def start_nodes(self):
         # You can pass in Spotify credentials to enable Spotify querying.
         # If you do not pass in valid Spotify credentials, Spotify querying will not work
@@ -36,7 +36,7 @@ class Music(commands.Cog):
             identifier="MAIN"
         )
         print(f"Node is ready!")
-        
+
     @commands.command(aliases=["connect"])
     async def join(self, ctx: commands.Context, *, channel: discord.VoiceChannel = None) -> None:
         if not channel:
@@ -62,24 +62,24 @@ class Music(commands.Cog):
 
         await player.destroy()
         await ctx.send("Player has left the channel.")
-        
+
     @commands.command(aliases=["p"])
     async def play(self, ctx: commands.Context, *, search: str) -> None:
         # Checks if the player is in the channel before we play anything
         if not ctx.voice_client:
-            await ctx.invoke(self.join) 
+            await ctx.invoke(self.join)
 
-        player: pomice.Player = ctx.voice_client   
+        player: pomice.Player = ctx.voice_client
 
         # If you search a keyword, Pomice will automagically search the result using YouTube
         # You can pass in "search_type=" as an argument to change the search type
         # i.e: player.get_tracks("query", search_type=SearchType.ytmsearch)
         # will search up any keyword results on YouTube Music
-        results = await player.get_tracks(search)     
-        
+        results = await player.get_tracks(search)
+
         if not results:
             raise commands.CommandError("No results were found for that search term.")
-        
+
         if isinstance(results, pomice.Playlist):
             await player.play(track=results.tracks[0])
         else:
@@ -124,6 +124,6 @@ class Music(commands.Cog):
         await player.stop()
         await ctx.send("Player has been stopped")
 
-            
+
 bot = MyBot()
 bot.run("token")
