@@ -58,6 +58,7 @@ class Node:
         identifier: str,
         secure: bool = False,
         heartbeat: int = 30,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
         session: Optional[aiohttp.ClientSession] = None,
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
@@ -74,7 +75,7 @@ class Node:
         self._heartbeat: int = heartbeat
         self._secure: bool = secure
         self.fallback: bool = fallback
-        self._version: str = None
+        
 
        
         self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"    
@@ -83,9 +84,11 @@ class Node:
         self._session: Optional[aiohttp.ClientSession] = session
         self._websocket = None
         self._task: asyncio.Task = None
+        self._loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
 
         self._session_id: str = None
         self._available: bool = False
+        self._version: str = None
         
         self._route_planner = RoutePlanner(self)
 
@@ -195,9 +198,9 @@ class Node:
                 retry = backoff.delay()
                 await asyncio.sleep(retry)
                 if not self.is_connected:           
-                    self._bot.loop.create_task(self.connect())     
+                    self._loop.create_task(self.connect())     
             else:
-                self._bot.loop.create_task(self._handle_payload(msg.json()))
+                self._loop.create_task(self._handle_payload(msg.json()))
 
     async def _handle_payload(self, data: dict):
         op = data.get("op", None)
@@ -291,7 +294,7 @@ class Node:
             )
 
             if not self._task:
-                self._task = self._bot.loop.create_task(self._listen())
+                self._task = self._loop.create_task(self._listen())
 
             self._available = True 
             return self
@@ -689,6 +692,7 @@ class NodePool:
         identifier: str,
         secure: bool = False,
         heartbeat: int = 30,
+        loop: Optional[asyncio.AbstractEventLoop] = None,
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
@@ -705,7 +709,7 @@ class NodePool:
         node = Node(
             pool=cls, bot=bot, host=host, port=port, password=password,
             identifier=identifier, secure=secure, heartbeat=heartbeat,
-            spotify_client_id=spotify_client_id, 
+            loop=loop, spotify_client_id=spotify_client_id, 
             session=session, spotify_client_secret=spotify_client_secret,
             apple_music=apple_music, fallback=fallback
         )

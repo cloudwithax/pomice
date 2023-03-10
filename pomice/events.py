@@ -1,5 +1,5 @@
 from __future__ import annotations
-from discord import Client
+from discord import Client, Guild
 from discord.ext import commands
 
 from .pool import NodePool
