@@ -107,11 +107,11 @@ class Node:
 
         if self._spotify_client_id and self._spotify_client_secret:
             self._spotify_client: spotify.Client = spotify.Client(
-                self, self._spotify_client_id, self._spotify_client_secret
+                self._spotify_client_id, self._spotify_client_secret
             )
 
         if apple_music:
-            self._apple_music_client = applemusic.Client(self)
+            self._apple_music_client = applemusic.Client()
 
         self._bot.add_listener(self._update_handler, "on_socket_response")
 
@@ -212,7 +212,7 @@ class Node:
             return
 
         if op == "ready":
-            self._session_id = data.get("sessionId")
+            self._session_id = data["sessionId"]
 
         if "guildId" in data:
             if not (player := self._players.get(int(data["guildId"]))):
@@ -322,6 +322,12 @@ class Node:
 
         await self._websocket.close()
         await self._session.close()
+        if self._spotify_client:
+            await self._spotify_client.session.close()
+
+        if self._apple_music_client:
+            await self._apple_music_client.session.close()
+            
         del self._pool._nodes[self._identifier]
         self.available = False
         self._task.cancel()
@@ -339,7 +345,7 @@ class Node:
         """
 
         data: dict = await self.send(method="GET", path="decodetrack", query=f"encodedTrack={identifier}")
-        return Track(track_id=identifier, ctx=ctx, info=data)
+        return Track(track_id=identifier, ctx=ctx, info=data, track_type=TrackType(data['sourceName']))
 
     async def get_tracks(
         self,

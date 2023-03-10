@@ -24,15 +24,17 @@ class Client:
     and translating it to a valid Lavalink track. No client auth is required here.
     """
 
-    def __init__(self, node: Node) -> None:
+    def __init__(self) -> None:
         self.token: str = None
         self.expiry: datetime = None
-        self.node = node
-        self.session = self.node._session
+        self.session: aiohttp.ClientSession = None
         self.headers = None
 
 
     async def request_token(self):
+        if not self.session:
+            self.session = aiohttp.ClientSession()
+
         async with self.session.get("https://music.apple.com/assets/index.919fe17f.js") as resp:
             if resp.status != 200:
                 raise AppleMusicRequestException(

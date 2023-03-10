@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 import time
+import aiohttp
 import orjson as json
 
 from base64 import b64encode
@@ -9,8 +10,7 @@ from typing import TYPE_CHECKING
 from .exceptions import InvalidSpotifyURL, SpotifyRequestException
 from .objects import * 
 
-if TYPE_CHECKING:
-    from ..pool import Node
+
 
 
 GRANT_URL = "https://accounts.spotify.com/api/token"
@@ -26,12 +26,11 @@ class Client:
        for any Spotify URL you throw at it.
     """
 
-    def __init__(self, node: Node, client_id: str, client_secret: str) -> None:
+    def __init__(self, client_id: str, client_secret: str) -> None:
         self._client_id = client_id
         self._client_secret = client_secret
-        self.node = node
 
-        self.session = self.node._session
+        self.session: aiohttp.ClientSession = None
 
         self._bearer_token: str = None
         self._expiry = 0
@@ -41,6 +40,9 @@ class Client:
 
     async def _fetch_bearer_token(self) -> None:
         _data = {"grant_type": "client_credentials"}
+
+        if not self.session:
+            self.session = aiohttp.ClientSession()
 
         async with self.session.post(GRANT_URL, data=_data, headers=self._grant_headers) as resp:
             if resp.status != 200:
