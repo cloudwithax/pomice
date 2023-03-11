@@ -1,11 +1,24 @@
 import random
-import time
 import socket
-
-from .enums import RouteStrategy, RouteIPType
-from timeit import default_timer as timer
-from itertools import zip_longest
+import time
 from datetime import datetime
+from itertools import zip_longest
+from timeit import default_timer as timer
+from typing import Any, Dict
+from typing import Callable
+from typing import Iterable
+from typing import Optional
+
+from .enums import RouteIPType
+from .enums import RouteStrategy
+
+__all__ = (
+    "ExponentialBackoff",
+    "NodeStats",
+    "FailingIPBlock",
+    "RouteStats",
+    "Ping",
+)
 
 
 class ExponentialBackoff:
@@ -51,7 +64,7 @@ class ExponentialBackoff:
             self._exp = 0
 
         self._exp = min(self._exp + 1, self._max)
-        return self._randfunc(0, self._base * 2**self._exp)
+        return self._randfunc(0, self._base * 2**self._exp)  # type: ignore
 
 
 class NodeStats:
@@ -59,27 +72,28 @@ class NodeStats:
     Gives critical information on the node, which is updated every minute.
     """
 
-    def __init__(self, data: dict) -> None:
-        __slots__ = (
-            "used",
-            "free",
-            "reservable",
-            "allocated",
-            "cpu_cores",
-            "cpu_system_load",
-            "cpu_process_load",
-            "players_active",
-            "players_total",
-            "uptime",
-        )
+    __slots__ = (
+        "used",
+        "free",
+        "reservable",
+        "allocated",
+        "cpu_cores",
+        "cpu_system_load",
+        "cpu_process_load",
+        "players_active",
+        "players_total",
+        "uptime",
+    )
 
-        memory: dict = data.get("memory")
+    def __init__(self, data: Dict[str, Any]) -> None:
+
+        memory: dict = data.get("memory", {})
         self.used = memory.get("used")
         self.free = memory.get("free")
         self.reservable = memory.get("reservable")
         self.allocated = memory.get("allocated")
 
-        cpu: dict = data.get("cpu")
+        cpu: dict = data.get("cpu", {})
         self.cpu_cores = cpu.get("cores")
         self.cpu_system_load = cpu.get("systemLoad")
         self.cpu_process_load = cpu.get("lavalinkLoad")
@@ -99,11 +113,14 @@ class FailingIPBlock:
     and the time they failed.
     """
 
+    __slots__ = ("address", "failing_time")
+
     def __init__(self, data: dict) -> None:
-        __slots__ = ("address", "failing_time")
 
         self.address = data.get("address")
-        self.failing_time = datetime.fromtimestamp(float(data.get("failingTimestamp")))
+        self.failing_time = datetime.fromtimestamp(
+            float(data.get("failingTimestamp", 0)),
+        )
 
     def __repr__(self) -> str:
         return f"<Pomice.FailingIPBlock address={self.address} failing_time={self.failing_time}>"
@@ -115,17 +132,29 @@ class RouteStats:
     Gives critical information about the route planner strategy on the node.
     """
 
-    def __init__(self, data: dict) -> None:
-        __slots__ = ("strategy", "ip_block_type", "ip_block_size", "failing_addresses")
+    __slots__ = (
+        "strategy",
+        "ip_block_type",
+        "ip_block_size",
+        "failing_addresses",
+        "block_index",
+        "address_index",
+    )
+
+    def __init__(self, data: Dict[str, Any]) -> None:
 
         self.strategy = RouteStrategy(data.get("class"))
 
-        details: dict = data.get("details")
+        details: dict = data.get("details", {})
 
-        ip_block: dict = details.get("ipBlock")
+        ip_block: dict = details.get("ipBlock", {})
         self.ip_block_type = RouteIPType(ip_block.get("type"))
         self.ip_block_size = ip_block.get("size")
-        self.failing_addresses = [FailingIPBlock(data) for data in details.get("failingAddresses")]
+        self.failing_addresses = [
+            FailingIPBlock(
+                data,
+            ) for data in details.get("failingAddresses", [])
+        ]
 
         self.block_index = details.get("blockIndex")
         self.address_index = details.get("currentAddressIndex")
@@ -136,7 +165,7 @@ class RouteStats:
 
 class Ping:
     # Thanks to https://github.com/zhengxiaowai/tcping for the nice ping impl
-    def __init__(self, host, port, timeout=5):
+    def __init__(self, host: str, port: int, timeout: int = 5) -> None:
         self.timer = self.Timer()
 
         self._successed = 0
@@ -146,33 +175,33 @@ class Ping:
         self._port = port
         self._timeout = timeout
 
-    class Socket(object):
-        def __init__(self, family, type_, timeout):
+    class Socket:
+        def __init__(self, family: int, type_: int, timeout: Optional[float]) -> None:
             s = socket.socket(family, type_)
             s.settimeout(timeout)
             self._s = s
 
-        def connect(self, host, port):
-            self._s.connect((host, int(port)))
+        def connect(self, host: str, port: int) -> None:
+            self._s.connect((host, port))
 
-        def shutdown(self):
+        def shutdown(self) -> None:
             self._s.shutdown(socket.SHUT_RD)
 
-        def close(self):
+        def close(self) -> None:
             self._s.close()
 
-    class Timer(object):
-        def __init__(self):
-            self._start = 0
-            self._stop = 0
+    class Timer:
+        def __init__(self) -> None:
+            self._start: float = 0.0
+            self._stop: float = 0.0
 
-        def start(self):
+        def start(self) -> None:
             self._start = timer()
 
-        def stop(self):
+        def stop(self) -> None:
             self._stop = timer()
 
-        def cost(self, funcs, args):
+        def cost(self, funcs: Iterable[Callable], args: Any) -> float:
             self.start()
             for func, arg in zip_longest(funcs, args):
                 if arg:
@@ -183,13 +212,15 @@ class Ping:
             self.stop()
             return self._stop - self._start
 
-    def _create_socket(self, family, type_):
+    def _create_socket(self, family: int, type_: int) -> Socket:
         return self.Socket(family, type_, self._timeout)
 
-    def get_ping(self):
+    def get_ping(self) -> float:
         s = self._create_socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        cost_time = self.timer.cost((s.connect, s.shutdown), ((self._host, self._port), None))
+        cost_time = self.timer.cost(
+            (s.connect, s.shutdown), ((self._host, self._port), None),
+        )
         s_runtime = 1000 * (cost_time)
 
         return s_runtime

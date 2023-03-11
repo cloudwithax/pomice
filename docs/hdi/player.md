@@ -28,7 +28,7 @@ There are also properties the `Player` class has to access certain values:
   - Description
 
 * - `Player.bot`
-  - `Union[Client, commands.Bot]`
+  - `Client`
   - Returns the bot associated with this player instance.
 
 * - `Player.current`
@@ -136,7 +136,7 @@ If you want to enable it, refer to [](pool.md#adding-a-node)
 
 You should get a list of `Track` in return after running this function for you to then do whatever you want with it.
 Ideally, you should be putting all tracks into some sort of a queue. If you would like to learn about how to use
-our queue implementation, you can refer to [](queue.md) 
+our queue implementation, you can refer to [](queue.md)
 
 
 ## Getting recommendations
@@ -183,7 +183,7 @@ await Player.get_recommendations(
 
 You should get a list of `Track` in return after running this function for you to then do whatever you want with it.
 Ideally, you should be putting all tracks into some sort of a queue. If you would like to learn about how to use
-our queue implementation, you can refer to [](queue.md) 
+our queue implementation, you can refer to [](queue.md)
 
 ## Connecting a player
 
@@ -274,7 +274,7 @@ await Player.play(
 After running this function, it should return the `Track` you specified when running the function. This means the track is now playing.
 
 
-### Seeking to a position 
+### Seeking to a position
 
 To seek to a position, we need to use `Player.seek()`
 
@@ -466,15 +466,3 @@ After you have initialized your function, you can optionally include the `fast_a
 await Player.reset_filters(fast_apply=<True/False>)
 
 ```
-
-
-
-
-
-
-
-
-
-
-
-

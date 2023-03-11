@@ -7,3 +7,7 @@ docs/_build/
 build/
 .gitpod.yml
 .python-verson
+Pipfile.lock
+.mypy_cache/
+.vscode/
+.venv/

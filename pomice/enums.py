@@ -1,6 +1,16 @@
 import re
-
 from enum import Enum
+
+__all__ = (
+    "SearchType",
+    "TrackType",
+    "PlaylistType",
+    "NodeAlgorithm",
+    "LoopMode",
+    "RouteStrategy",
+    "RouteIPType",
+    "URLRegex",
+)
 
 
 class SearchType(Enum):
@@ -185,43 +195,51 @@ class URLRegex:
     """
 
     SPOTIFY_URL = re.compile(
-        r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)"
+        r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)",
     )
 
     DISCORD_MP3_URL = re.compile(
         r"https?://cdn.discordapp.com/attachments/(?P<channel_id>[0-9]+)/"
-        r"(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+"
+        r"(?P<message_id>[0-9]+)/(?P<file>[a-zA-Z0-9_.]+)+",
     )
 
     YOUTUBE_URL = re.compile(
         r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))"
-        r"(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$"
+        r"(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$",
     )
 
     YOUTUBE_PLAYLIST_URL = re.compile(
-        r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))/playlist\?list=.*"
+        r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))/playlist\?list=.*",
     )
 
-    YOUTUBE_VID_IN_PLAYLIST = re.compile(r"(?P<video>^.*?v.*?)(?P<list>&list.*)")
+    YOUTUBE_VID_IN_PLAYLIST = re.compile(
+        r"(?P<video>^.*?v.*?)(?P<list>&list.*)",
+    )
 
-    YOUTUBE_TIMESTAMP = re.compile(r"(?P<video>^.*?)(\?t|&start)=(?P<time>\d+)?.*")
+    YOUTUBE_TIMESTAMP = re.compile(
+        r"(?P<video>^.*?)(\?t|&start)=(?P<time>\d+)?.*",
+    )
 
     AM_URL = re.compile(
         r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/"
-        r"(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)"
+        r"(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)",
     )
 
     AM_SINGLE_IN_ALBUM_REGEX = re.compile(
         r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/"
-        r"(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)"
+        r"(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)",
     )
 
-    SOUNDCLOUD_URL = re.compile(r"((?:https?:)?\/\/)?((?:www|m)\.)?soundcloud.com\/.*/.*")
+    SOUNDCLOUD_URL = re.compile(
+        r"((?:https?:)?\/\/)?((?:www|m)\.)?soundcloud.com\/.*/.*",
+    )
 
-    SOUNDCLOUD_PLAYLIST_URL = re.compile(r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/.*/sets/.*")
+    SOUNDCLOUD_PLAYLIST_URL = re.compile(
+        r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/.*/sets/.*",
+    )
 
     SOUNDCLOUD_TRACK_IN_SET_URL = re.compile(
-        r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com/[a-zA-Z0-9-._]+/[a-zA-Z0-9-._]+(\?in)"
+        r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com/[a-zA-Z0-9-._]+/[a-zA-Z0-9-._]+(\?in)",
     )
 
     LAVALINK_SEARCH = re.compile(r"(?P<type>ytm?|sc)search:")

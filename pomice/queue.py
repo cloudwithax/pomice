@@ -1,21 +1,34 @@
 from __future__ import annotations
+
 import random
 from copy import copy
-from typing import (
-    Iterable,
-    Iterator,
-    List,
-    Optional,
-    Union,
-)
+from typing import Iterable
+from typing import Iterator
+from typing import List
+from typing import Optional
+from typing import Union
 
-from .objects import Track
 from .enums import LoopMode
-from .exceptions import QueueEmpty, QueueException, QueueFull
+from .exceptions import QueueEmpty
+from .exceptions import QueueException
+from .exceptions import QueueFull
+from .objects import Track
+
+__all__ = (
+    "Queue",
+)
 
 
 class Queue(Iterable[Track]):
     """Queue for Pomice. This queue takes pomice.Track as an input and includes looping and shuffling."""
+
+    __slots__ = (
+        "max_size",
+        "_queue",
+        "_overflow",
+        "_loop_mode",
+        "_current_item",
+    )
 
     def __init__(
         self,
@@ -23,13 +36,12 @@ class Queue(Iterable[Track]):
         *,
         overflow: bool = True,
     ):
-        __slots__ = ("max_size", "_queue", "_overflow", "_loop_mode", "_current_item")
 
         self.max_size: Optional[int] = max_size
-        self._queue: List[Track] = []  # type: ignore
+        self._current_item: Track
+        self._queue: List[Track] = []
         self._overflow: bool = overflow
         self._loop_mode: Optional[LoopMode] = None
-        self._current_item: Optional[Track] = None
 
     def __str__(self) -> str:
         """String showing all Track objects appearing as a list."""
@@ -60,7 +72,7 @@ class Queue(Iterable[Track]):
 
         return self._queue[index]
 
-    def __setitem__(self, index: int, item: Track):
+    def __setitem__(self, index: int, item: Track) -> None:
         """Inserts an item at given position."""
         if not isinstance(index, int):
             raise ValueError("'int' type required.'")
@@ -90,7 +102,9 @@ class Queue(Iterable[Track]):
         The new queue will have the same max_size as the original.
         """
         if not isinstance(other, Iterable):
-            raise TypeError(f"Adding with the '{type(other)}' type is not supported.")
+            raise TypeError(
+                f"Adding with the '{type(other)}' type is not supported.",
+            )
 
         new_queue = self.copy()
         new_queue.extend(other)
@@ -106,7 +120,9 @@ class Queue(Iterable[Track]):
             self.extend(other)
             return self
 
-        raise TypeError(f"Adding '{type(other)}' type to the queue is not supported.")
+        raise TypeError(
+            f"Adding '{type(other)}' type to the queue is not supported.",
+        )
 
     def _get(self) -> Track:
         return self._queue.pop(0)
@@ -165,7 +181,7 @@ class Queue(Iterable[Track]):
         return bool(self._loop_mode)
 
     @property
-    def loop_mode(self) -> LoopMode:
+    def loop_mode(self) -> Optional[LoopMode]:
         """Returns the LoopMode enum set in the queue object"""
         return self._loop_mode
 
@@ -178,7 +194,7 @@ class Queue(Iterable[Track]):
         """Returns the queue as a List"""
         return self._queue
 
-    def get(self):
+    def get(self) -> Track:
         """Return next immediately available item in queue if any.
         Raises QueueEmpty if no items in queue.
         """
@@ -239,7 +255,9 @@ class Queue(Iterable[Track]):
         """Put the given item into the back of the queue."""
         if self.is_full:
             if not self._overflow:
-                raise QueueFull(f"Queue max_size of {self.max_size} has been reached.")
+                raise QueueFull(
+                    f"Queue max_size of {self.max_size} has been reached.",
+                )
 
             self._drop()
 
@@ -249,7 +267,9 @@ class Queue(Iterable[Track]):
         """Put the given item into the queue at the specified index."""
         if self.is_full:
             if not self._overflow:
-                raise QueueFull(f"Queue max_size of {self.max_size} has been reached.")
+                raise QueueFull(
+                    f"Queue max_size of {self.max_size} has been reached.",
+                )
 
             self._drop()
 
@@ -275,7 +295,7 @@ class Queue(Iterable[Track]):
                 if (new_len + self.count) > self.max_size:
                     raise QueueFull(
                         f"Queue has {self.count}/{self.max_size} items, "
-                        f"cannot add {new_len} more."
+                        f"cannot add {new_len} more.",
                     )
 
         for item in iterable:
@@ -292,7 +312,7 @@ class Queue(Iterable[Track]):
         """Remove all items from the queue."""
         self._queue.clear()
 
-    def set_loop_mode(self, mode: LoopMode):
+    def set_loop_mode(self, mode: LoopMode) -> None:
         """
         Sets the loop mode of the queue.
         Takes the LoopMode enum as an argument.
@@ -307,7 +327,7 @@ class Queue(Iterable[Track]):
                 self._queue.insert(index, self._current_item)
             self._current_item = self._queue[index]
 
-    def disable_loop(self):
+    def disable_loop(self) -> None:
         """
         Disables loop mode if set.
         Raises QueueException if loop mode is already None.
@@ -321,17 +341,17 @@ class Queue(Iterable[Track]):
 
         self._loop_mode = None
 
-    def shuffle(self):
+    def shuffle(self) -> None:
         """Shuffles the queue."""
         return random.shuffle(self._queue)
 
-    def clear_track_filters(self):
+    def clear_track_filters(self) -> None:
         """Clears all filters applied to tracks"""
         for track in self._queue:
             track.filters = None
 
-    def jump(self, item: Track):
+    def jump(self, item: Track) -> None:
         """Removes all tracks before the."""
         index = self.find_position(item)
-        new_queue = self._queue[index : self.size]
+        new_queue = self._queue[index: self.size]
         self._queue = new_queue

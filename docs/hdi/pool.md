@@ -1,6 +1,6 @@
 # Use the NodePool class
 
-The `NodePool` class is the first class you will use when using Pomice. 
+The `NodePool` class is the first class you will use when using Pomice.
 
 The `NodePool` Class has three main functions you can use:
 
@@ -43,7 +43,7 @@ After you have initialized your function, we need to fill in the proper paramete
 
 * - `identifier`
   - `str`
-  - The identifier your `Node` object uses to distinguish itself. 
+  - The identifier your `Node` object uses to distinguish itself.
 
 * - `password`
   - `str`
@@ -63,7 +63,7 @@ After you have initialized your function, we need to fill in the proper paramete
 
 * - `fallback`
   - `bool`
-  - Set this value to `True` if you want Pomice to automatically switch all players to another available node if one disconnects. 
+  - Set this value to `True` if you want Pomice to automatically switch all players to another available node if one disconnects.
     You must have two or more nodes to be able to do this.
 
 :::
@@ -148,15 +148,3 @@ await NodePool.disconnect()
 ```
 
 After running this function, all nodes in the pool should disconnect and no longer be available to use.
-
-
-
-
-
-
-
-
-
-
-
-

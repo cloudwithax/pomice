@@ -17,7 +17,7 @@ if not discord.version_info.major >= 2:
     raise DiscordPyOutdated(
         "You must have discord.py (v2.0 or greater) to use this library. "
         "Uninstall your current version and install discord.py 2.0 "
-        "using 'pip install discord.py'"
+        "using 'pip install discord.py'",
     )
 
 __version__ = "2.2a"

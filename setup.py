@@ -1,10 +1,13 @@
-import setuptools
 import re
+
+import setuptools
 
 version = ""
 requirements = ["discord.py>=2.0.0", "aiohttp>=3.7.4,<4", "orjson"]
 with open("pomice/__init__.py") as f:
-    version = re.search(r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE).group(1)
+    version = re.search(
+        r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]', f.read(), re.MULTILINE,
+    ).group(1)
 
 if not version:
     raise RuntimeError("version is not set")
@@ -15,13 +18,13 @@ if version.endswith(("a", "b", "rc")):
         import subprocess
 
         p = subprocess.Popen(
-            ["git", "rev-list", "--count", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ["git", "rev-list", "--count", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
         out, err = p.communicate()
         if out:
             version += out.decode("utf-8").strip()
         p = subprocess.Popen(
-            ["git", "rev-parse", "--short", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            ["git", "rev-parse", "--short", "HEAD"], stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
         out, err = p.communicate()
         if out:

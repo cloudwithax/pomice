@@ -2,10 +2,10 @@ import importlib
 import inspect
 import os
 import sys
-from typing import Any, Dict
+from typing import Any
+from typing import Dict
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('..'))
-
 
 
 project = 'Pomice'
@@ -19,7 +19,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.linkcode',
-    'myst_parser'
+    'myst_parser',
 ]
 
 myst_enable_extensions = [
@@ -84,6 +84,7 @@ html_theme_options: Dict[str, Any] = {
 # Grab lines from source files and embed into the docs
 # so theres a point of reference
 
+
 def linkcode_resolve(domain, info):
     # i absolutely MUST add this here or else
     # the docs will not build. fuck sphinx
@@ -92,7 +93,6 @@ def linkcode_resolve(domain, info):
             return None
         if not info['module']:
             return None
-            
 
         mod = importlib.import_module(info["module"])
         if "." in info["fullname"]:
@@ -117,4 +117,3 @@ def linkcode_resolve(domain, info):
         return f"https://github.com/cloudwithax/pomice/blob/main/{file}#L{start}-L{end}"
     except:
         pass
-
