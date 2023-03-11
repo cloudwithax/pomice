@@ -61,6 +61,11 @@ After you have initialized your function, we need to fill in the proper paramete
   - `bool`
   - Set this value to `True` if you want to use Apple Music functionality within Pomice. Apple Music will **not work** if you don't enable this.
 
+* - `fallback`
+  - `bool`
+  - Set this value to `True` if you want Pomice to automatically switch all players to another available node if one disconnects. 
+    You must have two or more nodes to be able to do this.
+
 :::
 
 
@@ -78,7 +83,8 @@ await NodePool.create_node(
     password="<your password here>",
     spotify_client_id="<your spotify client id here>",
     spotify_client_secret="<your spotify client secret here>"
-    apple_music=True
+    apple_music=<True/False>,
+    fallback=<True/False>
 )
 
 ```
