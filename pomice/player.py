@@ -100,24 +100,6 @@ class Player(VoiceProtocol):
        ```
     """
 
-    __slots__ = (
-        'client',
-        '_bot',
-        'channel',
-        '_guild',
-        '_node',
-        '_current',
-        '_filters',
-        '_volume',
-        '_paused',
-        '_is_connected',
-        '_position',
-        '_last_position',
-        '_last_update',
-        '_ending_track',
-        '_player_endpoint_uri'
-        )
-
     def __call__(self, client: Client, channel: VoiceChannel):
         self.client: Client = client
         self.channel: VoiceChannel = channel
@@ -132,6 +114,26 @@ class Player(VoiceProtocol):
         *,
         node: Node = None
     ):
+        __slots__ = (
+        'client',
+        'channel',
+        '_bot',
+        '_guild',
+        '_node',
+        '_current',
+        '_filters',
+        '_volume',
+        '_paused',
+        '_is_connected',
+        '_position',
+        '_last_position',
+        '_last_update',
+        '_ending_track',
+        '_voice_state',
+        '_player_endpoint_uri',
+        '__dict__'
+        )
+
         self.client: Optional[Client] = client
         self.channel: Optional[VoiceChannel] = channel
         
@@ -236,14 +238,16 @@ class Player(VoiceProtocol):
         self._is_connected = state.get("connected")
         self._last_position = state.get("position")
 
-    async def _dispatch_voice_update(self, voice_data: Dict[str, Any]):
+    async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None):
         if {"sessionId", "event"} != self._voice_state.keys():
             return
 
+        state = voice_data or self._voice_state
+       
         data = {
-            "token": voice_data['event']['token'],
-            "endpoint": voice_data['event']['endpoint'],
-            "sessionId": voice_data['sessionId'],
+            "token": state['event']['token'],
+            "endpoint": state['event']['endpoint'],
+            "sessionId": state['sessionId'],
         }
 
         await self._node.send(
@@ -283,6 +287,26 @@ class Player(VoiceProtocol):
 
         if isinstance(event, TrackStartEvent):
             self._ending_track = self._current
+
+    async def _swap_node(self, *, new_node: Node):
+        data: dict = {
+            'encodedTrack': self.current.track_id,
+            'position': self.position,
+        }
+
+        del self._node._players[self._guild.id]
+        self._node = new_node
+        self._node._players[self._guild.id] = self
+        # reassign uri to update session id
+        self._player_endpoint_uri = f'sessions/{self._node._session_id}/players'
+
+        await self._dispatch_voice_update()
+        await self._node.send(
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
+            data=data,
+        )  
 
     async def get_tracks(
         self,

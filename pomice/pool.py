@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import random
 import re
-import logging
 import aiohttp
 
 from discord import Client
@@ -89,7 +88,7 @@ class Node:
             "_spotify_client",
             "_apple_music_client"
         )
-        
+
         self._bot: Union[Client, commands.Bot] = bot
         self._host: str = host
         self._port: int = port
@@ -145,7 +144,7 @@ class Node:
 
     @property
     def is_connected(self) -> bool:
-        """"Property which returns whether this node is connected or not"""
+        """Property which returns whether this node is connected or not"""
         return self._websocket is not None and not self._websocket.closed
 
 
@@ -210,6 +209,15 @@ class Node:
                 await player.on_voice_state_update(data["d"])
             except KeyError:
                 return
+            
+    async def _handle_node_switch(self):
+        nodes = [node for node in self._pool._nodes.values() if node.is_connected]
+        new_node = random.choice(nodes)
+
+        for player in self._players.values():
+            await player._swap_node(new_node=new_node)
+
+        await self.disconnect()  
 
     async def _listen(self):
         backoff = ExponentialBackoff(base=7)
@@ -217,6 +225,8 @@ class Node:
         while True:
             msg = await self._websocket.receive()
             if msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.CLOSING):
+                if self._fallback:
+                    await self._handle_node_switch()
                 retry = backoff.delay()
                 await asyncio.sleep(retry)
                 if not self.is_connected:
