@@ -279,7 +279,7 @@ class Node:
         async with self._session.request(method=method, url=uri, headers=self._headers, json=data or {}) as resp:
             if resp.status >= 300:
                 data: dict = await resp.json()
-                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}: {data}')
+                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}: {data["message"]}')
 
             if method == "DELETE" or resp.status == 204:
                 return await resp.json(content_type=None)
