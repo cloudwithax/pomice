@@ -165,10 +165,12 @@ class Player(VoiceProtocol):
     @property
     def position(self) -> float:
         """Property which returns the player's position in a track in milliseconds"""
-        if not self.is_playing or not self._current:
+        if not self.is_playing:
             return 0
 
-        current = getattr(self._current, "original", self._current)
+        current: Track = self._current  # type: ignore
+        if current.original:
+            current = current.original
 
         if self.is_paused:
             return min(self._last_position, current.length)
