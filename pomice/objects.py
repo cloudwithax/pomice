@@ -10,7 +10,7 @@ from .filters import Filter
 
 class Track:
     """The base track object. Returns critical track information needed for parsing by Lavalink.
-       You can also pass in commands.Context to get a discord.py Context object in your track.
+    You can also pass in commands.Context to get a discord.py Context object in your track.
     """
 
     def __init__(
@@ -45,7 +45,7 @@ class Track:
             "requester",
             "is_stream",
             "is_seekable",
-            "position"
+            "position",
         )
 
         self.track_id: str = track_id
@@ -106,8 +106,8 @@ class Track:
 
 class Playlist:
     """The base playlist object.
-       Returns critical playlist information needed for parsing by Lavalink.
-       You can also pass in commands.Context to get a discord.py Context object in your tracks.
+    Returns critical playlist information needed for parsing by Lavalink.
+    You can also pass in commands.Context to get a discord.py Context object in your tracks.
     """
 
     def __init__(
@@ -117,9 +117,8 @@ class Playlist:
         tracks: list,
         playlist_type: PlaylistType,
         thumbnail: Optional[str] = None,
-        uri: Optional[str] = None
+        uri: Optional[str] = None,
     ):
-        
         __slots__ = (
             "playlist_info",
             "tracks",
@@ -128,7 +127,7 @@ class Playlist:
             "_thumbnail",
             "_uri",
             "selected_track",
-            "track_count"
+            "track_count",
         )
 
         self.playlist_info: dict = playlist_info

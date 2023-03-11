@@ -30,12 +30,11 @@ class ExponentialBackoff:
     """
 
     def __init__(self, base: int = 1, *, integral: bool = False) -> None:
-
         self._base = base
 
         self._exp = 0
         self._max = 10
-        self._reset_time = base * 2 ** 11
+        self._reset_time = base * 2**11
         self._last_invocation = time.monotonic()
 
         rand = random.Random()
@@ -44,7 +43,6 @@ class ExponentialBackoff:
         self._randfunc = rand.randrange if integral else rand.uniform
 
     def delay(self) -> float:
-
         invocation = time.monotonic()
         interval = invocation - self._last_invocation
         self._last_invocation = invocation
@@ -53,16 +51,15 @@ class ExponentialBackoff:
             self._exp = 0
 
         self._exp = min(self._exp + 1, self._max)
-        return self._randfunc(0, self._base * 2 ** self._exp)
+        return self._randfunc(0, self._base * 2**self._exp)
 
 
 class NodeStats:
     """The base class for the node stats object.
-       Gives critical information on the node, which is updated every minute.
+    Gives critical information on the node, which is updated every minute.
     """
 
     def __init__(self, data: dict) -> None:
-
         __slots__ = (
             "used",
             "free",
@@ -73,7 +70,7 @@ class NodeStats:
             "cpu_process_load",
             "players_active",
             "players_total",
-            "uptime"
+            "uptime",
         )
 
         memory: dict = data.get("memory")
@@ -94,18 +91,16 @@ class NodeStats:
     def __repr__(self) -> str:
         return f"<Pomice.NodeStats total_players={self.players_total!r} playing_active={self.players_active!r}>"
 
+
 class FailingIPBlock:
     """
     The base class for the failing IP block object from the route planner stats.
     Gives critical information about any failing addresses on the block
     and the time they failed.
     """
-    def __init__(self, data: dict) -> None:
 
-        __slots__ = (
-            "address",
-            "failing_time"
-        )
+    def __init__(self, data: dict) -> None:
+        __slots__ = ("address", "failing_time")
 
         self.address = data.get("address")
         self.failing_time = datetime.fromtimestamp(float(data.get("failingTimestamp")))
@@ -121,13 +116,7 @@ class RouteStats:
     """
 
     def __init__(self, data: dict) -> None:
-
-        __slots__ = (
-            "strategy",
-            "ip_block_type",
-            "ip_block_size",
-            "failing_addresses"
-        )
+        __slots__ = ("strategy", "ip_block_type", "ip_block_size", "failing_addresses")
 
         self.strategy = RouteStrategy(data.get("class"))
 
@@ -172,7 +161,6 @@ class Ping:
         def close(self):
             self._s.close()
 
-
     class Timer(object):
         def __init__(self):
             self._start = 0
@@ -201,10 +189,7 @@ class Ping:
     def get_ping(self):
         s = self._create_socket(socket.AF_INET, socket.SOCK_STREAM)
 
-        cost_time = self.timer.cost(
-            (s.connect, s.shutdown),
-            ((self._host, self._port), None))
+        cost_time = self.timer.cost((s.connect, s.shutdown), ((self._host, self._port), None))
         s_runtime = 1000 * (cost_time)
 
         return s_runtime
-

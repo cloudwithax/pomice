@@ -4,7 +4,7 @@ from typing import List
 class Track:
     """The base class for a Spotify Track"""
 
-    def __init__(self, data: dict, image = None) -> None:
+    def __init__(self, data: dict, image=None) -> None:
         self.name: str = data["name"]
         self.artists: str = ", ".join(artist["name"] for artist in data["artists"])
         self.length: float = data["duration_ms"]
@@ -31,6 +31,7 @@ class Track:
             f"length={self.length} id={self.id} isrc={self.isrc}>"
         )
 
+
 class Playlist:
     """The base class for a Spotify playlist"""
 
@@ -52,6 +53,7 @@ class Playlist:
             f"total_tracks={self.total_tracks} tracks={self.tracks}>"
         )
 
+
 class Album:
     """The base class for a Spotify album"""
 
@@ -70,11 +72,14 @@ class Album:
             f"total_tracks={self.total_tracks} tracks={self.tracks}>"
         )
 
+
 class Artist:
     """The base class for a Spotify artist"""
 
     def __init__(self, data: dict, tracks: dict) -> None:
-        self.name: str = f"Top tracks for {data['name']}" # Setting that because its only playing top tracks
+        self.name: str = (
+            f"Top tracks for {data['name']}"  # Setting that because its only playing top tracks
+        )
         self.genres: str = ", ".join(genre for genre in data["genres"])
         self.followers: int = data["followers"]["total"]
         self.image: str = data["images"][0]["url"]
@@ -83,7 +88,4 @@ class Artist:
         self.uri: str = data["external_urls"]["spotify"]
 
     def __repr__(self) -> str:
-        return (
-            f"<Pomice.spotify.Artist name={self.name} id={self.id} "
-            f"tracks={self.tracks}>"
-        )
+        return f"<Pomice.spotify.Artist name={self.name} id={self.id} " f"tracks={self.tracks}>"

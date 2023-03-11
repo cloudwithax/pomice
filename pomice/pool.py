@@ -10,11 +10,7 @@ from discord.ext import commands
 from typing import Dict, List, Optional, TYPE_CHECKING, Union
 from urllib.parse import quote
 
-from . import (
-    __version__,
-    spotify,
-    applemusic
-)
+from . import __version__, spotify, applemusic
 
 from .enums import *
 from .exceptions import (
@@ -26,7 +22,7 @@ from .exceptions import (
     NodeNotAvailable,
     NoNodesAvailable,
     NodeRestException,
-    TrackLoadError
+    TrackLoadError,
 )
 from .filters import Filter
 from .objects import Playlist, Track
@@ -36,11 +32,12 @@ from .routeplanner import RoutePlanner
 if TYPE_CHECKING:
     from .player import Player
 
+
 class Node:
     """The base class for a node.
-       This node object represents a Lavalink node.
-       To enable Spotify searching, pass in a proper Spotify Client ID and Spotify Client Secret
-       To enable Apple music, set the "apple_music" parameter to "True"
+    This node object represents a Lavalink node.
+    To enable Spotify searching, pass in a proper Spotify Client ID and Spotify Client Secret
+    To enable Apple music, set the "apple_music" parameter to "True"
     """
 
     def __init__(
@@ -59,8 +56,7 @@ class Node:
         spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
         apple_music: bool = False,
-        fallback: bool = False
-
+        fallback: bool = False,
     ):
         __slots__ = (
             "_bot",
@@ -86,7 +82,7 @@ class Node:
             "_spotify_client_id",
             "_spotify_client_secret",
             "_spotify_client",
-            "_apple_music_client"
+            "_apple_music_client",
         )
 
         self._bot: Union[Client, commands.Bot] = bot
@@ -116,7 +112,7 @@ class Node:
         self._headers = {
             "Authorization": self._password,
             "User-Id": str(self._bot.user.id),
-            "Client-Name": f"Pomice/{__version__}"
+            "Client-Name": f"Pomice/{__version__}",
         }
 
         self._players: Dict[int, Player] = {}
@@ -147,7 +143,6 @@ class Node:
         """Property which returns whether this node is connected or not"""
         return self._websocket is not None and not self._websocket.closed
 
-
     @property
     def stats(self) -> NodeStats:
         """Property which returns the node stats."""
@@ -157,7 +152,6 @@ class Node:
     def players(self) -> Dict[int, Player]:
         """Property which returns a dict containing the guild ID and the player object."""
         return self._players
-
 
     @property
     def bot(self) -> Union[Client, commands.Bot]:
@@ -184,7 +178,6 @@ class Node:
         """Alias for `Node.latency`, returns the latency of the node"""
         return self.latency
 
-
     async def _update_handler(self, data: dict):
         await self._bot.wait_until_ready()
 
@@ -209,15 +202,15 @@ class Node:
                 await player.on_voice_state_update(data["d"])
             except KeyError:
                 return
-            
+
     async def _handle_node_switch(self):
-        nodes = [node for node in self._pool._nodes.values() if node.is_connected]
+        nodes = [node for node in self.pool.nodes.copy().values() if node.is_connected]
         new_node = random.choice(nodes)
 
-        for player in self._players.values():
+        for player in self.players.copy().values():
             await player._swap_node(new_node=new_node)
 
-        await self.disconnect()  
+        await self.disconnect()
 
     async def _listen(self):
         backoff = ExponentialBackoff(base=7)
@@ -266,20 +259,24 @@ class Node:
         ignore_if_available: bool = False,
     ):
         if not ignore_if_available and not self._available:
-            raise NodeNotAvailable(
-                f"The node '{self._identifier}' is unavailable."
-            )
+            raise NodeNotAvailable(f"The node '{self._identifier}' is unavailable.")
 
-        uri: str = f'{self._rest_uri}/' \
-                   f'{f"v{self._version}/" if include_version else ""}' \
-                   f'{path}' \
-                   f'{f"/{guild_id}" if guild_id else ""}' \
-                   f'{f"?{query}" if query else ""}'
+        uri: str = (
+            f"{self._rest_uri}/"
+            f'{f"v{self._version}/" if include_version else ""}'
+            f"{path}"
+            f'{f"/{guild_id}" if guild_id else ""}'
+            f'{f"?{query}" if query else ""}'
+        )
 
-        async with self._session.request(method=method, url=uri, headers=self._headers, json=data or {}) as resp:
+        async with self._session.request(
+            method=method, url=uri, headers=self._headers, json=data or {}
+        ) as resp:
             if resp.status >= 300:
                 data: dict = await resp.json()
-                raise NodeRestException(f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}: {data["message"]}')
+                raise NodeRestException(
+                    f'Error fetching from Lavalink REST api: {resp.status} {resp.reason}: {data["message"]}'
+                )
 
             if method == "DELETE" or resp.status == 204:
                 return await resp.json(content_type=None)
@@ -288,8 +285,6 @@ class Node:
                 return await resp.text()
 
             return await resp.json()
-
-
 
     def get_player(self, guild_id: int):
         """Takes a guild ID as a parameter. Returns a pomice Player object."""
@@ -303,26 +298,30 @@ class Node:
             self._session = aiohttp.ClientSession()
 
         try:
-            version = await self.send(method="GET", path="version", ignore_if_available=True, include_version=False)
+            version = await self.send(
+                method="GET",
+                path="version",
+                ignore_if_available=True,
+                include_version=False,
+            )
             version = version.replace(".", "")
-            if not version.endswith('-SNAPSHOT') and int(version) < 370:
+            if not version.endswith("-SNAPSHOT") and int(version) < 370:
                 self._available = False
                 raise LavalinkVersionIncompatible(
                     "The Lavalink version you're using is incompatible. "
                     "Lavalink version 3.7.0 or above is required to use this library."
                 )
 
-            if version.endswith('-SNAPSHOT'):
+            if version.endswith("-SNAPSHOT"):
                 # we're just gonna assume all snapshot versions correlate with v4
                 self._version = 4
             else:
                 self._version = version[:1]
 
-
             self._websocket = await self._session.ws_connect(
                 f"{self._websocket_uri}/v{self._version}/websocket",
                 headers=self._headers,
-                heartbeat=self._heartbeat
+                heartbeat=self._heartbeat,
             )
 
             if not self._task:
@@ -344,10 +343,9 @@ class Node:
                 f"The URI for node '{self._identifier}' is invalid."
             ) from None
 
-
     async def disconnect(self):
         """Disconnects a connected Lavalink node and removes it from the node pool.
-           This also destroys any players connected to the node.
+        This also destroys any players connected to the node.
         """
         for player in self.players.copy().values():
             await player.destroy()
@@ -364,11 +362,7 @@ class Node:
         self.available = False
         self._task.cancel()
 
-    async def build_track(
-        self,
-        identifier: str,
-        ctx: Optional[commands.Context] = None
-    ) -> Track:
+    async def build_track(self, identifier: str, ctx: Optional[commands.Context] = None) -> Track:
         """
         Builds a track using a valid track identifier
 
@@ -376,8 +370,15 @@ class Node:
         Context object on the track it builds.
         """
 
-        data: dict = await self.send(method="GET", path="decodetrack", query=f"encodedTrack={identifier}")
-        return Track(track_id=identifier, ctx=ctx, info=data, track_type=TrackType(data['sourceName']))
+        data: dict = await self.send(
+            method="GET", path="decodetrack", query=f"encodedTrack={identifier}"
+        )
+        return Track(
+            track_id=identifier,
+            ctx=ctx,
+            info=data,
+            track_type=TrackType(data["sourceName"]),
+        )
 
     async def get_tracks(
         self,
@@ -385,18 +386,18 @@ class Node:
         *,
         ctx: Optional[commands.Context] = None,
         search_type: SearchType = SearchType.ytsearch,
-        filters: Optional[List[Filter]] = None
+        filters: Optional[List[Filter]] = None,
     ):
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
-           If you passed in Spotify API credentials, you can also pass in a
-           Spotify URL of a playlist, album or track and it will be parsed accordingly.
+        If you passed in Spotify API credentials, you can also pass in a
+        Spotify URL of a playlist, album or track and it will be parsed accordingly.
 
-           You can pass in a discord.py Context object to get a
-           Context object on any track you search.
+        You can pass in a discord.py Context object to get a
+        Context object on any track you search.
 
-           You may also pass in a List of filters
-           to be applied to your track once it plays.
+        You may also pass in a List of filters
+        to be applied to your track once it plays.
         """
 
         timestamp = None
@@ -434,8 +435,8 @@ class Node:
                             "isSeekable": True,
                             "position": 0,
                             "thumbnail": apple_music_results.image,
-                            "isrc": apple_music_results.isrc
-                        }
+                            "isrc": apple_music_results.isrc,
+                        },
                     )
                 ]
 
@@ -456,9 +457,10 @@ class Node:
                         "isSeekable": True,
                         "position": 0,
                         "thumbnail": track.image,
-                        "isrc": track.isrc
-                    }
-                ) for track in apple_music_results.tracks
+                        "isrc": track.isrc,
+                    },
+                )
+                for track in apple_music_results.tracks
             ]
 
             return Playlist(
@@ -466,9 +468,8 @@ class Node:
                 tracks=tracks,
                 playlist_type=PlaylistType.APPLE_MUSIC,
                 thumbnail=apple_music_results.image,
-                uri=apple_music_results.url
+                uri=apple_music_results.url,
             )
-
 
         elif URLRegex.SPOTIFY_URL.match(query):
             if not self._spotify_client_id and not self._spotify_client_secret:
@@ -498,8 +499,8 @@ class Node:
                             "isSeekable": True,
                             "position": 0,
                             "thumbnail": spotify_results.image,
-                            "isrc": spotify_results.isrc
-                        }
+                            "isrc": spotify_results.isrc,
+                        },
                     )
                 ]
 
@@ -520,9 +521,10 @@ class Node:
                         "isSeekable": True,
                         "position": 0,
                         "thumbnail": track.image,
-                        "isrc": track.isrc
-                    }
-                ) for track in spotify_results.tracks
+                        "isrc": track.isrc,
+                    },
+                )
+                for track in spotify_results.tracks
             ]
 
             return Playlist(
@@ -530,12 +532,13 @@ class Node:
                 tracks=tracks,
                 playlist_type=PlaylistType.SPOTIFY,
                 thumbnail=spotify_results.image,
-                uri=spotify_results.uri
+                uri=spotify_results.uri,
             )
 
         elif discord_url := URLRegex.DISCORD_MP3_URL.match(query):
-
-            data: dict = await self.send(method="GET", path="loadtracks", query=f"identifier={quote(query)}")
+            data: dict = await self.send(
+                method="GET", path="loadtracks", query=f"identifier={quote(query)}"
+            )
 
             track: dict = data["tracks"][0]
             info: dict = track.get("info")
@@ -549,27 +552,29 @@ class Node:
                         "length": info.get("length"),
                         "uri": info.get("uri"),
                         "position": info.get("position"),
-                        "identifier": info.get("identifier")
+                        "identifier": info.get("identifier"),
                     },
                     ctx=ctx,
                     track_type=TrackType.HTTP,
-                    filters=filters
+                    filters=filters,
                 )
             ]
 
         else:
             # If YouTube url contains a timestamp, capture it for use later.
 
-            if (match := URLRegex.YOUTUBE_TIMESTAMP.match(query)):
+            if match := URLRegex.YOUTUBE_TIMESTAMP.match(query):
                 timestamp = float(match.group("time"))
 
             # If query is a video thats part of a playlist, get the video and queue that instead
             # (I can't tell you how much i've wanted to implement this in here)
 
-            if (match := URLRegex.YOUTUBE_VID_IN_PLAYLIST.match(query)):
+            if match := URLRegex.YOUTUBE_VID_IN_PLAYLIST.match(query):
                 query = match.group("video")
 
-            data: dict = await self.send(method="GET", path="loadtracks", query=f"identifier={quote(query)}")
+            data: dict = await self.send(
+                method="GET", path="loadtracks", query=f"identifier={quote(query)}"
+            )
 
         load_type = data.get("loadType")
 
@@ -585,15 +590,20 @@ class Node:
 
         elif load_type == "PLAYLIST_LOADED":
             tracks = [
-                    Track(track_id=track["encoded"], info=track["info"], ctx=ctx, track_type=TrackType(track["info"]["sourceName"]))
-                    for track in data["tracks"]
+                Track(
+                    track_id=track["encoded"],
+                    info=track["info"],
+                    ctx=ctx,
+                    track_type=TrackType(track["info"]["sourceName"]),
+                )
+                for track in data["tracks"]
             ]
             return Playlist(
                 playlist_info=data["playlistInfo"],
                 tracks=tracks,
                 playlist_type=PlaylistType(tracks[0].track_type.value),
                 thumbnail=tracks[0].thumbnail,
-                uri=query
+                uri=query,
             )
 
         elif load_type == "SEARCH_RESULT" or load_type == "TRACK_LOADED":
@@ -604,16 +614,13 @@ class Node:
                     ctx=ctx,
                     track_type=TrackType(track["info"]["sourceName"]),
                     filters=filters,
-                    timestamp=timestamp
+                    timestamp=timestamp,
                 )
                 for track in data["tracks"]
             ]
 
     async def get_recommendations(
-        self,
-        *,
-        track: Track,
-        ctx: Optional[commands.Context] = None
+        self, *, track: Track, ctx: Optional[commands.Context] = None
     ) -> Union[List[Track], None]:
         """
         Gets recommendations from either YouTube or Spotify.
@@ -625,37 +632,43 @@ class Node:
         if track.track_type == TrackType.SPOTIFY:
             results = await self._spotify_client.get_recommendations(query=track.uri)
             tracks = [
-                    Track(
-                        track_id=track.id,
-                        ctx=ctx,
-                        track_type=TrackType.SPOTIFY,
-                        info={
-                            "title": track.name,
-                            "author": track.artists,
-                            "length": track.length,
-                            "identifier": track.id,
-                            "uri": track.uri,
-                            "isStream": False,
-                            "isSeekable": True,
-                            "position": 0,
-                            "thumbnail": track.image,
-                            "isrc": track.isrc
-                        },
-                        requester=self.bot.user
-                    ) for track in results
-                ]
+                Track(
+                    track_id=track.id,
+                    ctx=ctx,
+                    track_type=TrackType.SPOTIFY,
+                    info={
+                        "title": track.name,
+                        "author": track.artists,
+                        "length": track.length,
+                        "identifier": track.id,
+                        "uri": track.uri,
+                        "isStream": False,
+                        "isSeekable": True,
+                        "position": 0,
+                        "thumbnail": track.image,
+                        "isrc": track.isrc,
+                    },
+                    requester=self.bot.user,
+                )
+                for track in results
+            ]
 
             return tracks
         elif track.track_type == TrackType.YOUTUBE:
-            tracks = await self.get_tracks(query=f"ytsearch:https://www.youtube.com/watch?v={track.identifier}&list=RD{track.identifier}", ctx=ctx)
+            tracks = await self.get_tracks(
+                query=f"ytsearch:https://www.youtube.com/watch?v={track.identifier}&list=RD{track.identifier}",
+                ctx=ctx,
+            )
             return tracks
         else:
-            raise TrackLoadError("The specfied track must be either a YouTube or Spotify track to recieve recommendations.")
+            raise TrackLoadError(
+                "The specfied track must be either a YouTube or Spotify track to recieve recommendations."
+            )
 
 
 class NodePool:
     """The base class for the node pool.
-       This holds all the nodes that are to be used by the bot.
+    This holds all the nodes that are to be used by the bot.
     """
 
     _nodes: Dict[str, Node] = {}
@@ -675,17 +688,17 @@ class NodePool:
     @classmethod
     def get_best_node(cls, *, algorithm: NodeAlgorithm) -> Node:
         """Fetches the best node based on an NodeAlgorithm.
-         This option is preferred if you want to choose the best node
-         from a multi-node setup using either the node's latency
-         or the node's voice region.
+        This option is preferred if you want to choose the best node
+        from a multi-node setup using either the node's latency
+        or the node's voice region.
 
-         Use NodeAlgorithm.by_ping if you want to get the best node
-         based on the node's latency.
+        Use NodeAlgorithm.by_ping if you want to get the best node
+        based on the node's latency.
 
 
-         Use NodeAlgorithm.by_players if you want to get the best node
-         based on how players it has. This method will return a node with
-         the least amount of players
+        Use NodeAlgorithm.by_players if you want to get the best node
+        based on how players it has. This method will return a node with
+        the least amount of players
         """
         available_nodes: List[Node] = [node for node in cls._nodes.values() if node._available]
 
@@ -700,15 +713,13 @@ class NodePool:
             tested_nodes = {node: len(node.players.keys()) for node in available_nodes}
             return min(tested_nodes, key=tested_nodes.get)
 
-
     @classmethod
     def get_node(cls, *, identifier: str = None) -> Node:
         """Fetches a node from the node pool using it's identifier.
-           If no identifier is provided, it will choose a node at random.
+        If no identifier is provided, it will choose a node at random.
         """
         available_nodes = {
-            identifier: node
-            for identifier, node in cls._nodes.items() if node._available
+            identifier: node for identifier, node in cls._nodes.items() if node._available
         }
 
         if not available_nodes:
@@ -735,21 +746,29 @@ class NodePool:
         spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
         apple_music: bool = False,
-        fallback: bool = False
-
+        fallback: bool = False,
     ) -> Node:
         """Creates a Node object to be then added into the node pool.
-           For Spotify searching capabilites, pass in valid Spotify API credentials.
+        For Spotify searching capabilites, pass in valid Spotify API credentials.
         """
         if identifier in cls._nodes.keys():
             raise NodeCreationError(f"A node with identifier '{identifier}' already exists.")
 
         node = Node(
-            pool=cls, bot=bot, host=host, port=port, password=password,
-            identifier=identifier, secure=secure, heartbeat=heartbeat,
-            loop=loop, spotify_client_id=spotify_client_id,
-            session=session, spotify_client_secret=spotify_client_secret,
-            apple_music=apple_music, fallback=fallback
+            pool=cls,
+            bot=bot,
+            host=host,
+            port=port,
+            password=password,
+            identifier=identifier,
+            secure=secure,
+            heartbeat=heartbeat,
+            loop=loop,
+            spotify_client_id=spotify_client_id,
+            session=session,
+            spotify_client_secret=spotify_client_secret,
+            apple_music=apple_music,
+            fallback=fallback,
         )
 
         await node.connect()

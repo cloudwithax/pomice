@@ -35,9 +35,7 @@ class Client:
         if not self.session:
             self.session = aiohttp.ClientSession()
 
-        async with self.session.get(
-            "https://music.apple.com/assets/index.919fe17f.js"
-        ) as resp:
+        async with self.session.get("https://music.apple.com/assets/index.919fe17f.js") as resp:
             if resp.status != 200:
                 raise AppleMusicRequestException(
                     f"Error while fetching results: {resp.status} {resp.reason}"
@@ -50,9 +48,7 @@ class Client:
                 "Origin": "https://apple.com",
             }
             token_split = self.token.split(".")[1]
-            token_json = base64.b64decode(
-                token_split + "=" * (-len(token_split) % 4)
-            ).decode()
+            token_json = base64.b64decode(token_split + "=" * (-len(token_split) % 4)).decode()
             token_data = json.loads(token_json)
             self.expiry = datetime.fromtimestamp(token_data["exp"])
 
@@ -105,7 +101,6 @@ class Client:
             return Artist(data, tracks=tracks)
 
         else:
-
             track_data: dict = data["relationships"]["tracks"]
 
             tracks = [Song(track) for track in track_data.get("data")]
@@ -119,9 +114,7 @@ class Client:
                 next_page_url = AM_BASE_URL + track_data.get("next")
 
                 while next_page_url is not None:
-                    async with self.session.get(
-                        next_page_url, headers=self.headers
-                    ) as resp:
+                    async with self.session.get(next_page_url, headers=self.headers) as resp:
                         if resp.status != 200:
                             raise AppleMusicRequestException(
                                 f"Error while fetching results: {resp.status} {resp.reason}"

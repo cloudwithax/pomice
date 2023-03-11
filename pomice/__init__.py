@@ -10,6 +10,7 @@ Licensed under GPL-3.0
 import discord
 
 if not discord.version_info.major >= 2:
+
     class DiscordPyOutdated(Exception):
         pass
 
@@ -34,4 +35,3 @@ from .queue import *
 from .player import *
 from .pool import *
 from .routeplanner import *
-

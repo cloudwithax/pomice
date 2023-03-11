@@ -32,9 +32,7 @@ class Client:
 
         self._bearer_token: str = None
         self._expiry = 0
-        self._auth_token = b64encode(
-            f"{self._client_id}:{self._client_secret}".encode()
-        )
+        self._auth_token = b64encode(f"{self._client_id}:{self._client_secret}".encode())
         self._grant_headers = {"Authorization": f"Basic {self._auth_token.decode()}"}
         self._bearer_headers = None
 
@@ -44,9 +42,7 @@ class Client:
         if not self.session:
             self.session = aiohttp.ClientSession()
 
-        async with self.session.post(
-            GRANT_URL, data=_data, headers=self._grant_headers
-        ) as resp:
+        async with self.session.post(GRANT_URL, data=_data, headers=self._grant_headers) as resp:
             if resp.status != 200:
                 raise SpotifyRequestException(
                     f"Error fetching bearer token: {resp.status} {resp.reason}"
@@ -110,9 +106,7 @@ class Client:
             next_page_url = data["tracks"]["next"]
 
             while next_page_url is not None:
-                async with self.session.get(
-                    next_page_url, headers=self._bearer_headers
-                ) as resp:
+                async with self.session.get(next_page_url, headers=self._bearer_headers) as resp:
                     if resp.status != 200:
                         raise SpotifyRequestException(
                             f"Error while fetching results: {resp.status} {resp.reason}"
@@ -143,9 +137,7 @@ class Client:
         if not spotify_type == "track":
             raise InvalidSpotifyURL("The provided query is not a Spotify track.")
 
-        request_url = REQUEST_URL.format(
-            type="recommendation", id=f"?seed_tracks={spotify_id}"
-        )
+        request_url = REQUEST_URL.format(type="recommendation", id=f"?seed_tracks={spotify_id}")
 
         async with self.session.get(request_url, headers=self._bearer_headers) as resp:
             if resp.status != 200:

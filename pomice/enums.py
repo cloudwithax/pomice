@@ -18,6 +18,7 @@ class SearchType(Enum):
     SearchType.scsearch searches using SoundCloud,
     which is an alternative to YouTube or YouTube Music.
     """
+
     ytsearch = "ytsearch"
     ytmsearch = "ytmsearch"
     scsearch = "scsearch"
@@ -51,6 +52,7 @@ class TrackType(Enum):
     def __str__(self) -> str:
         return self.value
 
+
 class PlaylistType(Enum):
     """
     The enum for the different playlist types for Pomice.
@@ -72,7 +74,6 @@ class PlaylistType(Enum):
 
     def __str__(self) -> str:
         return self.value
-
 
 
 class NodeAlgorithm(Enum):
@@ -98,6 +99,7 @@ class NodeAlgorithm(Enum):
     def __str__(self) -> str:
         return self.value
 
+
 class LoopMode(Enum):
     """
     The enum for the different loop modes.
@@ -109,10 +111,10 @@ class LoopMode(Enum):
     LoopMode.QUEUE sets the queue loop to the whole queue.
 
     """
+
     # We don't have to define anything special for these, since these just serve as flags
     TRACK = "track"
     QUEUE = "queue"
-
 
     def __str__(self) -> str:
         return self.value
@@ -160,7 +162,7 @@ class RouteIPType(Enum):
     IPV6 = "Inet6Address"
 
 
-class URLRegex():
+class URLRegex:
     """
     The enums for all the URL Regexes in use by Pomice.
 
@@ -181,6 +183,7 @@ class URLRegex():
     URLRegex.BASE_URL returns the standard URL Regex.
 
     """
+
     SPOTIFY_URL = re.compile(
         r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)"
     )
@@ -199,13 +202,9 @@ class URLRegex():
         r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))/playlist\?list=.*"
     )
 
-    YOUTUBE_VID_IN_PLAYLIST = re.compile(
-        r"(?P<video>^.*?v.*?)(?P<list>&list.*)"
-    )
+    YOUTUBE_VID_IN_PLAYLIST = re.compile(r"(?P<video>^.*?v.*?)(?P<list>&list.*)")
 
-    YOUTUBE_TIMESTAMP = re.compile(
-        r"(?P<video>^.*?)(\?t|&start)=(?P<time>\d+)?.*"
-    )
+    YOUTUBE_TIMESTAMP = re.compile(r"(?P<video>^.*?)(\?t|&start)=(?P<time>\d+)?.*")
 
     AM_URL = re.compile(
         r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/"
@@ -217,23 +216,14 @@ class URLRegex():
         r"(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)"
     )
 
-    SOUNDCLOUD_URL = re.compile(
-    r"((?:https?:)?\/\/)?((?:www|m)\.)?soundcloud.com\/.*/.*"
-    )
+    SOUNDCLOUD_URL = re.compile(r"((?:https?:)?\/\/)?((?:www|m)\.)?soundcloud.com\/.*/.*")
 
-    SOUNDCLOUD_PLAYLIST_URL = re.compile(
-        r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/.*/sets/.*"
-    )
+    SOUNDCLOUD_PLAYLIST_URL = re.compile(r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com\/.*/sets/.*")
 
     SOUNDCLOUD_TRACK_IN_SET_URL = re.compile(
         r"^(https?:\/\/)?(www.)?(m\.)?soundcloud\.com/[a-zA-Z0-9-._]+/[a-zA-Z0-9-._]+(\?in)"
     )
 
-    LAVALINK_SEARCH = re.compile(
-        r"(?P<type>ytm?|sc)search:"
-    )
+    LAVALINK_SEARCH = re.compile(r"(?P<type>ytm?|sc)search:")
 
-    BASE_URL = re.compile(
-        r"https?://(?:www\.)?.+"
-    )
-
+    BASE_URL = re.compile(r"https?://(?:www\.)?.+")

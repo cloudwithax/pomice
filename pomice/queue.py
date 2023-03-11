@@ -16,23 +16,17 @@ from .exceptions import QueueEmpty, QueueException, QueueFull
 
 class Queue(Iterable[Track]):
     """Queue for Pomice. This queue takes pomice.Track as an input and includes looping and shuffling."""
+
     def __init__(
         self,
         max_size: Optional[int] = None,
         *,
         overflow: bool = True,
     ):
-        
-        __slots__ = (
-            "max_size",
-            "_queue",
-            "_overflow",
-            "_loop_mode",
-            "_current_item"
-        )
+        __slots__ = ("max_size", "_queue", "_overflow", "_loop_mode", "_current_item")
 
         self.max_size: Optional[int] = max_size
-        self._queue: List[Track] = [] # type: ignore
+        self._queue: List[Track] = []  # type: ignore
         self._overflow: bool = overflow
         self._loop_mode: Optional[LoopMode] = None
         self._current_item: Optional[Track] = None
@@ -43,9 +37,7 @@ class Queue(Iterable[Track]):
 
     def __repr__(self) -> str:
         """Official representation with max_size and member count."""
-        return (
-            f"<{self.__class__.__name__} max_size={self.max_size} members={self.count}>"
-        )
+        return f"<{self.__class__.__name__} max_size={self.max_size} members={self.count}>"
 
     def __bool__(self) -> bool:
         """Treats the queue as a bool, with it evaluating True when it contains members."""
@@ -116,7 +108,7 @@ class Queue(Iterable[Track]):
 
         raise TypeError(f"Adding '{type(other)}' type to the queue is not supported.")
 
-    def _get(self) -> Track: 
+    def _get(self) -> Track:
         return self._queue.pop(0)
 
     def _drop(self) -> Track:
@@ -124,7 +116,6 @@ class Queue(Iterable[Track]):
 
     def _index(self, item: Track) -> int:
         return self._queue.index(item)
-
 
     def _put(self, item: Track) -> None:
         self._queue.append(item)
@@ -183,12 +174,9 @@ class Queue(Iterable[Track]):
         """Returns the amount of items in the queue"""
         return len(self._queue)
 
-
-
     def get_queue(self) -> List:
         """Returns the queue as a List"""
         return self._queue
-
 
     def get(self):
         """Return next immediately available item in queue if any.
@@ -202,7 +190,6 @@ class Queue(Iterable[Track]):
             raise QueueEmpty("No items in the queue.")
 
         if self._loop_mode == LoopMode.QUEUE:
-
             # recurse if the item isnt in the queue
             if self._current_item not in self._queue:
                 self.get()
@@ -241,7 +228,6 @@ class Queue(Iterable[Track]):
         Raises ValueError if item is not in queue.
         """
         return self._remove(self._check_track(item))
-
 
     def find_position(self, item: Track) -> int:
         """Find the position a given item within the queue.
@@ -308,7 +294,7 @@ class Queue(Iterable[Track]):
 
     def set_loop_mode(self, mode: LoopMode):
         """
-        Sets the loop mode of the queue. 
+        Sets the loop mode of the queue.
         Takes the LoopMode enum as an argument.
         """
         self._loop_mode = mode
@@ -316,11 +302,10 @@ class Queue(Iterable[Track]):
             try:
                 index = self._index(self._current_item)
             except ValueError:
-                index = 0 
+                index = 0
             if self._current_item not in self._queue:
                 self._queue.insert(index, self._current_item)
             self._current_item = self._queue[index]
-            
 
     def disable_loop(self):
         """
@@ -330,12 +315,11 @@ class Queue(Iterable[Track]):
         if not self._loop_mode:
             raise QueueException("Queue loop is already disabled.")
 
-        if self._loop_mode == LoopMode.QUEUE:     
-            index = self.find_position(self._current_item) + 1 
+        if self._loop_mode == LoopMode.QUEUE:
+            index = self.find_position(self._current_item) + 1
             self._queue = self._queue[index:]
 
         self._loop_mode = None
-        
 
     def shuffle(self):
         """Shuffles the queue."""
@@ -349,5 +333,5 @@ class Queue(Iterable[Track]):
     def jump(self, item: Track):
         """Removes all tracks before the."""
         index = self.find_position(item)
-        new_queue = self._queue[index:self.size]
+        new_queue = self._queue[index : self.size]
         self._queue = new_queue

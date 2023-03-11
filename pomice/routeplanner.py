@@ -1,10 +1,12 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
+
 if TYPE_CHECKING:
     from .pool import Node
 
 from .utils import RouteStats
 from aiohttp import ClientSession
+
 
 class RoutePlanner:
     """
