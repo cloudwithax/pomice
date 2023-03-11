@@ -37,8 +37,6 @@ from .routeplanner import RoutePlanner
 if TYPE_CHECKING:
     from .player import Player
 
-__all__ = ('Node', 'NodePool')
-
 class Node:
     """The base class for a node.
        This node object represents a Lavalink node.
@@ -65,6 +63,33 @@ class Node:
         fallback: bool = False
 
     ):
+        __slots__ = (
+            "_bot",
+            "_host",
+            "_port",
+            "_pool",
+            "_password",
+            "_identifier",
+            "_heartbeat",
+            "_secure",
+            "_fallback",
+            "_websocket_uri",
+            "_rest_uri",
+            "_session",
+            "_websocket",
+            "_task",
+            "_loop",
+            "_session_id",
+            "_available",
+            "_version",
+            "_headers",
+            "_players",
+            "_spotify_client_id",
+            "_spotify_client_secret",
+            "_spotify_client",
+            "_apple_music_client"
+        )
+        
         self._bot: Union[Client, commands.Bot] = bot
         self._host: str = host
         self._port: int = port
@@ -73,9 +98,7 @@ class Node:
         self._identifier: str = identifier
         self._heartbeat: int = heartbeat
         self._secure: bool = secure
-        self.fallback: bool = fallback
-
-
+        self._fallback: bool = fallback
 
         self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"

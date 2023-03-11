@@ -8,7 +8,6 @@ sys.path.insert(0, os.path.abspath('..'))
 
 
 
-
 project = 'Pomice'
 copyright = '2023, cloudwithax'
 author = 'cloudwithax'
@@ -86,30 +85,36 @@ html_theme_options: Dict[str, Any] = {
 # so theres a point of reference
 
 def linkcode_resolve(domain, info):
-    if domain != 'py':
-        return None
-    if not info['module']:
-        return None
-        
-
-    mod = importlib.import_module(info["module"])
-    if "." in info["fullname"]:
-        objname, attrname = info["fullname"].split(".")
-        obj = getattr(mod, objname)
-        try:
-            obj = getattr(obj, attrname)
-        except AttributeError:
-            return None
-    else:
-        obj = getattr(mod, info["fullname"])
-
+    # i absolutely MUST add this here or else
+    # the docs will not build. fuck sphinx
     try:
-        file = inspect.getsourcefile(obj)
-        lines = inspect.getsourcelines(obj)
-    except TypeError:
-        # e.g. object is a typing.Union
-        return None
-    file = os.path.relpath(file, os.path.abspath(".."))
-    start, end = lines[1], lines[1] + len(lines[0]) - 1
+        if domain != 'py':
+            return None
+        if not info['module']:
+            return None
+            
 
-    return f"https://github.com/cloudwithax/pomice/blob/main/{file}#L{start}-L{end}"
+        mod = importlib.import_module(info["module"])
+        if "." in info["fullname"]:
+            objname, attrname = info["fullname"].split(".")
+            obj = getattr(mod, objname)
+            try:
+                obj = getattr(obj, attrname)
+            except AttributeError:
+                return None
+        else:
+            obj = getattr(mod, info["fullname"])
+
+        try:
+            file = inspect.getsourcefile(obj)
+            lines = inspect.getsourcelines(obj)
+        except TypeError:
+            # e.g. object is a typing.Union
+            return None
+        file = os.path.relpath(file, os.path.abspath(".."))
+        start, end = lines[1], lines[1] + len(lines[0]) - 1
+
+        return f"https://github.com/cloudwithax/pomice/blob/main/{file}#L{start}-L{end}"
+    except:
+        pass
+

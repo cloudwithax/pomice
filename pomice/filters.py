@@ -1,19 +1,6 @@
 import collections
 from .exceptions import FilterInvalidArgument
 
-__all__ = (
-    'Filter',
-    'Equalizer',
-    'Timescale',
-    'Karaoke',
-    'Tremolo',
-    'Vibrato',
-    'Rotation',
-    'ChannelMix',
-    'Distortion',
-    'LowPass'
-)
-
 class Filter:
     """
     The base class for all filters.
@@ -24,9 +11,15 @@ class Filter:
     You must specify a tag for each filter you put on.
     This is necessary for the removal of filters.
     """
-    def __init__(self):
+    def __init__(self, *, tag: str):
+        __slots__ = (
+            "payload",
+            "tag",
+            "preload"
+        )
+
         self.payload: dict = None
-        self.tag: str = None
+        self.tag: str = tag
         self.preload: bool = False
 
     def set_preload(self) -> bool:
@@ -44,13 +37,17 @@ class Equalizer(Filter):
     """
 
     def __init__(self, *, tag: str, levels: list):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = (
+            "eq",
+            "raw",
+        )
 
         self.eq = self._factory(levels)
         self.raw = levels
 
         self.payload = {"equalizer": self.eq}
-        self.tag = tag
 
     def _factory(self, levels: list):
         _dict = collections.defaultdict(int)
@@ -135,7 +132,13 @@ class Timescale(Filter):
         pitch: float = 1.0,
         rate: float = 1.0
     ):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = (
+            "speed",
+            "pitch",
+            "rate"
+        )
 
         if speed < 0:
             raise FilterInvalidArgument("Timescale speed must be more than 0.")
@@ -147,7 +150,6 @@ class Timescale(Filter):
         self.speed: float = speed
         self.pitch: float = pitch
         self.rate: float = rate
-        self.tag: str = tag
 
         self.payload: dict = {"timescale": {"speed": self.speed,
                                       "pitch": self.pitch,
@@ -191,13 +193,19 @@ class Karaoke(Filter):
         filter_band: float = 220.0,
         filter_width: float = 100.0
     ):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = (
+            "level",
+            "mono_level",
+            "filter_band",
+            "filter_width"
+        )
 
         self.level: float = level
         self.mono_level: float = mono_level
         self.filter_band: float = filter_band
         self.filter_width: float = filter_width
-        self.tag: str = tag
 
         self.payload: dict = {"karaoke": {"level": self.level,
                                     "monoLevel": self.mono_level,
@@ -223,7 +231,12 @@ class Tremolo(Filter):
         frequency: float = 2.0,
         depth: float = 0.5
     ):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = (
+            "frequency",
+            "depth"
+        )
 
         if frequency < 0:
             raise FilterInvalidArgument(
@@ -234,7 +247,6 @@ class Tremolo(Filter):
 
         self.frequency: float = frequency
         self.depth: float = depth
-        self.tag: str = tag
 
         self.payload: dict = {"tremolo": {"frequency": self.frequency,
                                     "depth": self.depth}}
@@ -255,8 +267,13 @@ class Vibrato(Filter):
         frequency: float = 2.0,
         depth: float = 0.5
     ):
+        super().__init__(tag=tag)
 
-        super().__init__()
+        __slots__ = (
+            "frequency",
+            "depth"
+        )
+
         if frequency < 0 or frequency > 14:
             raise FilterInvalidArgument(
                 "Vibrato frequency must be between 0 and 14.")
@@ -266,7 +283,6 @@ class Vibrato(Filter):
 
         self.frequency: float = frequency
         self.depth: float = depth
-        self.tag: str = tag
 
         self.payload: dict = {"vibrato": {"frequency": self.frequency,
                                     "depth": self.depth}}
@@ -281,10 +297,11 @@ class Rotation(Filter):
     """
 
     def __init__(self, *, tag: str, rotation_hertz: float = 5):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = ("rotation_hertz")
 
         self.rotation_hertz: float = rotation_hertz
-        self.tag: str = tag
         self.payload: dict = {"rotation": {"rotationHz": self.rotation_hertz}}
 
     def __repr__(self) -> str:
@@ -305,7 +322,14 @@ class ChannelMix(Filter):
         left_to_right: float = 0,
         right_to_left: float = 0
     ):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = (
+            "left_to_left",
+            "right_to_right",
+            "left_to_right",
+            "right_to_left"
+        )
 
         if 0 > left_to_left > 1:
             raise ValueError(
@@ -324,7 +348,6 @@ class ChannelMix(Filter):
         self.left_to_right: float = left_to_right
         self.right_to_left: float = right_to_left
         self.right_to_right: float = right_to_right
-        self.tag: str = tag
 
         self.payload: dict = {"channelMix": {"leftToLeft": self.left_to_left,
                                         "leftToRight": self.left_to_right,
@@ -357,7 +380,18 @@ class Distortion(Filter):
         offset: float = 0,
         scale: float = 1
     ):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = (
+            "sin_offset",
+            "sin_scale",
+            "cos_offset",
+            "cos_scale",
+            "tan_offset",
+            "tan_scale"
+            "offset",
+            "scale"
+        )
 
         self.sin_offset: float = sin_offset
         self.sin_scale: float = sin_scale
@@ -367,7 +401,6 @@ class Distortion(Filter):
         self.tan_scale: float = tan_scale
         self.offset: float = offset
         self.scale: float = scale
-        self.tag: str = tag
 
         self.payload: dict = {"distortion": {
             "sinOffset": self.sin_offset,
@@ -393,10 +426,11 @@ class LowPass(Filter):
     You can also do this with the Equalizer filter, but this is an easier way to do it.
     """
     def __init__(self, *, tag: str, smoothing: float = 20):
-        super().__init__()
+        super().__init__(tag=tag)
+
+        __slots__ = ('smoothing')
 
         self.smoothing: float = smoothing
-        self.tag: str = tag
         self.payload: dict = {"lowPass": {"smoothing": self.smoothing}}
 
     def __repr__(self) -> str:

@@ -23,7 +23,6 @@ from .filters import Filter
 from .objects import Track
 from .pool import Node, NodePool
 
-__all__ = ('Filters', 'Player')
 
 class Filters:
     """Helper class for filters"""
@@ -134,10 +133,10 @@ class Player(VoiceProtocol):
         node: Node = None
     ):
         self.client: Optional[Client] = client
-        self._bot: Union[Client, commands.Bot] = client
         self.channel: Optional[VoiceChannel] = channel
+        
+        self._bot: Union[Client, commands.Bot] = client
         self._guild: Guild = channel.guild if channel else None
-
         self._node: Node = node if node else NodePool.get_node()
         self._current: Optional[Track] = None
         self._filters: Filters = Filters()

@@ -10,17 +10,6 @@ from typing import TYPE_CHECKING, Union
 if TYPE_CHECKING:
     from .player import Player
 
-__all__ = (
-    'PomiceEvent',
-    'TrackStartEvent',
-    'TrackEndEvent',
-    'TrackStuckEvent',
-    'TrackExceptionEvent',
-    'WebSocketClosedEvent',
-    'WebSocketOpenEvent'
-)
-
-
 
 class PomiceEvent:
     """The base class for all events dispatched by a node.
@@ -45,6 +34,12 @@ class TrackStartEvent(PomiceEvent):
     name = "track_start"
 
     def __init__(self, data: dict, player: Player):
+
+        __slots__ = (
+            "player",
+            "track"
+        )
+
         self.player: Player = player
         self.track: Track = self.player._current
 
@@ -62,6 +57,13 @@ class TrackEndEvent(PomiceEvent):
     name = "track_end"
 
     def __init__(self, data: dict, player: Player):
+
+        __slots__ = (
+            "player",
+            "track",
+            "reason"
+        )
+
         self.player: Player = player
         self.track: Track = self.player._ending_track
         self.reason: str = data["reason"]
@@ -84,6 +86,13 @@ class TrackStuckEvent(PomiceEvent):
     name = "track_stuck"
 
     def __init__(self, data: dict, player: Player):
+
+        __slots__ = (
+            "player",
+            "track",
+            "threshold"
+        )
+
         self.player: Player = player
         self.track: Track = self.player._ending_track
         self.threshold: float = data["thresholdMs"]
@@ -103,6 +112,13 @@ class TrackExceptionEvent(PomiceEvent):
     name = "track_exception"
 
     def __init__(self, data: dict, player: Player):
+
+        __slots__ = (
+            "player",
+            "track",
+            "exception"
+        )
+
         self.player: Player = player
         self.track: Track = self.player._ending_track
         if data.get('error'):
@@ -121,6 +137,14 @@ class TrackExceptionEvent(PomiceEvent):
 
 class WebSocketClosedPayload:
     def __init__(self, data: dict):
+
+        __slots__ = (
+            "guild",
+            "code",
+            "reason",
+            "by_remote"
+        )
+
         self.guild: Guild = NodePool.get_node().bot.get_guild(int(data["guildId"]))
         self.code: int = data["code"]
         self.reason: str = data["code"]
@@ -154,6 +178,12 @@ class WebSocketOpenEvent(PomiceEvent):
     name = "websocket_open"
 
     def __init__(self, data: dict, _):
+
+        __slots__ = (
+            "target",
+            "ssrc"
+        )
+
         self.target: str = data["target"]
         self.ssrc: int = data["ssrc"]
 

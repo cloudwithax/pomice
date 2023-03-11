@@ -22,6 +22,15 @@ class Queue(Iterable[Track]):
         *,
         overflow: bool = True,
     ):
+        
+        __slots__ = (
+            "max_size",
+            "_queue",
+            "_overflow",
+            "_loop_mode",
+            "_current_item"
+        )
+
         self.max_size: Optional[int] = max_size
         self._queue: List[Track] = [] # type: ignore
         self._overflow: bool = overflow
@@ -107,7 +116,7 @@ class Queue(Iterable[Track]):
 
         raise TypeError(f"Adding '{type(other)}' type to the queue is not supported.")
 
-    def _get(self) -> Track:
+    def _get(self) -> Track: 
         return self._queue.pop(0)
 
     def _drop(self) -> Track:
@@ -175,12 +184,13 @@ class Queue(Iterable[Track]):
         return len(self._queue)
 
 
+
     def get_queue(self) -> List:
         """Returns the queue as a List"""
         return self._queue
 
 
-    def get(self) -> Track:
+    def get(self):
         """Return next immediately available item in queue if any.
         Raises QueueEmpty if no items in queue.
         """
@@ -296,9 +306,9 @@ class Queue(Iterable[Track]):
         """Remove all items from the queue."""
         self._queue.clear()
 
-    def set_loop_mode(self, mode: LoopMode) -> None:
+    def set_loop_mode(self, mode: LoopMode):
         """
-        Sets the loop mode of the queue.
+        Sets the loop mode of the queue. 
         Takes the LoopMode enum as an argument.
         """
         self._loop_mode = mode
@@ -306,13 +316,13 @@ class Queue(Iterable[Track]):
             try:
                 index = self._index(self._current_item)
             except ValueError:
-                index = 0
+                index = 0 
             if self._current_item not in self._queue:
                 self._queue.insert(index, self._current_item)
             self._current_item = self._queue[index]
+            
 
-
-    def disable_loop(self) -> None:
+    def disable_loop(self):
         """
         Disables loop mode if set.
         Raises QueueException if loop mode is already None.
@@ -320,24 +330,24 @@ class Queue(Iterable[Track]):
         if not self._loop_mode:
             raise QueueException("Queue loop is already disabled.")
 
-        if self._loop_mode == LoopMode.QUEUE:
-            index = self.find_position(self._current_item) + 1
+        if self._loop_mode == LoopMode.QUEUE:     
+            index = self.find_position(self._current_item) + 1 
             self._queue = self._queue[index:]
 
         self._loop_mode = None
+        
 
-
-    def shuffle(self) -> None:
+    def shuffle(self):
         """Shuffles the queue."""
         return random.shuffle(self._queue)
 
-    def clear_track_filters(self) -> None:
+    def clear_track_filters(self):
         """Clears all filters applied to tracks"""
         for track in self._queue:
             track.filters = None
 
-    def jump(self, item: Track) -> None:
-        """Mutates the queue so that all tracks before the specified track are removed."""
+    def jump(self, item: Track):
+        """Removes all tracks before the."""
         index = self.find_position(item)
         new_queue = self._queue[index:self.size]
         self._queue = new_queue

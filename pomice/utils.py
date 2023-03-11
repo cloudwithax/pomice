@@ -8,15 +8,6 @@ from itertools import zip_longest
 from datetime import datetime
 
 
-__all__ = (
-    'ExponentialBackoff',
-    'NodeStats',
-    'FailingIPBlock',
-    'RouteStats',
-    'Ping'
-)
-
-
 class ExponentialBackoff:
     """
     The MIT License (MIT)
@@ -72,6 +63,19 @@ class NodeStats:
 
     def __init__(self, data: dict) -> None:
 
+        __slots__ = (
+            "used",
+            "free",
+            "reservable",
+            "allocated",
+            "cpu_cores",
+            "cpu_system_load",
+            "cpu_process_load",
+            "players_active",
+            "players_total",
+            "uptime"
+        )
+
         memory: dict = data.get("memory")
         self.used = memory.get("used")
         self.free = memory.get("free")
@@ -97,6 +101,12 @@ class FailingIPBlock:
     and the time they failed.
     """
     def __init__(self, data: dict) -> None:
+
+        __slots__ = (
+            "address",
+            "failing_time"
+        )
+
         self.address = data.get("address")
         self.failing_time = datetime.fromtimestamp(float(data.get("failingTimestamp")))
 
@@ -111,6 +121,14 @@ class RouteStats:
     """
 
     def __init__(self, data: dict) -> None:
+
+        __slots__ = (
+            "strategy",
+            "ip_block_type",
+            "ip_block_size",
+            "failing_addresses"
+        )
+
         self.strategy = RouteStrategy(data.get("class"))
 
         details: dict = data.get("details")

@@ -7,8 +7,6 @@ from discord.ext import commands
 from .enums import SearchType, TrackType, PlaylistType
 from .filters import Filter
 
-__all__ = ('Track', 'Playlist')
-
 
 class Track:
     """The base track object. Returns critical track information needed for parsing by Lavalink.
@@ -27,6 +25,29 @@ class Track:
         timestamp: Optional[float] = None,
         requester: Optional[Union[Member, User]] = None,
     ):
+        __slots__ = (
+            "track_id",
+            "info",
+            "track_type",
+            "filters",
+            "timestamp",
+            "original",
+            "_search_type",
+            "playlist",
+            "title",
+            "author",
+            "uri",
+            "identifier",
+            "isrc",
+            "thumbnail",
+            "length",
+            "ctx",
+            "requester",
+            "is_stream",
+            "is_seekable",
+            "position"
+        )
+
         self.track_id: str = track_id
         self.info: dict = info
         self.track_type: TrackType = track_type
@@ -98,6 +119,18 @@ class Playlist:
         thumbnail: Optional[str] = None,
         uri: Optional[str] = None
     ):
+        
+        __slots__ = (
+            "playlist_info",
+            "tracks",
+            "name",
+            "playlist_type",
+            "_thumbnail",
+            "_uri",
+            "selected_track",
+            "track_count"
+        )
+
         self.playlist_info: dict = playlist_info
         self.tracks: List[Track] = tracks
         self.name: str = playlist_info.get("name")
