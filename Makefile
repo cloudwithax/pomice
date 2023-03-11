@@ -14,5 +14,5 @@ test:
 serve-docs:
 	@cd docs;\
 	make html;\
-	cd build/html;\
+	cd _build/html;\
 	python -m http.server;\

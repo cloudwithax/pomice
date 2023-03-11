@@ -38,8 +38,6 @@ class PomiceEvent(ABC):
     ```
     """
 
-    __slots__ = ("name", "handler_args")
-
     name = "event"
     handler_args: Tuple
 

@@ -122,7 +122,6 @@ class Player(VoiceProtocol):
         "_ending_track",
         "_voice_state",
         "_player_endpoint_uri",
-        "__dict__",
     )
 
     def __call__(self, client: Client, channel: VoiceChannel) -> "Player":
