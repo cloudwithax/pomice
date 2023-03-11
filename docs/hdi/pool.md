@@ -137,6 +137,19 @@ await NodePool.get_best_node(algorithm=NodeAlgorithm.xyz)
 
 ```
 
+## Disconnecting all nodes from the pool
+
+To disconnect all nodes from the pool, we need to use `NodePool.disconnect()`
+
+```py
+
+await NodePool.disconnect()
+
+```
+
+After running this function, all nodes in the pool should disconnect and no longer be available to use.
+
+
 
 
 
