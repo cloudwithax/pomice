@@ -4,13 +4,13 @@ This is in the form of a drop-in cog you can use and modify to your liking.
 This example aims to include everything you would need to make a fully functioning music bot,
 from a queue system, advanced queue control and more.
 """
+import math
+from contextlib import suppress
 
 import discord
-import pomice
-import math
-
 from discord.ext import commands
-from contextlib import suppress
+
+import pomice
 
 
 class Player(pomice.Player):
@@ -44,7 +44,6 @@ class Player(pomice.Player):
             with suppress(discord.HTTPException):
                 await self.controller.delete()
 
-
        # Queue up the next track, else teardown the player
         try:
             track: pomice.Track = self.queue.get()
@@ -56,12 +55,15 @@ class Player(pomice.Player):
         # Call the controller (a.k.a: The "Now Playing" embed) and check if one exists
 
         if track.is_stream:
-            embed = discord.Embed(title="Now playing", description=f":red_circle: **LIVE** [{track.title}]({track.uri}) [{track.requester.mention}]")
+            embed = discord.Embed(
+                title="Now playing", description=f":red_circle: **LIVE** [{track.title}]({track.uri}) [{track.requester.mention}]",
+            )
             self.controller = await self.context.send(embed=embed)
         else:
-            embed = discord.Embed(title=f"Now playing", description=f"[{track.title}]({track.uri}) [{track.requester.mention}]")
+            embed = discord.Embed(
+                title=f"Now playing", description=f"[{track.title}]({track.uri}) [{track.requester.mention}]",
+            )
             self.controller = await self.context.send(embed=embed)
-
 
     async def teardown(self):
         """Clear internal states, remove player controller and disconnect."""
@@ -74,8 +76,6 @@ class Player(pomice.Player):
         """Set context for the player"""
         self.context = ctx
         self.dj = ctx.author
-
-
 
 
 class Music(commands.Cog):
@@ -100,7 +100,7 @@ class Music(commands.Cog):
             host="127.0.0.1",
             port="3030",
             password="youshallnotpass",
-            identifier="MAIN"
+            identifier="MAIN",
         )
         print(f"Node is ready!")
 
@@ -121,7 +121,6 @@ class Music(commands.Cog):
         player: Player = ctx.voice_client
 
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
-
 
     # The following are events from pomice.events
     # We are using these so that if the track either stops or errors,
@@ -194,8 +193,6 @@ class Music(commands.Cog):
 
         if not player.is_playing:
             await player.do_next()
-
-
 
     @commands.command(aliases=['pau', 'pa'])
     async def pause(self, ctx: commands.Context):
@@ -345,6 +342,6 @@ class Music(commands.Cog):
         await player.set_volume(vol)
         await ctx.send(f'Set the volume to **{vol}**%', delete_after=7)
 
+
 async def setup(bot: commands.Bot):
     await bot.add_cog(Music(bot))
-

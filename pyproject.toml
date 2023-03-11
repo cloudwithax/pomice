@@ -7,3 +7,13 @@ build-backend = "setuptools.build_meta"
 
 [tool.black]
 line-length = 100
+
+[tool.mypy]
+mypy_path = "./"
+files = ["pomice"]
+disallow_untyped_defs = true
+disallow_any_unimported = true
+no_implicit_optional = true
+check_untyped_defs = true
+warn_unused_ignores = true
+show_error_codes = true

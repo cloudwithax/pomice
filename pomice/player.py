@@ -1,54 +1,69 @@
 import time
-from typing import Any, Dict, List, Optional, Union
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Union
 
-from discord import Client, Guild, VoiceChannel, VoiceProtocol
+from discord import Client
+from discord import Guild
+from discord import VoiceChannel
+from discord import VoiceProtocol
 from discord.ext import commands
+from discord.types.voice import GuildVoiceState
+from discord.types.voice import VoiceServerUpdate
 
 from . import events
 from .enums import SearchType
-from .events import PomiceEvent, TrackEndEvent, TrackStartEvent
-from .exceptions import (
-    FilterInvalidArgument,
-    FilterTagAlreadyInUse,
-    FilterTagInvalid,
-    TrackInvalidPosition,
-    TrackLoadError,
-)
+from .events import PomiceEvent
+from .events import TrackEndEvent
+from .events import TrackStartEvent
+from .exceptions import FilterInvalidArgument
+from .exceptions import FilterTagAlreadyInUse
+from .exceptions import FilterTagInvalid
+from .exceptions import TrackInvalidPosition
+from .exceptions import TrackLoadError
 from .filters import Filter
+from .objects import Playlist
 from .objects import Track
-from .pool import Node, NodePool
+from .pool import Node
+from .pool import NodePool
+
+__all__ = ("Filters", "Player")
 
 
 class Filters:
     """Helper class for filters"""
 
-    __slots__ = "_filters"
+    __slots__ = ("_filters",)
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._filters: List[Filter] = []
 
     @property
-    def has_preload(self):
+    def has_preload(self) -> bool:
         """Property which checks if any applied filters were preloaded"""
         return any(f for f in self._filters if f.preload == True)
 
     @property
-    def has_global(self):
+    def has_global(self) -> bool:
         """Property which checks if any applied filters are global"""
         return any(f for f in self._filters if f.preload == False)
 
     @property
-    def empty(self):
+    def empty(self) -> bool:
         """Property which checks if the filter list is empty"""
         return len(self._filters) == 0
 
-    def add_filter(self, *, filter: Filter):
+    def add_filter(self, *, filter: Filter) -> None:
         """Adds a filter to the list of filters applied"""
         if any(f for f in self._filters if f.tag == filter.tag):
-            raise FilterTagAlreadyInUse("A filter with that tag is already in use.")
+            raise FilterTagAlreadyInUse(
+                "A filter with that tag is already in use.",
+            )
         self._filters.append(filter)
 
-    def remove_filter(self, *, filter_tag: str):
+    def remove_filter(self, *, filter_tag: str) -> None:
         """Removes a filter from the list of filters applied using its filter tag"""
         if not any(f for f in self._filters if f.tag == filter_tag):
             raise FilterTagInvalid("A filter with that tag was not found.")
@@ -57,26 +72,27 @@ class Filters:
             if filter.tag == filter_tag:
                 del self._filters[index]
 
-    def has_filter(self, *, filter_tag: str):
+    def has_filter(self, *, filter_tag: str) -> bool:
         """Checks if a filter exists in the list of filters using its filter tag"""
         return any(f for f in self._filters if f.tag == filter_tag)
 
-    def reset_filters(self):
+    def reset_filters(self) -> None:
         """Removes all filters from the list"""
         self._filters = []
 
-    def get_preload_filters(self):
+    def get_preload_filters(self) -> List[Filter]:
         """Get all preloaded filters"""
         return [f for f in self._filters if f.preload == True]
 
-    def get_all_payloads(self):
+    def get_all_payloads(self) -> Dict[str, Any]:
         """Returns a formatted dict of all the filter payloads"""
-        payload = {}
-        for filter in self._filters:
-            payload.update(filter.payload)
+        payload: Dict[str, Any] = {}
+        for _filter in self._filters:
+            if _filter.payload:
+                payload.update(_filter.payload)
         return payload
 
-    def get_filters(self):
+    def get_filters(self) -> List[Filter]:
         """Returns the current list of applied filters"""
         return self._filters
 
@@ -89,45 +105,42 @@ class Player(VoiceProtocol):
     ```
     """
 
-    def __call__(self, client: Client, channel: VoiceChannel):
-        self.client: Client = client
-        self.channel: VoiceChannel = channel
-        self._guild: Guild = channel.guild
+    __slots__ = (
+        "client",
+        "channel",
+        "_bot",
+        "_guild",
+        "_node",
+        "_current",
+        "_filters",
+        "_volume",
+        "_paused",
+        "_is_connected",
+        "_position",
+        "_last_position",
+        "_last_update",
+        "_ending_track",
+        "_voice_state",
+        "_player_endpoint_uri",
+    )
 
+    def __call__(self, client: Client, channel: VoiceChannel) -> "Player":
+        self.__init__(client, channel)  # type: ignore
         return self
 
     def __init__(
         self,
-        client: Optional[Client] = None,
-        channel: Optional[VoiceChannel] = None,
+        client: Client,
+        channel: VoiceChannel,
         *,
-        node: Node = None,
-    ):
-        __slots__ = (
-            "client",
-            "channel",
-            "_bot",
-            "_guild",
-            "_node",
-            "_current",
-            "_filters",
-            "_volume",
-            "_paused",
-            "_is_connected",
-            "_position",
-            "_last_position",
-            "_last_update",
-            "_ending_track",
-            "_voice_state",
-            "_player_endpoint_uri",
-            "__dict__",
-        )
+        node: Optional[Node] = None,
+    ) -> None:
 
-        self.client: Optional[Client] = client
-        self.channel: Optional[VoiceChannel] = channel
+        self.client: Client = client
+        self.channel: VoiceChannel = channel
 
-        self._bot: Union[Client, commands.Bot] = client
-        self._guild: Guild = channel.guild if channel else None
+        self._bot: Client = client
+        self._guild: Guild = channel.guild
         self._node: Node = node if node else NodePool.get_node()
         self._current: Optional[Track] = None
         self._filters: Filters = Filters()
@@ -137,7 +150,7 @@ class Player(VoiceProtocol):
 
         self._position: int = 0
         self._last_position: int = 0
-        self._last_update: int = 0
+        self._last_update: float = 0
         self._ending_track: Optional[Track] = None
 
         self._voice_state: dict = {}
@@ -153,10 +166,10 @@ class Player(VoiceProtocol):
     @property
     def position(self) -> float:
         """Property which returns the player's position in a track in milliseconds"""
-        current = self._current.original
-
         if not self.is_playing or not self._current:
             return 0
+
+        current = getattr(self._current, "original", self._current)
 
         if self.is_paused:
             return min(self._last_position, current.length)
@@ -185,7 +198,7 @@ class Player(VoiceProtocol):
         return self._is_connected and self._paused
 
     @property
-    def current(self) -> Track:
+    def current(self) -> Optional[Track]:
         """Property which returns the currently playing track"""
         return self._current
 
@@ -210,7 +223,7 @@ class Player(VoiceProtocol):
         return self._filters
 
     @property
-    def bot(self) -> Union[Client, commands.Bot]:
+    def bot(self) -> Client:
         """Property which returns the bot associated with this player instance"""
         return self._bot
 
@@ -221,13 +234,14 @@ class Player(VoiceProtocol):
         """
         return self.guild.id not in self._node._players
 
-    async def _update_state(self, data: dict):
-        state: dict = data.get("state")
-        self._last_update = time.time() * 1000
-        self._is_connected = state.get("connected")
-        self._last_position = state.get("position")
+    async def _update_state(self, data: dict) -> None:
+        state: dict = data.get("state", {})
+        self._last_update = time.time() * 1000.0
+        self._is_connected = bool(state.get("connected"))
+        position = state.get("position")
+        self._last_position = int(position) if position else 0
 
-    async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None):
+    async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None) -> None:
         if {"sessionId", "event"} != self._voice_state.keys():
             return
 
@@ -246,27 +260,32 @@ class Player(VoiceProtocol):
             data={"voice": data},
         )
 
-    async def on_voice_server_update(self, data: dict):
+    async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         self._voice_state.update({"event": data})
         await self._dispatch_voice_update(self._voice_state)
 
-    async def on_voice_state_update(self, data: dict):
+    async def on_voice_state_update(self, data: GuildVoiceState) -> None:
         self._voice_state.update({"sessionId": data.get("session_id")})
 
-        if not (channel_id := data.get("channel_id")):
+        channel_id = data.get("channel_id")
+        if not channel_id:
             await self.disconnect()
             self._voice_state.clear()
             return
 
-        self.channel = self.guild.get_channel(int(channel_id))
+        channel = self.guild.get_channel(int(channel_id))
+        if not channel:
+            await self.disconnect()
+            self._voice_state.clear()
+            return
 
         if not data.get("token"):
             return
 
         await self._dispatch_voice_update({**self._voice_state, "event": data})
 
-    async def _dispatch_event(self, data: dict):
-        event_type = data.get("type")
+    async def _dispatch_event(self, data: dict) -> None:
+        event_type: str = data["type"]
         event: PomiceEvent = getattr(events, event_type)(data, self)
 
         if isinstance(event, TrackEndEvent) and event.reason != "REPLACED":
@@ -277,11 +296,12 @@ class Player(VoiceProtocol):
         if isinstance(event, TrackStartEvent):
             self._ending_track = self._current
 
-    async def _swap_node(self, *, new_node: Node):
+    async def _swap_node(self, *, new_node: Node) -> None:
         data: dict = {
-            "encodedTrack": self.current.track_id,
             "position": self.position,
         }
+        if self.current:
+            data["encodedTrack"] = self.current.track_id
 
         del self._node._players[self._guild.id]
         self._node = new_node
@@ -304,7 +324,7 @@ class Player(VoiceProtocol):
         ctx: Optional[commands.Context] = None,
         search_type: SearchType = SearchType.ytsearch,
         filters: Optional[List[Filter]] = None,
-    ):
+    ) -> Optional[Union[List[Track], Playlist]]:
         """Fetches tracks from the node's REST api to parse into Lavalink.
 
         If you passed in Spotify API credentials when you created the node,
@@ -321,7 +341,7 @@ class Player(VoiceProtocol):
 
     async def get_recommendations(
         self, *, track: Track, ctx: Optional[commands.Context] = None
-    ) -> Union[List[Track], None]:
+    ) -> Optional[Union[List[Track], Playlist]]:
         """
         Gets recommendations from either YouTube or Spotify.
         You can pass in a discord.py Context object to get a
@@ -331,14 +351,14 @@ class Player(VoiceProtocol):
 
     async def connect(
         self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False
-    ):
+    ) -> None:
         await self.guild.change_voice_state(
-            channel=self.channel, self_deaf=self_deaf, self_mute=self_mute
+            channel=self.channel, self_deaf=self_deaf, self_mute=self_mute,
         )
         self._node._players[self.guild.id] = self
         self._is_connected = True
 
-    async def stop(self):
+    async def stop(self) -> None:
         """Stops the currently playing track."""
         self._current = None
         await self._node.send(
@@ -348,27 +368,27 @@ class Player(VoiceProtocol):
             data={"encodedTrack": None},
         )
 
-    async def disconnect(self, *, force: bool = False):
+    async def disconnect(self, *, force: bool = False) -> None:
         """Disconnects the player from voice."""
         try:
             await self.guild.change_voice_state(channel=None)
         finally:
             self.cleanup()
             self._is_connected = False
-            self.channel = None
+            del self.channel
 
-    async def destroy(self):
+    async def destroy(self) -> None:
         """Disconnects and destroys the player, and runs internal cleanup."""
         try:
             await self.disconnect()
         except AttributeError:
             # 'NoneType' has no attribute '_get_voice_client_key' raised by self.cleanup() ->
             # assume we're already disconnected and cleaned up
-            assert self.channel is None and not self.is_connected
+            assert not self.is_connected and not self.channel
 
         self._node._players.pop(self.guild.id)
         await self._node.send(
-            method="DELETE", path=self._player_endpoint_uri, guild_id=self._guild.id
+            method="DELETE", path=self._player_endpoint_uri, guild_id=self._guild.id,
         )
 
     async def play(
@@ -383,20 +403,22 @@ class Player(VoiceProtocol):
                 if not track.isrc:
                     # We have to bare raise here because theres no other way to skip this block feasibly
                     raise
-                search: Track = (
+                search = (
                     await self._node.get_tracks(f"{track._search_type}:{track.isrc}", ctx=track.ctx)
-                )[0]
+                )[0]  # type: ignore
             except Exception:
                 # First method didn't work, lets try just searching it up
                 try:
-                    search: Track = (
+                    search = (
                         await self._node.get_tracks(
-                            f"{track._search_type}:{track.title} - {track.author}", ctx=track.ctx
+                            f"{track._search_type}:{track.title} - {track.author}", ctx=track.ctx,
                         )
-                    )[0]
+                    )[0]  # type: ignore
                 except:
                     # The song wasn't able to be found, raise error
-                    raise TrackLoadError("No equivalent track was able to be found.")
+                    raise TrackLoadError(
+                        "No equivalent track was able to be found.",
+                    )
             data = {
                 "encodedTrack": search.track_id,
                 "position": str(start),
@@ -432,7 +454,7 @@ class Player(VoiceProtocol):
         if track.filters and not self.filters.has_global:
             # Now apply all filters
             for filter in track.filters:
-                await self.add_filter(filter=filter)
+                await self.add_filter(_filter=filter)
 
         # Lavalink v4 changed the way the end time parameter works
         # so now the end time cannot be zero.
@@ -454,8 +476,13 @@ class Player(VoiceProtocol):
 
     async def seek(self, position: float) -> float:
         """Seeks to a position in the currently playing track milliseconds"""
+        if not self._current or not self._current.original:
+            return 0.0
+
         if position < 0 or position > self._current.original.length:
-            raise TrackInvalidPosition("Seek position must be between 0 and the track length")
+            raise TrackInvalidPosition(
+                "Seek position must be between 0 and the track length",
+            )
 
         await self._node.send(
             method="PATCH",
@@ -487,7 +514,7 @@ class Player(VoiceProtocol):
         self._volume = volume
         return self._volume
 
-    async def add_filter(self, filter: Filter, fast_apply: bool = False) -> Filter:
+    async def add_filter(self, _filter: Filter, fast_apply: bool = False) -> Filters:
         """Adds a filter to the player. Takes a pomice.Filter object.
         This will only work if you are using a version of Lavalink that supports filters.
         If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
@@ -495,7 +522,7 @@ class Player(VoiceProtocol):
         (You must have a song playing in order for `fast_apply` to work.)
         """
 
-        self._filters.add_filter(filter=filter)
+        self._filters.add_filter(filter=_filter)
         payload = self._filters.get_all_payloads()
         await self._node.send(
             method="PATCH",
@@ -508,7 +535,7 @@ class Player(VoiceProtocol):
 
         return self._filters
 
-    async def remove_filter(self, filter_tag: str, fast_apply: bool = False) -> Filter:
+    async def remove_filter(self, filter_tag: str, fast_apply: bool = False) -> Filters:
         """Removes a filter from the player. Takes a filter tag.
         This will only work if you are using a version of Lavalink that supports filters.
         If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
@@ -529,7 +556,7 @@ class Player(VoiceProtocol):
 
         return self._filters
 
-    async def reset_filters(self, *, fast_apply: bool = False):
+    async def reset_filters(self, *, fast_apply: bool = False) -> None:
         """Resets all currently applied filters to their default parameters.
          You must have filters applied in order for this to work.
          If you would like the filters to be removed instantly, set the `fast_apply` arg to `True`.
@@ -539,7 +566,7 @@ class Player(VoiceProtocol):
 
         if not self._filters:
             raise FilterInvalidArgument(
-                "You must have filters applied first in order to use this method."
+                "You must have filters applied first in order to use this method.",
             )
         self._filters.reset_filters()
         await self._node.send(

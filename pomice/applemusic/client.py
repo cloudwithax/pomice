@@ -1,19 +1,27 @@
 from __future__ import annotations
 
+import base64
 import re
+from datetime import datetime
+from typing import Dict
+from typing import List
+from typing import Union
+
 import aiohttp
 import orjson as json
-import base64
 
-from datetime import datetime
-from .objects import *
 from .exceptions import *
+from .objects import *
+
+__all__ = (
+    "Client",
+)
 
 AM_URL_REGEX = re.compile(
-    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)"
+    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)",
 )
 AM_SINGLE_IN_ALBUM_REGEX = re.compile(
-    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)"
+    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)",
 )
 AM_REQ_URL = "https://api.music.apple.com/v1/catalog/{country}/{type}s/{id}"
 AM_BASE_URL = "https://api.music.apple.com"
@@ -26,37 +34,49 @@ class Client:
     """
 
     def __init__(self) -> None:
-        self.token: str = None
-        self.expiry: datetime = None
-        self.session: aiohttp.ClientSession = None
-        self.headers = None
+        self.expiry: datetime = datetime(1970, 1, 1)
+        self.token: str = ""
+        self.headers: Dict[str, str] = {}
+        self.session: aiohttp.ClientSession = None  # type: ignore
 
-    async def request_token(self):
+    async def request_token(self) -> None:
         if not self.session:
             self.session = aiohttp.ClientSession()
 
         async with self.session.get("https://music.apple.com/assets/index.919fe17f.js") as resp:
             if resp.status != 200:
                 raise AppleMusicRequestException(
-                    f"Error while fetching results: {resp.status} {resp.reason}"
+                    f"Error while fetching results: {resp.status} {resp.reason}",
                 )
             text = await resp.text()
-            result = re.search('"(eyJ.+?)"', text).group(1)
+            match = re.search('"(eyJ.+?)"', text)
+            if not match:
+                raise AppleMusicRequestException(
+                    "Could not find token in response.",
+                )
+            result = match.group(1)
+
             self.token = result
             self.headers = {
                 "Authorization": f"Bearer {result}",
                 "Origin": "https://apple.com",
             }
             token_split = self.token.split(".")[1]
-            token_json = base64.b64decode(token_split + "=" * (-len(token_split) % 4)).decode()
+            token_json = base64.b64decode(
+                token_split + "=" * (-len(token_split) % 4),
+            ).decode()
             token_data = json.loads(token_json)
             self.expiry = datetime.fromtimestamp(token_data["exp"])
 
-    async def search(self, query: str):
+    async def search(self, query: str) -> Union[Album, Playlist, Song, Artist]:
         if not self.token or datetime.utcnow() > self.expiry:
             await self.request_token()
 
         result = AM_URL_REGEX.match(query)
+        if not result:
+            raise InvalidAppleMusicURL(
+                "The Apple Music link provided is not valid.",
+            )
 
         country = result.group("country")
         type = result.group("type")
@@ -75,7 +95,7 @@ class Client:
         async with self.session.get(request_url, headers=self.headers) as resp:
             if resp.status != 200:
                 raise AppleMusicRequestException(
-                    f"Error while fetching results: {resp.status} {resp.reason}"
+                    f"Error while fetching results: {resp.status} {resp.reason}",
                 )
             data: dict = await resp.json(loads=json.loads)
 
@@ -84,53 +104,57 @@ class Client:
         if type == "song":
             return Song(data)
 
-        elif type == "album":
+        if type == "album":
             return Album(data)
 
-        elif type == "artist":
+        if type == "artist":
             async with self.session.get(
-                f"{request_url}/view/top-songs", headers=self.headers
+                f"{request_url}/view/top-songs", headers=self.headers,
             ) as resp:
                 if resp.status != 200:
                     raise AppleMusicRequestException(
-                        f"Error while fetching results: {resp.status} {resp.reason}"
+                        f"Error while fetching results: {resp.status} {resp.reason}",
                     )
                 top_tracks: dict = await resp.json(loads=json.loads)
-                tracks: dict = top_tracks["data"]
+                artist_tracks: dict = top_tracks["data"]
 
-            return Artist(data, tracks=tracks)
+            return Artist(data, tracks=artist_tracks)
 
-        else:
-            track_data: dict = data["relationships"]["tracks"]
+        track_data: dict = data["relationships"]["tracks"]
+        album_tracks: List[Song] = [
+            Song(track)
+            for track in track_data["data"]
+        ]
 
-            tracks = [Song(track) for track in track_data.get("data")]
+        if not len(album_tracks):
+            raise AppleMusicRequestException(
+                "This playlist is empty and therefore cannot be queued.",
+            )
 
-            if not len(tracks):
-                raise AppleMusicRequestException(
-                    "This playlist is empty and therefore cannot be queued."
-                )
+        _next = track_data.get("next")
+        if _next:
+            next_page_url = AM_BASE_URL + _next
 
-            if track_data.get("next"):
-                next_page_url = AM_BASE_URL + track_data.get("next")
+            while next_page_url is not None:
+                async with self.session.get(next_page_url, headers=self.headers) as resp:
+                    if resp.status != 200:
+                        raise AppleMusicRequestException(
+                            f"Error while fetching results: {resp.status} {resp.reason}",
+                        )
 
-                while next_page_url is not None:
-                    async with self.session.get(next_page_url, headers=self.headers) as resp:
-                        if resp.status != 200:
-                            raise AppleMusicRequestException(
-                                f"Error while fetching results: {resp.status} {resp.reason}"
-                            )
+                    next_data: dict = await resp.json(loads=json.loads)
 
-                        next_data: dict = await resp.json(loads=json.loads)
+                album_tracks.extend(Song(track) for track in next_data["data"])
 
-                    tracks += [Song(track) for track in next_data["data"]]
-                    if next_data.get("next"):
-                        next_page_url = AM_BASE_URL + next_data.get("next")
-                    else:
-                        next_page_url = None
+                _next = next_data.get("next")
+                if _next:
+                    next_page_url = AM_BASE_URL + _next
+                else:
+                    next_page_url = None
 
-            return Playlist(data, tracks)
+        return Playlist(data, album_tracks)
 
-    async def close(self):
+    async def close(self) -> None:
         if self.session:
             await self.session.close()
-            self.session = None
+            self.session = None  # type: ignore

@@ -8,7 +8,7 @@ Here are some common issues:
 
 If you are experiencing the first issue, you can download Lavalink [here.](https://github.com/freyacodes/Lavalink/releases/latest)
 
-As for the other listed issues, either consult the Lavalink docs or go through the proper support channels for your specfic issue at hand. 
+As for the other listed issues, either consult the Lavalink docs or go through the proper support channels for your specfic issue at hand.
 
 For any other issues not listed here, please consult your preferred resource for more information.
 
@@ -24,4 +24,4 @@ Refer to the [Installation](installation.md) section.
 
 If you are interested in learning how Pomice works, refer to the [API Reference](api/index.md) section.
 
-If you want a quick example, refer to the [Quickstart](quickstart.md) section. 
+If you want a quick example, refer to the [Quickstart](quickstart.md) section.

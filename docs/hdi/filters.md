@@ -23,7 +23,7 @@ Here are the different types and what they do:
 * - Distortion
   - `pomice.Distortion()`
   - Generates a distortion effect on a track.
-  
+
 * - Equalizer
   - `pomice.Equalizer()`
   - Represents a 15 band equalizer. You can adjust the dynamic of the sound using this filter.
@@ -184,4 +184,3 @@ After you have initialized your function, you can optionally include the `fast_a
 await Player.reset_filters(fast_apply=<True/False>)
 
 ```
-

@@ -1,18 +1,34 @@
 from __future__ import annotations
-from discord import Client, Guild
+
+from abc import ABC
+from typing import Any
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
+
+from discord import Client
+from discord import Guild
 from discord.ext import commands
 
-from .pool import NodePool
 from .objects import Track
-
-
-from typing import TYPE_CHECKING, Union
+from .pool import NodePool
 
 if TYPE_CHECKING:
     from .player import Player
 
+__all__ = (
+    "PomiceEvent",
+    "TrackStartEvent",
+    "TrackEndEvent",
+    "TrackStuckEvent",
+    "TrackExceptionEvent",
+    "WebSocketClosedPayload",
+    "WebSocketClosedEvent",
+    "WebSocketOpenEvent",
+)
 
-class PomiceEvent:
+
+class PomiceEvent(ABC):
     """The base class for all events dispatched by a node.
     Every event must be formatted within your bot's code as a listener.
     i.e: If you want to listen for when a track starts, the event would be:
@@ -23,9 +39,9 @@ class PomiceEvent:
     """
 
     name = "event"
-    handler_args = ()
+    handler_args: Tuple
 
-    def dispatch(self, bot: Union[Client, commands.Bot]):
+    def dispatch(self, bot: Client) -> None:
         bot.dispatch(f"pomice_{self.name}", *self.handler_args)
 
 
@@ -36,10 +52,15 @@ class TrackStartEvent(PomiceEvent):
 
     name = "track_start"
 
+    __slots__ = (
+        "player",
+        "track",
+    )
+
     def __init__(self, data: dict, player: Player):
-        __slots__ = ("player", "track")
 
         self.player: Player = player
+        assert self.player._current is not None
         self.track: Track = self.player._current
 
         # on_pomice_track_start(player, track)
@@ -56,10 +77,12 @@ class TrackEndEvent(PomiceEvent):
 
     name = "track_end"
 
+    __slots__ = ("player", "track", "reason")
+
     def __init__(self, data: dict, player: Player):
-        __slots__ = ("player", "track", "reason")
 
         self.player: Player = player
+        assert self.player._ending_track is not None
         self.track: Track = self.player._ending_track
         self.reason: str = data["reason"]
 
@@ -81,10 +104,12 @@ class TrackStuckEvent(PomiceEvent):
 
     name = "track_stuck"
 
+    __slots__ = ("player", "track", "threshold")
+
     def __init__(self, data: dict, player: Player):
-        __slots__ = ("player", "track", "threshold")
 
         self.player: Player = player
+        assert self.player._ending_track is not None
         self.track: Track = self.player._ending_track
         self.threshold: float = data["thresholdMs"]
 
@@ -105,17 +130,17 @@ class TrackExceptionEvent(PomiceEvent):
 
     name = "track_exception"
 
+    __slots__ = ("player", "track", "exception")
+
     def __init__(self, data: dict, player: Player):
-        __slots__ = ("player", "track", "exception")
 
         self.player: Player = player
+        assert self.player._ending_track is not None
         self.track: Track = self.player._ending_track
-        if data.get("error"):
-            # User is running Lavalink <= 3.3
-            self.exception: str = data["error"]
-        else:
-            # User is running Lavalink >=3.4
-            self.exception: str = data["exception"]
+        # Error is for Lavalink <= 3.3
+        self.exception: str = data.get(
+            "error", "",
+        ) or data.get("exception", "")
 
         # on_pomice_track_exception(player, track, error)
         self.handler_args = self.player, self.track, self.exception
@@ -125,10 +150,12 @@ class TrackExceptionEvent(PomiceEvent):
 
 
 class WebSocketClosedPayload:
-    def __init__(self, data: dict):
-        __slots__ = ("guild", "code", "reason", "by_remote")
+    __slots__ = ("guild", "code", "reason", "by_remote")
 
-        self.guild: Guild = NodePool.get_node().bot.get_guild(int(data["guildId"]))
+    def __init__(self, data: dict):
+
+        self.guild: Optional[Guild] = NodePool.get_node(
+        ).bot.get_guild(int(data["guildId"]))
         self.code: int = data["code"]
         self.reason: str = data["code"]
         self.by_remote: bool = data["byRemote"]
@@ -147,7 +174,9 @@ class WebSocketClosedEvent(PomiceEvent):
 
     name = "websocket_closed"
 
-    def __init__(self, data: dict, _):
+    __slots__ = ("payload",)
+
+    def __init__(self, data: dict, _: Any) -> None:
         self.payload: WebSocketClosedPayload = WebSocketClosedPayload(data)
 
         # on_pomice_websocket_closed(payload)
@@ -164,8 +193,9 @@ class WebSocketOpenEvent(PomiceEvent):
 
     name = "websocket_open"
 
-    def __init__(self, data: dict, _):
-        __slots__ = ("target", "ssrc")
+    __slots__ = ("target", "ssrc")
+
+    def __init__(self, data: dict, _: Any) -> None:
 
         self.target: str = data["target"]
         self.ssrc: int = data["ssrc"]

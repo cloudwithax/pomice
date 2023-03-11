@@ -19,7 +19,7 @@ There are also properties the `Node` class has to access certain values:
   - Description
 
 * - `Node.bot`
-  - `Union[Client, Bot]`
+  - `Client`
   - Returns the discord.py client linked to this node.
 
 * - `Node.is_connected`
@@ -132,7 +132,7 @@ If you want to enable it, refer to [](pool.md#adding-a-node)
 
 You should get a list of `Track` in return after running this function for you to then do whatever you want with it.
 Ideally, you should be putting all tracks into some sort of a queue. If you would like to learn about how to use
-our queue implementation, you can refer to [](queue.md) 
+our queue implementation, you can refer to [](queue.md)
 
 
 ## Getting recommendations
@@ -179,4 +179,4 @@ await Node.get_recommendations(
 
 You should get a list of `Track` in return after running this function for you to then do whatever you want with it.
 Ideally, you should be putting all tracks into some sort of a queue. If you would like to learn about how to use
-our queue implementation, you can refer to [](queue.md) 
+our queue implementation, you can refer to [](queue.md)

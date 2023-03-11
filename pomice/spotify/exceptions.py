@@ -1,3 +1,9 @@
+__all__ = (
+    "SpotifyRequestException",
+    "InvalidSpotifyURL",
+)
+
+
 class SpotifyRequestException(Exception):
     """An error occurred when making a request to the Spotify API"""
 

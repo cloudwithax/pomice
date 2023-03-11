@@ -1,13 +1,16 @@
 import discord
-import pomice
 from discord.ext import commands
+
+import pomice
 
 
 class MyBot(commands.Bot):
     def __init__(self) -> None:
         super().__init__(
             command_prefix="!",
-            activity=discord.Activity(type=discord.ActivityType.listening, name="to music!")
+            activity=discord.Activity(
+                type=discord.ActivityType.listening, name="to music!",
+            ),
         )
 
         self.add_cog(Music(self))
@@ -33,7 +36,7 @@ class Music(commands.Cog):
             host="127.0.0.1",
             port="3030",
             password="youshallnotpass",
-            identifier="MAIN"
+            identifier="MAIN",
         )
         print(f"Node is ready!")
 
@@ -44,7 +47,7 @@ class Music(commands.Cog):
             if not channel:
                 raise commands.CheckFailure(
                     "You must be in a voice channel to use this command "
-                    "without specifying the channel argument."
+                    "without specifying the channel argument.",
                 )
 
         # With the release of discord.py 1.7, you can now add a compatible
@@ -78,7 +81,9 @@ class Music(commands.Cog):
         results = await player.get_tracks(search)
 
         if not results:
-            raise commands.CommandError("No results were found for that search term.")
+            raise commands.CommandError(
+                "No results were found for that search term.",
+            )
 
         if isinstance(results, pomice.Playlist):
             await player.play(track=results.tracks[0])

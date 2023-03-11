@@ -1,3 +1,9 @@
+__all__ = (
+    "AppleMusicRequestException",
+    "InvalidAppleMusicURL",
+)
+
+
 class AppleMusicRequestException(Exception):
     """An error occurred when making a request to the Apple Music API"""
 

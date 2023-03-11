@@ -1,5 +1,24 @@
 import collections
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Tuple
+
 from .exceptions import FilterInvalidArgument
+
+__all__ = (
+    "Filter",
+    "Equalizer",
+    "Timescale",
+    "Karaoke",
+    "Tremolo",
+    "Vibrato",
+    "Rotation",
+    "Distortion",
+    "ChannelMix",
+    "LowPass",
+)
 
 
 class Filter:
@@ -13,10 +32,10 @@ class Filter:
     This is necessary for the removal of filters.
     """
 
-    def __init__(self, *, tag: str):
-        __slots__ = ("payload", "tag", "preload")
+    __slots__ = ("payload", "tag", "preload")
 
-        self.payload: dict = None
+    def __init__(self, *, tag: str):
+        self.payload: Optional[Dict] = None
         self.tag: str = tag
         self.preload: bool = False
 
@@ -34,32 +53,32 @@ class Equalizer(Filter):
     The format for the levels is: List[Tuple[int, float]]
     """
 
+    __slots__ = (
+        "eq",
+        "raw",
+    )
+
     def __init__(self, *, tag: str, levels: list):
         super().__init__(tag=tag)
-
-        __slots__ = (
-            "eq",
-            "raw",
-        )
 
         self.eq = self._factory(levels)
         self.raw = levels
 
         self.payload = {"equalizer": self.eq}
 
-    def _factory(self, levels: list):
-        _dict = collections.defaultdict(int)
+    def _factory(self, levels: List[Tuple[Any, Any]]) -> List[Dict]:
+        _dict: Dict = collections.defaultdict(int)
 
         _dict.update(levels)
-        _dict = [{"band": i, "gain": _dict[i]} for i in range(15)]
+        data = [{"band": i, "gain": _dict[i]} for i in range(15)]
 
-        return _dict
+        return data
 
     def __repr__(self) -> str:
         return f"<Pomice.EqualizerFilter tag={self.tag} eq={self.eq} raw={self.raw}>"
 
     @classmethod
-    def flat(cls):
+    def flat(cls) -> "Equalizer":
         """Equalizer preset which represents a flat EQ board,
         with all levels set to their default values.
         """
@@ -84,7 +103,7 @@ class Equalizer(Filter):
         return cls(tag="flat", levels=levels)
 
     @classmethod
-    def boost(cls):
+    def boost(cls) -> "Equalizer":
         """Equalizer preset which boosts the sound of a track,
         making it sound fun and energetic by increasing the bass
         and the highs.
@@ -110,7 +129,7 @@ class Equalizer(Filter):
         return cls(tag="boost", levels=levels)
 
     @classmethod
-    def metal(cls):
+    def metal(cls) -> "Equalizer":
         """Equalizer preset which increases the mids of a track,
         preferably one of the metal genre, to make it sound
         more full and concert-like.
@@ -137,7 +156,7 @@ class Equalizer(Filter):
         return cls(tag="metal", levels=levels)
 
     @classmethod
-    def piano(cls):
+    def piano(cls) -> "Equalizer":
         """Equalizer preset which increases the mids and highs
         of a track, preferably a piano based one, to make it
         stand out.
@@ -169,10 +188,10 @@ class Timescale(Filter):
     a certain amount to produce said effect.
     """
 
+    __slots__ = ("speed", "pitch", "rate")
+
     def __init__(self, *, tag: str, speed: float = 1.0, pitch: float = 1.0, rate: float = 1.0):
         super().__init__(tag=tag)
-
-        __slots__ = ("speed", "pitch", "rate")
 
         if speed < 0:
             raise FilterInvalidArgument("Timescale speed must be more than 0.")
@@ -186,11 +205,11 @@ class Timescale(Filter):
         self.rate: float = rate
 
         self.payload: dict = {
-            "timescale": {"speed": self.speed, "pitch": self.pitch, "rate": self.rate}
+            "timescale": {"speed": self.speed, "pitch": self.pitch, "rate": self.rate},
         }
 
     @classmethod
-    def vaporwave(cls):
+    def vaporwave(cls) -> "Timescale":
         """Timescale preset which slows down the currently playing track,
         giving it the effect of a half-speed record/casette playing.
 
@@ -200,7 +219,7 @@ class Timescale(Filter):
         return cls(tag="vaporwave", speed=0.8, pitch=0.8)
 
     @classmethod
-    def nightcore(cls):
+    def nightcore(cls) -> "Timescale":
         """Timescale preset which speeds up the currently playing track,
         which matches up to nightcore, a genre of sped-up music
 
@@ -209,7 +228,7 @@ class Timescale(Filter):
 
         return cls(tag="nightcore", speed=1.25, pitch=1.3)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Pomice.TimescaleFilter tag={self.tag} speed={self.speed} pitch={self.pitch} rate={self.rate}>"
 
 
@@ -217,6 +236,7 @@ class Karaoke(Filter):
     """Filter which filters the vocal track from any song and leaves the instrumental.
     Best for karaoke as the filter implies.
     """
+    __slots__ = ("level", "mono_level", "filter_band", "filter_width")
 
     def __init__(
         self,
@@ -229,8 +249,6 @@ class Karaoke(Filter):
     ):
         super().__init__(tag=tag)
 
-        __slots__ = ("level", "mono_level", "filter_band", "filter_width")
-
         self.level: float = level
         self.mono_level: float = mono_level
         self.filter_band: float = filter_band
@@ -242,10 +260,10 @@ class Karaoke(Filter):
                 "monoLevel": self.mono_level,
                 "filterBand": self.filter_band,
                 "filterWidth": self.filter_width,
-            }
+            },
         }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<Pomice.KaraokeFilter tag={self.tag} level={self.level} mono_level={self.mono_level} "
             f"filter_band={self.filter_band} filter_width={self.filter_width}>"
@@ -256,23 +274,30 @@ class Tremolo(Filter):
     """Filter which produces a wavering tone in the music,
     causing it to sound like the music is changing in volume rapidly.
     """
+    __slots__ = ("frequency", "depth")
 
     def __init__(self, *, tag: str, frequency: float = 2.0, depth: float = 0.5):
         super().__init__(tag=tag)
 
-        __slots__ = ("frequency", "depth")
-
         if frequency < 0:
-            raise FilterInvalidArgument("Tremolo frequency must be more than 0.")
+            raise FilterInvalidArgument(
+                "Tremolo frequency must be more than 0.",
+            )
         if depth < 0 or depth > 1:
-            raise FilterInvalidArgument("Tremolo depth must be between 0 and 1.")
+            raise FilterInvalidArgument(
+                "Tremolo depth must be between 0 and 1.",
+            )
 
         self.frequency: float = frequency
         self.depth: float = depth
 
-        self.payload: dict = {"tremolo": {"frequency": self.frequency, "depth": self.depth}}
+        self.payload: dict = {
+            "tremolo": {
+                "frequency": self.frequency, "depth": self.depth,
+            },
+        }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<Pomice.TremoloFilter tag={self.tag} frequency={self.frequency} depth={self.depth}>"
         )
@@ -282,23 +307,30 @@ class Vibrato(Filter):
     """Filter which produces a wavering tone in the music, similar to the Tremolo filter,
     but changes in pitch rather than volume.
     """
+    __slots__ = ("frequency", "depth")
 
     def __init__(self, *, tag: str, frequency: float = 2.0, depth: float = 0.5):
         super().__init__(tag=tag)
 
-        __slots__ = ("frequency", "depth")
-
         if frequency < 0 or frequency > 14:
-            raise FilterInvalidArgument("Vibrato frequency must be between 0 and 14.")
+            raise FilterInvalidArgument(
+                "Vibrato frequency must be between 0 and 14.",
+            )
         if depth < 0 or depth > 1:
-            raise FilterInvalidArgument("Vibrato depth must be between 0 and 1.")
+            raise FilterInvalidArgument(
+                "Vibrato depth must be between 0 and 1.",
+            )
 
         self.frequency: float = frequency
         self.depth: float = depth
 
-        self.payload: dict = {"vibrato": {"frequency": self.frequency, "depth": self.depth}}
+        self.payload: dict = {
+            "vibrato": {
+                "frequency": self.frequency, "depth": self.depth,
+            },
+        }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return (
             f"<Pomice.VibratoFilter tag={self.tag} frequency={self.frequency} depth={self.depth}>"
         )
@@ -309,10 +341,10 @@ class Rotation(Filter):
     the audio is being rotated around the listener's head
     """
 
+    __slots__ = ("rotation_hertz",)
+
     def __init__(self, *, tag: str, rotation_hertz: float = 5):
         super().__init__(tag=tag)
-
-        __slots__ = "rotation_hertz"
 
         self.rotation_hertz: float = rotation_hertz
         self.payload: dict = {"rotation": {"rotationHz": self.rotation_hertz}}
@@ -326,6 +358,13 @@ class ChannelMix(Filter):
     for some cool effects when done correctly.
     """
 
+    __slots__ = (
+        "left_to_left",
+        "right_to_right",
+        "left_to_right",
+        "right_to_left",
+    )
+
     def __init__(
         self,
         *,
@@ -337,23 +376,21 @@ class ChannelMix(Filter):
     ):
         super().__init__(tag=tag)
 
-        __slots__ = ("left_to_left", "right_to_right", "left_to_right", "right_to_left")
-
         if 0 > left_to_left > 1:
             raise ValueError(
-                "'left_to_left' value must be more than or equal to 0 or less than or equal to 1."
+                "'left_to_left' value must be more than or equal to 0 or less than or equal to 1.",
             )
         if 0 > right_to_right > 1:
             raise ValueError(
-                "'right_to_right' value must be more than or equal to 0 or less than or equal to 1."
+                "'right_to_right' value must be more than or equal to 0 or less than or equal to 1.",
             )
         if 0 > left_to_right > 1:
             raise ValueError(
-                "'left_to_right' value must be more than or equal to 0 or less than or equal to 1."
+                "'left_to_right' value must be more than or equal to 0 or less than or equal to 1.",
             )
         if 0 > right_to_left > 1:
             raise ValueError(
-                "'right_to_left' value must be more than or equal to 0 or less than or equal to 1."
+                "'right_to_left' value must be more than or equal to 0 or less than or equal to 1.",
             )
 
         self.left_to_left: float = left_to_left
@@ -367,7 +404,7 @@ class ChannelMix(Filter):
                 "leftToRight": self.left_to_right,
                 "rightToLeft": self.right_to_left,
                 "rightToRight": self.right_to_right,
-            }
+            },
         }
 
     def __repr__(self) -> str:
@@ -381,6 +418,17 @@ class Distortion(Filter):
     """Filter which generates a distortion effect. Useful for certain filter implementations where
     distortion is needed.
     """
+
+    __slots__ = (
+        "sin_offset",
+        "sin_scale",
+        "cos_offset",
+        "cos_scale",
+        "tan_offset",
+        "tan_scale",
+        "offset",
+        "scale",
+    )
 
     def __init__(
         self,
@@ -396,16 +444,6 @@ class Distortion(Filter):
         scale: float = 1,
     ):
         super().__init__(tag=tag)
-
-        __slots__ = (
-            "sin_offset",
-            "sin_scale",
-            "cos_offset",
-            "cos_scale",
-            "tan_offset",
-            "tan_scale" "offset",
-            "scale",
-        )
 
         self.sin_offset: float = sin_offset
         self.sin_scale: float = sin_scale
@@ -426,7 +464,7 @@ class Distortion(Filter):
                 "tanScale": self.tan_scale,
                 "offset": self.offset,
                 "scale": self.scale,
-            }
+            },
         }
 
     def __repr__(self) -> str:
@@ -441,11 +479,10 @@ class LowPass(Filter):
     """Filter which supresses higher frequencies and allows lower frequencies to pass.
     You can also do this with the Equalizer filter, but this is an easier way to do it.
     """
+    __slots__ = ("smoothing", "payload")
 
     def __init__(self, *, tag: str, smoothing: float = 20):
         super().__init__(tag=tag)
-
-        __slots__ = "smoothing"
 
         self.smoothing: float = smoothing
         self.payload: dict = {"lowPass": {"smoothing": self.smoothing}}

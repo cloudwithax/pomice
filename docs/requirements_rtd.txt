@@ -1,5 +1,5 @@
-discord.py[voice]
 aiohttp
-orjson
-myst_parser
+discord.py[voice]
 furo
+myst_parser
+orjson

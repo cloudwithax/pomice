@@ -22,7 +22,7 @@ from pomice import Player, Queue
 
 class CustomPlayer(Player):
     ...
-    self.queue = Queue() 
+    self.queue = Queue()
 
 ```
 
@@ -52,7 +52,7 @@ To get a track from the queue, we need to do a few things.
 
 To get a track using its position within the queue, you first need to get the position as a number, also known as its index. If you dont have the index and instead want to search for its index using keywords, you have to implement a fuzzy searching algorithm to find said track using a search query as an input and have it compare that query against the titles of the tracks in the queue. After that, you can get the `Track` object by [getting it with its index](queue.md#getting-track-with-its-index)
 
-### Getting index of track 
+### Getting index of track
 
 If you have the `Track` object and want to get its index within the queue, we can use `Queue.find_position()`
 
@@ -222,13 +222,3 @@ Your `Track` object must be in the queue if you want to jump to it. Make sure yo
 :::
 
 After running this function, any items before the specified item will be removed, effectively "jumping" to the specified item in the queue. The next item obtained using `Queue.get()` will be your specified track.
-
-
-
-
-
-
-
-
-
-

@@ -45,8 +45,5 @@ and properties for further evaluation. They also carry a `Track` object so you c
 `Event.WebsocketClosedEvent()` carries a payload object that contains a `Guild` object, the code number, the reason for disconnect and whether or not it was by the
 remote, or the node.
 
-`Event.WebsocketOpenEvent()` carries a target, which is usually the node IP, and the SSRC, a 32-bit integer uniquely identifying the source of the RTP packets sent from 
+`Event.WebsocketOpenEvent()` carries a target, which is usually the node IP, and the SSRC, a 32-bit integer uniquely identifying the source of the RTP packets sent from
 Lavalink.
-
-
-
