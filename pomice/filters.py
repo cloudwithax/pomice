@@ -236,6 +236,7 @@ class Karaoke(Filter):
     """Filter which filters the vocal track from any song and leaves the instrumental.
     Best for karaoke as the filter implies.
     """
+
     __slots__ = ("level", "mono_level", "filter_band", "filter_width")
 
     def __init__(
@@ -274,6 +275,7 @@ class Tremolo(Filter):
     """Filter which produces a wavering tone in the music,
     causing it to sound like the music is changing in volume rapidly.
     """
+
     __slots__ = ("frequency", "depth")
 
     def __init__(self, *, tag: str, frequency: float = 2.0, depth: float = 0.5):
@@ -293,7 +295,8 @@ class Tremolo(Filter):
 
         self.payload: dict = {
             "tremolo": {
-                "frequency": self.frequency, "depth": self.depth,
+                "frequency": self.frequency,
+                "depth": self.depth,
             },
         }
 
@@ -307,6 +310,7 @@ class Vibrato(Filter):
     """Filter which produces a wavering tone in the music, similar to the Tremolo filter,
     but changes in pitch rather than volume.
     """
+
     __slots__ = ("frequency", "depth")
 
     def __init__(self, *, tag: str, frequency: float = 2.0, depth: float = 0.5):
@@ -326,7 +330,8 @@ class Vibrato(Filter):
 
         self.payload: dict = {
             "vibrato": {
-                "frequency": self.frequency, "depth": self.depth,
+                "frequency": self.frequency,
+                "depth": self.depth,
             },
         }
 
@@ -479,6 +484,7 @@ class LowPass(Filter):
     """Filter which supresses higher frequencies and allows lower frequencies to pass.
     You can also do this with the Equalizer filter, but this is an easier way to do it.
     """
+
     __slots__ = ("smoothing", "payload")
 
     def __init__(self, *, tag: str, smoothing: float = 20):

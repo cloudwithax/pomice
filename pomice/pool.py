@@ -102,7 +102,6 @@ class Node:
         apple_music: bool = False,
         fallback: bool = False,
     ):
-
         self._bot: commands.Bot = bot
         self._host: str = host
         self._port: int = port
@@ -147,7 +146,8 @@ class Node:
 
         if self._spotify_client_id and self._spotify_client_secret:
             self._spotify_client: spotify.Client = spotify.Client(
-                self._spotify_client_id, self._spotify_client_secret,
+                self._spotify_client_id,
+                self._spotify_client_secret,
             )
 
         if apple_music:
@@ -227,10 +227,7 @@ class Node:
                 return
 
     async def _handle_node_switch(self) -> None:
-        nodes = [
-            node for node in self.pool._nodes.copy().values()
-            if node.is_connected
-        ]
+        nodes = [node for node in self.pool._nodes.copy().values() if node.is_connected]
         new_node = random.choice(nodes)
 
         for player in self.players.copy().values():
@@ -304,7 +301,10 @@ class Node:
         )
 
         async with self._session.request(
-            method=method, url=uri, headers=self._headers, json=data or {},
+            method=method,
+            url=uri,
+            headers=self._headers,
+            json=data or {},
         ) as resp:
             if resp.status >= 300:
                 resp_data: dict = await resp.json()
@@ -405,7 +405,9 @@ class Node:
         """
 
         data: dict = await self.send(
-            method="GET", path="decodetrack", query=f"encodedTrack={identifier}",
+            method="GET",
+            path="decodetrack",
+            query=f"encodedTrack={identifier}",
         )
         return Track(
             track_id=identifier,
@@ -499,7 +501,8 @@ class Node:
 
             return Playlist(
                 playlist_info={
-                    "name": apple_music_results.name, "selectedTrack": 0,
+                    "name": apple_music_results.name,
+                    "selectedTrack": 0,
                 },
                 tracks=tracks,
                 playlist_type=PlaylistType.APPLE_MUSIC,
@@ -565,7 +568,8 @@ class Node:
 
             return Playlist(
                 playlist_info={
-                    "name": spotify_results.name, "selectedTrack": 0,
+                    "name": spotify_results.name,
+                    "selectedTrack": 0,
                 },
                 tracks=tracks,
                 playlist_type=PlaylistType.SPOTIFY,
@@ -575,7 +579,9 @@ class Node:
 
         elif discord_url := URLRegex.DISCORD_MP3_URL.match(query):
             data: dict = await self.send(
-                method="GET", path="loadtracks", query=f"identifier={quote(query)}",
+                method="GET",
+                path="loadtracks",
+                query=f"identifier={quote(query)}",
             )
 
             track: dict = data["tracks"][0]
@@ -611,7 +617,9 @@ class Node:
                 query = match.group("video")
 
             data = await self.send(
-                method="GET", path="loadtracks", query=f"identifier={quote(query)}",
+                method="GET",
+                path="loadtracks",
+                query=f"identifier={quote(query)}",
             )
 
         load_type = data.get("loadType")
@@ -748,9 +756,7 @@ class NodePool:
         based on how players it has. This method will return a node with
         the least amount of players
         """
-        available_nodes: List[Node] = [
-            node for node in cls._nodes.values() if node._available
-        ]
+        available_nodes: List[Node] = [node for node in cls._nodes.values() if node._available]
 
         if not available_nodes:
             raise NoNodesAvailable("There are no nodes available.")
@@ -760,10 +766,7 @@ class NodePool:
             return min(tested_nodes, key=tested_nodes.get)  # type: ignore
 
         elif algorithm == NodeAlgorithm.by_players:
-            tested_nodes = {
-                node: len(node.players.keys())
-                for node in available_nodes
-            }
+            tested_nodes = {node: len(node.players.keys()) for node in available_nodes}
             return min(tested_nodes, key=tested_nodes.get)  # type: ignore
 
         else:
@@ -839,9 +842,7 @@ class NodePool:
     async def disconnect(cls) -> None:
         """Disconnects all available nodes from the node pool."""
 
-        available_nodes: List[Node] = [
-            node for node in cls._nodes.values() if node._available
-        ]
+        available_nodes: List[Node] = [node for node in cls._nodes.values() if node._available]
 
         for node in available_nodes:
             await node.disconnect()

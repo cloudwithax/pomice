@@ -135,7 +135,6 @@ class Player(VoiceProtocol):
         *,
         node: Optional[Node] = None,
     ) -> None:
-
         self.client: Client = client
         self.channel: VoiceChannel = channel
 
@@ -353,7 +352,9 @@ class Player(VoiceProtocol):
         self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False
     ) -> None:
         await self.guild.change_voice_state(
-            channel=self.channel, self_deaf=self_deaf, self_mute=self_mute,
+            channel=self.channel,
+            self_deaf=self_deaf,
+            self_mute=self_mute,
         )
         self._node._players[self.guild.id] = self
         self._is_connected = True
@@ -388,7 +389,9 @@ class Player(VoiceProtocol):
 
         self._node._players.pop(self.guild.id)
         await self._node.send(
-            method="DELETE", path=self._player_endpoint_uri, guild_id=self._guild.id,
+            method="DELETE",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
         )
 
     async def play(
@@ -405,15 +408,20 @@ class Player(VoiceProtocol):
                     raise
                 search = (
                     await self._node.get_tracks(f"{track._search_type}:{track.isrc}", ctx=track.ctx)
-                )[0]  # type: ignore
+                )[
+                    0
+                ]  # type: ignore
             except Exception:
                 # First method didn't work, lets try just searching it up
                 try:
                     search = (
                         await self._node.get_tracks(
-                            f"{track._search_type}:{track.title} - {track.author}", ctx=track.ctx,
+                            f"{track._search_type}:{track.title} - {track.author}",
+                            ctx=track.ctx,
                         )
-                    )[0]  # type: ignore
+                    )[
+                        0
+                    ]  # type: ignore
                 except:
                     # The song wasn't able to be found, raise error
                     raise TrackLoadError(

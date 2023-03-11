@@ -13,9 +13,7 @@ import orjson as json
 from .exceptions import *
 from .objects import *
 
-__all__ = (
-    "Client",
-)
+__all__ = ("Client",)
 
 AM_URL_REGEX = re.compile(
     r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)",
@@ -109,7 +107,8 @@ class Client:
 
         if type == "artist":
             async with self.session.get(
-                f"{request_url}/view/top-songs", headers=self.headers,
+                f"{request_url}/view/top-songs",
+                headers=self.headers,
             ) as resp:
                 if resp.status != 200:
                     raise AppleMusicRequestException(
@@ -121,10 +120,7 @@ class Client:
             return Artist(data, tracks=artist_tracks)
 
         track_data: dict = data["relationships"]["tracks"]
-        album_tracks: List[Song] = [
-            Song(track)
-            for track in track_data["data"]
-        ]
+        album_tracks: List[Song] = [Song(track) for track in track_data["data"]]
 
         if not len(album_tracks):
             raise AppleMusicRequestException(

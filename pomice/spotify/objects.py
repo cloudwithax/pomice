@@ -14,9 +14,7 @@ class Track:
 
     def __init__(self, data: dict, image: Optional[str] = None) -> None:
         self.name: str = data["name"]
-        self.artists: str = ", ".join(
-            artist["name"] for artist in data["artists"]
-        )
+        self.artists: str = ", ".join(artist["name"] for artist in data["artists"])
         self.length: float = data["duration_ms"]
         self.id: str = data["id"]
 
@@ -66,14 +64,9 @@ class Album:
 
     def __init__(self, data: dict) -> None:
         self.name: str = data["name"]
-        self.artists: str = ", ".join(
-            artist["name"] for artist in data["artists"]
-        )
+        self.artists: str = ", ".join(artist["name"] for artist in data["artists"])
         self.image: str = data["images"][0]["url"]
-        self.tracks = [
-            Track(track, image=self.image)
-            for track in data["tracks"]["items"]
-        ]
+        self.tracks = [Track(track, image=self.image) for track in data["tracks"]["items"]]
         self.total_tracks: int = data["total_tracks"]
         self.id: str = data["id"]
         self.uri: str = data["external_urls"]["spotify"]

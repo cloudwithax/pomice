@@ -87,7 +87,6 @@ class NodeStats:
     )
 
     def __init__(self, data: Dict[str, Any]) -> None:
-
         memory: dict = data.get("memory", {})
         self.used = memory.get("used")
         self.free = memory.get("free")
@@ -117,7 +116,6 @@ class FailingIPBlock:
     __slots__ = ("address", "failing_time")
 
     def __init__(self, data: dict) -> None:
-
         self.address = data.get("address")
         self.failing_time = datetime.fromtimestamp(
             float(data.get("failingTimestamp", 0)),
@@ -143,7 +141,6 @@ class RouteStats:
     )
 
     def __init__(self, data: Dict[str, Any]) -> None:
-
         self.strategy = RouteStrategy(data.get("class"))
 
         details: dict = data.get("details", {})
@@ -154,7 +151,8 @@ class RouteStats:
         self.failing_addresses = [
             FailingIPBlock(
                 data,
-            ) for data in details.get("failingAddresses", [])
+            )
+            for data in details.get("failingAddresses", [])
         ]
 
         self.block_index = details.get("blockIndex")
@@ -220,7 +218,8 @@ class Ping:
         s = self._create_socket(socket.AF_INET, socket.SOCK_STREAM)
 
         cost_time = self.timer.cost(
-            (s.connect, s.shutdown), ((self._host, self._port), None),
+            (s.connect, s.shutdown),
+            ((self._host, self._port), None),
         )
         s_runtime = 1000 * (cost_time)
 

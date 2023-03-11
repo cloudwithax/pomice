@@ -15,9 +15,7 @@ from .exceptions import InvalidSpotifyURL
 from .exceptions import SpotifyRequestException
 from .objects import *
 
-__all__ = (
-    "Client",
-)
+__all__ = ("Client",)
 
 
 GRANT_URL = "https://accounts.spotify.com/api/token"
@@ -96,7 +94,8 @@ class Client:
             return Album(data)
         elif spotify_type == "artist":
             async with self.session.get(
-                f"{request_url}/top-tracks?market=US", headers=self._bearer_headers,
+                f"{request_url}/top-tracks?market=US",
+                headers=self._bearer_headers,
             ) as resp:
                 if resp.status != 200:
                     raise SpotifyRequestException(
@@ -155,7 +154,8 @@ class Client:
             )
 
         request_url = REQUEST_URL.format(
-            type="recommendation", id=f"?seed_tracks={spotify_id}",
+            type="recommendation",
+            id=f"?seed_tracks={spotify_id}",
         )
 
         async with self.session.get(request_url, headers=self._bearer_headers) as resp:

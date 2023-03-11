@@ -6,7 +6,7 @@ pomice.egg-info/
 docs/_build/
 build/
 .gitpod.yml
-.python-verson
+.python-version
 Pipfile.lock
 .mypy_cache/
 .vscode/

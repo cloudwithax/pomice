@@ -14,9 +14,7 @@ from .exceptions import QueueException
 from .exceptions import QueueFull
 from .objects import Track
 
-__all__ = (
-    "Queue",
-)
+__all__ = ("Queue",)
 
 
 class Queue(Iterable[Track]):
@@ -36,7 +34,6 @@ class Queue(Iterable[Track]):
         *,
         overflow: bool = True,
     ):
-
         self.max_size: Optional[int] = max_size
         self._current_item: Track
         self._queue: List[Track] = []
@@ -353,5 +350,5 @@ class Queue(Iterable[Track]):
     def jump(self, item: Track) -> None:
         """Removes all tracks before the."""
         index = self.find_position(item)
-        new_queue = self._queue[index: self.size]
+        new_queue = self._queue[index : self.size]
         self._queue = new_queue

@@ -60,7 +60,6 @@ class Track:
         timestamp: Optional[float] = None,
         requester: Optional[Union[Member, User, ClientUser]] = None,
     ):
-
         self.track_id: str = track_id
         self.info: dict = info
         self.track_type: TrackType = track_type
@@ -137,7 +136,6 @@ class Playlist:
         thumbnail: Optional[str] = None,
         uri: Optional[str] = None,
     ):
-
         self.playlist_info: dict = playlist_info
         self.tracks: List[Track] = tracks
         self.name: str = playlist_info.get("name", "Unknown Playlist")

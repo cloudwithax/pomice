@@ -4,22 +4,23 @@ import os
 import sys
 from typing import Any
 from typing import Dict
-sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('..'))
+
+sys.path.insert(0, os.path.abspath("."))
+sys.path.insert(0, os.path.abspath(".."))
 
 
-project = 'Pomice'
-copyright = '2023, cloudwithax'
-author = 'cloudwithax'
+project = "Pomice"
+copyright = "2023, cloudwithax"
+author = "cloudwithax"
 
-release = '2.2'
+release = "2.2"
 
 
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.autosummary',
-    'sphinx.ext.linkcode',
-    'myst_parser',
+    "sphinx.ext.autodoc",
+    "sphinx.ext.autosummary",
+    "sphinx.ext.linkcode",
+    "myst_parser",
 ]
 
 myst_enable_extensions = [
@@ -40,9 +41,9 @@ myst_enable_extensions = [
 myst_heading_anchors = 3
 
 
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 # We need to include this because discord.py has special tags
 # they inlcude within their docstrings that dont parse
@@ -55,9 +56,9 @@ rst_prolog = """
 .. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
 """
 
-html_theme = 'furo'
+html_theme = "furo"
 
-html_static_path = ['_static']
+html_static_path = ["_static"]
 
 html_title = "Pomice"
 
@@ -89,9 +90,9 @@ def linkcode_resolve(domain, info):
     # i absolutely MUST add this here or else
     # the docs will not build. fuck sphinx
     try:
-        if domain != 'py':
+        if domain != "py":
             return None
-        if not info['module']:
+        if not info["module"]:
             return None
 
         mod = importlib.import_module(info["module"])

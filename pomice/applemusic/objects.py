@@ -61,9 +61,7 @@ class Album:
         self.id: str = data["id"]
         self.artists: str = data["attributes"]["artistName"]
         self.total_tracks: int = data["attributes"]["trackCount"]
-        self.tracks: List[Song] = [
-            Song(track) for track in data["relationships"]["tracks"]["data"]
-        ]
+        self.tracks: List[Song] = [Song(track) for track in data["relationships"]["tracks"]["data"]]
         self.image: str = data["attributes"]["artwork"]["url"].replace(
             "{w}x{h}",
             f'{data["attributes"]["artwork"]["width"]}x{data["attributes"]["artwork"]["height"]}',
@@ -83,9 +81,7 @@ class Artist:
         self.name: str = f'Top tracks for {data["attributes"]["name"]}'
         self.url: str = data["attributes"]["url"]
         self.id: str = data["id"]
-        self.genres: str = ", ".join(
-            genre for genre in data["attributes"]["genreNames"]
-        )
+        self.genres: str = ", ".join(genre for genre in data["attributes"]["genreNames"])
         self.tracks: List[Song] = [Song(track) for track in tracks]
         self.image: str = data["attributes"]["artwork"]["url"].replace(
             "{w}x{h}",

@@ -9,7 +9,8 @@ class MyBot(commands.Bot):
         super().__init__(
             command_prefix="!",
             activity=discord.Activity(
-                type=discord.ActivityType.listening, name="to music!",
+                type=discord.ActivityType.listening,
+                name="to music!",
             ),
         )
 

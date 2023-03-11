@@ -58,7 +58,6 @@ class TrackStartEvent(PomiceEvent):
     )
 
     def __init__(self, data: dict, player: Player):
-
         self.player: Player = player
         assert self.player._current is not None
         self.track: Track = self.player._current
@@ -80,7 +79,6 @@ class TrackEndEvent(PomiceEvent):
     __slots__ = ("player", "track", "reason")
 
     def __init__(self, data: dict, player: Player):
-
         self.player: Player = player
         assert self.player._ending_track is not None
         self.track: Track = self.player._ending_track
@@ -107,7 +105,6 @@ class TrackStuckEvent(PomiceEvent):
     __slots__ = ("player", "track", "threshold")
 
     def __init__(self, data: dict, player: Player):
-
         self.player: Player = player
         assert self.player._ending_track is not None
         self.track: Track = self.player._ending_track
@@ -133,13 +130,13 @@ class TrackExceptionEvent(PomiceEvent):
     __slots__ = ("player", "track", "exception")
 
     def __init__(self, data: dict, player: Player):
-
         self.player: Player = player
         assert self.player._ending_track is not None
         self.track: Track = self.player._ending_track
         # Error is for Lavalink <= 3.3
         self.exception: str = data.get(
-            "error", "",
+            "error",
+            "",
         ) or data.get("exception", "")
 
         # on_pomice_track_exception(player, track, error)
@@ -153,9 +150,7 @@ class WebSocketClosedPayload:
     __slots__ = ("guild", "code", "reason", "by_remote")
 
     def __init__(self, data: dict):
-
-        self.guild: Optional[Guild] = NodePool.get_node(
-        ).bot.get_guild(int(data["guildId"]))
+        self.guild: Optional[Guild] = NodePool.get_node().bot.get_guild(int(data["guildId"]))
         self.code: int = data["code"]
         self.reason: str = data["code"]
         self.by_remote: bool = data["byRemote"]
@@ -196,7 +191,6 @@ class WebSocketOpenEvent(PomiceEvent):
     __slots__ = ("target", "ssrc")
 
     def __init__(self, data: dict, _: Any) -> None:
-
         self.target: str = data["target"]
         self.ssrc: int = data["ssrc"]
 
