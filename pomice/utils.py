@@ -93,7 +93,7 @@ class NodeStats:
 class FailingIPBlock:
     """
     The base class for the failing IP block object from the route planner stats.
-    Gives critical information about any failing addresses on the block 
+    Gives critical information about any failing addresses on the block
     and the time they failed.
     """
     def __init__(self, data: dict) -> None:
@@ -102,7 +102,7 @@ class FailingIPBlock:
 
     def __repr__(self) -> str:
         return f"<Pomice.FailingIPBlock address={self.address} failing_time={self.failing_time}>"
-        
+
 
 class RouteStats:
     """
@@ -182,7 +182,7 @@ class Ping:
 
     def get_ping(self):
         s = self._create_socket(socket.AF_INET, socket.SOCK_STREAM)
-     
+
         cost_time = self.timer.cost(
             (s.connect, s.shutdown),
             ((self._host, self._port), None))

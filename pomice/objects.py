@@ -34,7 +34,7 @@ class Track:
         self.timestamp: Optional[float] = timestamp
 
         if self.track_type == TrackType.SPOTIFY or self.track_type == TrackType.APPLE_MUSIC:
-            self.original: Optional[Track] = None 
+            self.original: Optional[Track] = None
         else:
             self.original = self
         self._search_type: SearchType = search_type
@@ -46,10 +46,10 @@ class Track:
         self.uri: str = info.get("uri")
         self.identifier: str = info.get("identifier")
         self.isrc: str = info.get("isrc")
-        
+
         if self.uri:
             if info.get("thumbnail"):
-                self.thumbnail: str = info.get("thumbnail") 
+                self.thumbnail: str = info.get("thumbnail")
             elif self.track_type == TrackType.SOUNDCLOUD:
                 # ok so theres no feasible way of getting a Soundcloud image URL
                 # so we're just gonna leave it blank for brevity

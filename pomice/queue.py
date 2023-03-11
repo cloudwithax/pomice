@@ -107,7 +107,7 @@ class Queue(Iterable[Track]):
 
         raise TypeError(f"Adding '{type(other)}' type to the queue is not supported.")
 
-    def _get(self) -> Track: 
+    def _get(self) -> Track:
         return self._queue.pop(0)
 
     def _drop(self) -> Track:
@@ -298,7 +298,7 @@ class Queue(Iterable[Track]):
 
     def set_loop_mode(self, mode: LoopMode) -> None:
         """
-        Sets the loop mode of the queue. 
+        Sets the loop mode of the queue.
         Takes the LoopMode enum as an argument.
         """
         self._loop_mode = mode
@@ -306,11 +306,11 @@ class Queue(Iterable[Track]):
             try:
                 index = self._index(self._current_item)
             except ValueError:
-                index = 0 
+                index = 0
             if self._current_item not in self._queue:
                 self._queue.insert(index, self._current_item)
             self._current_item = self._queue[index]
-            
+
 
     def disable_loop(self) -> None:
         """
@@ -320,12 +320,12 @@ class Queue(Iterable[Track]):
         if not self._loop_mode:
             raise QueueException("Queue loop is already disabled.")
 
-        if self._loop_mode == LoopMode.QUEUE:     
-            index = self.find_position(self._current_item) + 1 
+        if self._loop_mode == LoopMode.QUEUE:
+            index = self.find_position(self._current_item) + 1
             self._queue = self._queue[index:]
 
         self._loop_mode = None
-        
+
 
     def shuffle(self) -> None:
         """Shuffles the queue."""

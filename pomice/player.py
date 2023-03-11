@@ -78,7 +78,7 @@ class Filters:
 
     def get_preload_filters(self):
         """Get all preloaded filters"""
-        return [f for f in self._filters if f.preload == True]  
+        return [f for f in self._filters if f.preload == True]
 
     def get_all_payloads(self):
         """Returns a formatted dict of all the filter payloads"""
@@ -127,10 +127,10 @@ class Player(VoiceProtocol):
         return self
 
     def __init__(
-        self, 
-        client: Optional[Client] = None, 
-        channel: Optional[VoiceChannel] = None, 
-        *, 
+        self,
+        client: Optional[Client] = None,
+        channel: Optional[VoiceChannel] = None,
+        *,
         node: Node = None
     ):
         self.client: Optional[Client] = client
@@ -240,7 +240,7 @@ class Player(VoiceProtocol):
     async def _dispatch_voice_update(self, voice_data: Dict[str, Any]):
         if {"sessionId", "event"} != self._voice_state.keys():
             return
-        
+
         data = {
             "token": voice_data['event']['token'],
             "endpoint": voice_data['event']['endpoint'],
@@ -248,9 +248,9 @@ class Player(VoiceProtocol):
         }
 
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={"voice": data}
         )
 
@@ -302,15 +302,15 @@ class Player(VoiceProtocol):
         You can pass in a discord.py Context object to get a
         Context object on any track you search.
 
-        You may also pass in a List of filters 
+        You may also pass in a List of filters
         to be applied to your track once it plays.
         """
         return await self._node.get_tracks(query, ctx=ctx, search_type=search_type, filters=filters)
 
     async def get_recommendations(
-        self, 
-        *, 
-        track: Track, 
+        self,
+        *,
+        track: Track,
         ctx: Optional[commands.Context] = None
     ) -> Union[List[Track], None]:
         """
@@ -329,9 +329,9 @@ class Player(VoiceProtocol):
         """Stops the currently playing track."""
         self._current = None
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={'encodedTrack': None}
         )
 
@@ -371,8 +371,8 @@ class Player(VoiceProtocol):
             # First lets try using the tracks ISRC, every track has one (hopefully)
             try:
                 if not track.isrc:
-                    # We have to bare raise here because theres no other way to skip this block feasibly 
-                    raise 
+                    # We have to bare raise here because theres no other way to skip this block feasibly
+                    raise
                 search: Track = (await self._node.get_tracks(
                 f"{track._search_type}:{track.isrc}", ctx=track.ctx))[0]
             except Exception:
@@ -389,7 +389,7 @@ class Player(VoiceProtocol):
                 "encodedTrack": search.track_id,
                 "position": str(start),
                 "endTime": str(track.length)
-            }    
+            }
             track.original = search
             track.track_id = search.track_id
             # Set track_id for later lavalink searches
@@ -412,8 +412,8 @@ class Player(VoiceProtocol):
                 await self.remove_filter(filter_tag=filter.tag)
 
         # Global filters take precedence over track filters
-        # So if no global filters are detected, lets apply any 
-        # necessary track filters  
+        # So if no global filters are detected, lets apply any
+        # necessary track filters
 
         # Check if theres no global filters and if the track has any filters
         # that need to be applied
@@ -427,15 +427,15 @@ class Player(VoiceProtocol):
         # so now the end time cannot be zero.
         # If it isnt zero, it'll match the length of the track,
         # otherwise itll be set here:
-               
+
         if end > 0:
             data["endTime"] = str(end)
 
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
-            data=data, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
+            data=data,
             query=f"noReplace={ignore_if_playing}"
         )
 
@@ -449,9 +449,9 @@ class Player(VoiceProtocol):
             )
 
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={"position": position}
         )
         return self._position
@@ -459,9 +459,9 @@ class Player(VoiceProtocol):
     async def set_pause(self, pause: bool) -> bool:
         """Sets the pause state of the currently playing track."""
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={"paused": pause}
         )
         self._paused = pause
@@ -470,9 +470,9 @@ class Player(VoiceProtocol):
     async def set_volume(self, volume: int) -> int:
         """Sets the volume of the player as an integer. Lavalink accepts values from 0 to 500."""
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={"volume": volume}
         )
         self._volume = volume
@@ -485,18 +485,18 @@ class Player(VoiceProtocol):
 
            (You must have a song playing in order for `fast_apply` to work.)
         """
-        
+
         self._filters.add_filter(filter=filter)
         payload = self._filters.get_all_payloads()
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={"filters": payload}
         )
         if fast_apply:
             await self.seek(self.position)
-        
+
         return self._filters
 
     async def remove_filter(self, filter_tag: str, fast_apply: bool = False) -> Filter:
@@ -506,18 +506,18 @@ class Player(VoiceProtocol):
 
            (You must have a song playing in order for `fast_apply` to work.)
         """
-        
+
         self._filters.remove_filter(filter_tag=filter_tag)
         payload = self._filters.get_all_payloads()
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={"filters": payload}
         )
         if fast_apply:
             await self.seek(self.position)
-        
+
         return self._filters
 
     async def reset_filters(self, *, fast_apply: bool = False):
@@ -534,14 +534,14 @@ class Player(VoiceProtocol):
             )
         self._filters.reset_filters()
         await self._node.send(
-            method="PATCH", 
-            path=self._player_endpoint_uri, 
-            guild_id=self._guild.id, 
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
             data={"filters": {}}
         )
 
         if fast_apply:
             await self.seek(self.position)
-        
 
-        
+
+

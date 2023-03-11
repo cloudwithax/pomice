@@ -8,18 +8,19 @@ import base64
 from datetime import datetime
 from .objects import *
 from .exceptions import *
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ..pool import Node
-
-AM_URL_REGEX = re.compile(r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)")
-AM_SINGLE_IN_ALBUM_REGEX = re.compile(r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)")
+AM_URL_REGEX = re.compile(
+    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)"
+)
+AM_SINGLE_IN_ALBUM_REGEX = re.compile(
+    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)"
+)
 AM_REQ_URL = "https://api.music.apple.com/v1/catalog/{country}/{type}s/{id}"
 AM_BASE_URL = "https://api.music.apple.com"
 
+
 class Client:
-    """The base Apple Music client for Pomice. 
+    """The base Apple Music client for Pomice.
     This will do all the heavy lifting of getting tracks from Apple Music
     and translating it to a valid Lavalink track. No client auth is required here.
     """
@@ -30,28 +31,30 @@ class Client:
         self.session: aiohttp.ClientSession = None
         self.headers = None
 
-
     async def request_token(self):
         if not self.session:
             self.session = aiohttp.ClientSession()
 
-        async with self.session.get("https://music.apple.com/assets/index.919fe17f.js") as resp:
+        async with self.session.get(
+            "https://music.apple.com/assets/index.919fe17f.js"
+        ) as resp:
             if resp.status != 200:
                 raise AppleMusicRequestException(
                     f"Error while fetching results: {resp.status} {resp.reason}"
                 )
             text = await resp.text()
-            result = re.search("\"(eyJ.+?)\"", text).group(1)
+            result = re.search('"(eyJ.+?)"', text).group(1)
             self.token = result
             self.headers = {
-                'Authorization': f"Bearer {result}",
-                'Origin': 'https://apple.com',
+                "Authorization": f"Bearer {result}",
+                "Origin": "https://apple.com",
             }
             token_split = self.token.split(".")[1]
-            token_json = base64.b64decode(token_split + '=' * (-len(token_split) % 4)).decode()
+            token_json = base64.b64decode(
+                token_split + "=" * (-len(token_split) % 4)
+            ).decode()
             token_data = json.loads(token_json)
             self.expiry = datetime.fromtimestamp(token_data["exp"])
-            
 
     async def search(self, query: str):
         if not self.token or datetime.utcnow() > self.expiry:
@@ -72,7 +75,6 @@ class Client:
             request_url = AM_REQ_URL.format(country=country, type=type, id=id)
         else:
             request_url = AM_REQ_URL.format(country=country, type=type, id=id)
-        
 
         async with self.session.get(request_url, headers=self.headers) as resp:
             if resp.status != 200:
@@ -83,15 +85,16 @@ class Client:
 
         data = data["data"][0]
 
-
         if type == "song":
             return Song(data)
-            
+
         elif type == "album":
             return Album(data)
 
         elif type == "artist":
-            async with self.session.get(f"{request_url}/view/top-songs", headers=self.headers) as resp:
+            async with self.session.get(
+                f"{request_url}/view/top-songs", headers=self.headers
+            ) as resp:
                 if resp.status != 200:
                     raise AppleMusicRequestException(
                         f"Error while fetching results: {resp.status} {resp.reason}"
@@ -101,20 +104,24 @@ class Client:
 
             return Artist(data, tracks=tracks)
 
-        else: 
+        else:
 
             track_data: dict = data["relationships"]["tracks"]
-           
+
             tracks = [Song(track) for track in track_data.get("data")]
 
             if not len(tracks):
-                raise AppleMusicRequestException("This playlist is empty and therefore cannot be queued.")
+                raise AppleMusicRequestException(
+                    "This playlist is empty and therefore cannot be queued."
+                )
 
-            if track_data.get("next"):         
+            if track_data.get("next"):
                 next_page_url = AM_BASE_URL + track_data.get("next")
 
                 while next_page_url is not None:
-                    async with self.session.get(next_page_url, headers=self.headers) as resp:
+                    async with self.session.get(
+                        next_page_url, headers=self.headers
+                    ) as resp:
                         if resp.status != 200:
                             raise AppleMusicRequestException(
                                 f"Error while fetching results: {resp.status} {resp.reason}"
@@ -128,6 +135,9 @@ class Client:
                     else:
                         next_page_url = None
 
-        
+            return Playlist(data, tracks)
 
-            return Playlist(data, tracks) 
+    async def close(self):
+        if self.session:
+            await self.session.close()
+            self.session = None
