@@ -4,8 +4,9 @@ import time
 from datetime import datetime
 from itertools import zip_longest
 from timeit import default_timer as timer
-from typing import Any, Dict
+from typing import Any
 from typing import Callable
+from typing import Dict
 from typing import Iterable
 from typing import Optional
 

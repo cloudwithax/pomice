@@ -10,7 +10,8 @@ from discord import Guild
 from discord import VoiceChannel
 from discord import VoiceProtocol
 from discord.ext import commands
-from discord.types.voice import VoiceServerUpdate, GuildVoiceState
+from discord.types.voice import GuildVoiceState
+from discord.types.voice import VoiceServerUpdate
 
 from . import events
 from .enums import SearchType
@@ -23,7 +24,8 @@ from .exceptions import FilterTagInvalid
 from .exceptions import TrackInvalidPosition
 from .exceptions import TrackLoadError
 from .filters import Filter
-from .objects import Track, Playlist
+from .objects import Playlist
+from .objects import Track
 from .pool import Node
 from .pool import NodePool
 

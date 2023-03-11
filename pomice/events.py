@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional, Tuple
-from typing import Union
 from abc import ABC
+from typing import Any
+from typing import Optional
+from typing import Tuple
+from typing import TYPE_CHECKING
 
 from discord import Client
 from discord import Guild
@@ -139,7 +141,8 @@ class TrackExceptionEvent(PomiceEvent):
         self.track: Track = self.player._ending_track
         # Error is for Lavalink <= 3.3
         self.exception: str = data.get(
-            "error", "") or data.get("exception", "")
+            "error", "",
+        ) or data.get("exception", "")
 
         # on_pomice_track_exception(player, track, error)
         self.handler_args = self.player, self.track, self.exception

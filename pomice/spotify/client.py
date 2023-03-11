@@ -3,7 +3,8 @@ from __future__ import annotations
 import re
 import time
 from base64 import b64encode
-from typing import Dict, List
+from typing import Dict
+from typing import List
 from typing import Optional
 from typing import Union
 
