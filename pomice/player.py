@@ -169,9 +169,7 @@ class Player(VoiceProtocol):
         if not self.is_playing or not self._current:
             return 0
 
-        current = self._current.original
-        if not current:
-            return 0
+        current = getattr(self._current, "original", self._current)
 
         if self.is_paused:
             return min(self._last_position, current.length)
@@ -241,7 +239,7 @@ class Player(VoiceProtocol):
         self._last_update = time.time() * 1000.0
         self._is_connected = bool(state.get("connected"))
         position = state.get("position")
-        self._position = int(position) if position else 0
+        self._last_position = int(position) if position else 0
 
     async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None) -> None:
         if {"sessionId", "event"} != self._voice_state.keys():

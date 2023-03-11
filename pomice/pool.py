@@ -119,11 +119,11 @@ class Node:
         self._session: aiohttp.ClientSession = session  # type: ignore
         self._loop: asyncio.AbstractEventLoop = loop or asyncio.get_event_loop()
         self._websocket: aiohttp.ClientWebSocketResponse
-        self._task: asyncio.Task
+        self._task: asyncio.Task = None  # type: ignore
 
         self._session_id: Optional[str] = None
         self._available: bool = False
-        self._version: int
+        self._version: int = 0
 
         self._route_planner = RoutePlanner(self)
 
