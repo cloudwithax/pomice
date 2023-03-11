@@ -723,7 +723,11 @@ class NodePool:
         cls._nodes[node._identifier] = node
         return node
 
-    async def disconnect(self) -> None:
-        """Disconnects all nodes from the node pool."""
-        for node in self._nodes.copy().values():
+    @classmethod
+    async def disconnect(cls) -> None:
+        """Disconnects all available nodes from the node pool."""
+
+        available_nodes: List[Node] = [node for node in cls._nodes.values() if node._available]
+
+        for node in available_nodes:
             await node.disconnect()
