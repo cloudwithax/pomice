@@ -432,7 +432,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": search.track_id,
                 "position": str(start),
-                "endTime": str(track.length),
+                "endTime": None,
             }
             track.original = search
             track.track_id = search.track_id
@@ -441,7 +441,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": track.track_id,
                 "position": str(start),
-                "endTime": str(track.length),
+                "endTime": None,
             }
 
         # Lets set the current track before we play it so any
