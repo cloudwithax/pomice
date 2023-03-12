@@ -197,6 +197,14 @@ class Player(VoiceProtocol):
         return self.position / self.rate
 
     @property
+    def adjusted_length(self) -> float:
+        """Property which returns the player's track length in milliseconds adjusted for rate"""
+        if not self.is_playing:
+            return 0
+
+        return self.current.length / self.rate
+
+    @property
     def is_playing(self) -> bool:
         """Property which returns whether or not the player is actively playing a track."""
         return self._is_connected and self._current is not None
