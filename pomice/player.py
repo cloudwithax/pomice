@@ -1,8 +1,11 @@
+from __future__ import annotations
+
 import time
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
+from typing import TYPE_CHECKING
 from typing import Union
 
 from discord import Client
@@ -10,8 +13,6 @@ from discord import Guild
 from discord import VoiceChannel
 from discord import VoiceProtocol
 from discord.ext import commands
-from discord.types.voice import GuildVoiceState
-from discord.types.voice import VoiceServerUpdate
 
 from . import events
 from .enums import SearchType
@@ -24,10 +25,15 @@ from .exceptions import FilterTagInvalid
 from .exceptions import TrackInvalidPosition
 from .exceptions import TrackLoadError
 from .filters import Filter
+from .filters import Timescale
 from .objects import Playlist
 from .objects import Track
 from .pool import Node
 from .pool import NodePool
+
+if TYPE_CHECKING:
+    from discord.types.voice import VoiceServerUpdate
+    from discord.types.voice import GuildVoiceState
 
 __all__ = ("Filters", "Player")
 
@@ -116,7 +122,6 @@ class Player(VoiceProtocol):
         "_volume",
         "_paused",
         "_is_connected",
-        "_position",
         "_last_position",
         "_last_update",
         "_ending_track",
@@ -124,7 +129,7 @@ class Player(VoiceProtocol):
         "_player_endpoint_uri",
     )
 
-    def __call__(self, client: Client, channel: VoiceChannel) -> "Player":
+    def __call__(self, client: Client, channel: VoiceChannel) -> Player:
         self.__init__(client, channel)  # type: ignore
         return self
 
@@ -147,7 +152,6 @@ class Player(VoiceProtocol):
         self._paused: bool = False
         self._is_connected: bool = False
 
-        self._position: int = 0
         self._last_position: int = 0
         self._last_update: float = 0
         self._ending_track: Optional[Track] = None
@@ -178,10 +182,19 @@ class Player(VoiceProtocol):
         difference = (time.time() * 1000) - self._last_update
         position = self._last_position + difference
 
-        if position > current.length:
-            return 0
-
         return min(position, current.length)
+
+    @property
+    def rate(self) -> float:
+        """Property which returns the player's current rate"""
+        if _filter := next((f for f in self._filters._filters if isinstance(f, Timescale)), None):
+            return _filter.speed or _filter.rate
+        return 1.0
+
+    @property
+    def adjusted_position(self) -> float:
+        """Property which returns the player's position in a track in milliseconds adjusted for rate"""
+        return self.position / self.rate
 
     @property
     def is_playing(self) -> bool:
@@ -500,7 +513,7 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"position": position},
         )
-        return self._position
+        return self.position
 
     async def set_pause(self, pause: bool) -> bool:
         """Sets the pause state of the currently playing track."""
