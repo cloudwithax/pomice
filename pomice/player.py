@@ -202,7 +202,7 @@ class Player(VoiceProtocol):
         if not self.is_playing:
             return 0
 
-        return self.current.length / self.rate
+        return self.current.length / self.rate  # type: ignore
 
     @property
     def is_playing(self) -> bool:
@@ -399,7 +399,7 @@ class Player(VoiceProtocol):
         finally:
             self.cleanup()
             self._is_connected = False
-            del self.channel
+            self.channel = None  # type: ignore
 
     async def destroy(self) -> None:
         """Disconnects and destroys the player, and runs internal cleanup."""
