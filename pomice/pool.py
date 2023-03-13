@@ -68,6 +68,7 @@ class Node:
         "_heartbeat",
         "_secure",
         "_fallback",
+        "_log_level",
         "_websocket_uri",
         "_rest_uri",
         "_session",
@@ -84,6 +85,7 @@ class Node:
         "_spotify_client",
         "_apple_music_client",
         "_route_planner",
+        "_log",
         "_stats",
         "available",
     )

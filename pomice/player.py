@@ -126,6 +126,7 @@ class Player(VoiceProtocol):
         "_last_position",
         "_last_update",
         "_ending_track",
+        "_log",
         "_voice_state",
         "_player_endpoint_uri",
     )
