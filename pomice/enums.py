@@ -1,5 +1,6 @@
 import re
 from enum import Enum
+from enum import IntEnum
 
 __all__ = (
     "SearchType",
@@ -247,7 +248,7 @@ class URLRegex:
     BASE_URL = re.compile(r"https?://(?:www\.)?.+")
 
 
-class LogLevel(Enum):
+class LogLevel(IntEnum):
     """
     The enum for specifying the logging level within Pomice.
     This class serves as shorthand for logging.<level>
@@ -272,6 +273,3 @@ class LogLevel(Enum):
     WARN = 30
     ERROR = 40
     CRITICAL = 50
-
-    def __str__(self) -> str:
-        return self.value
