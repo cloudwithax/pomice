@@ -209,7 +209,7 @@ class Node:
         return self.latency
 
     def _setup_logging(self, level: LogLevel) -> logging.Logger:
-        logger = logging.getLogger()
+        logger = logging.getLogger("pomice")
         handler = logging.StreamHandler()
         dt_fmt = "%Y-%m-%d %H:%M:%S"
         formatter = logging.Formatter(
@@ -874,6 +874,7 @@ class NodePool:
         session: Optional[aiohttp.ClientSession] = None,
         apple_music: bool = False,
         fallback: bool = False,
+        log_level: LogLevel = LogLevel.INFO,
     ) -> Node:
         """Creates a Node object to be then added into the node pool.
         For Spotify searching capabilites, pass in valid Spotify API credentials.
@@ -898,6 +899,7 @@ class NodePool:
             spotify_client_secret=spotify_client_secret,
             apple_music=apple_music,
             fallback=fallback,
+            log_level=log_level,
         )
 
         await node.connect()
