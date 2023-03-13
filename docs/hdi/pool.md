@@ -66,6 +66,10 @@ After you have initialized your function, we need to fill in the proper paramete
   - Set this value to `True` if you want Pomice to automatically switch all players to another available node if one disconnects.
     You must have two or more nodes to be able to do this.
 
+* - `log_level`
+  - `LogLevel`
+  - The logging level for the node. The default logging level is `LogLevel.INFO`.
+
 :::
 
 
@@ -84,7 +88,8 @@ await NodePool.create_node(
     spotify_client_id="<your spotify client id here>",
     spotify_client_secret="<your spotify client secret here>"
     apple_music=<True/False>,
-    fallback=<True/False>
+    fallback=<True/False>,
+    log_level=<optiona LogLevel here>
 )
 
 ```

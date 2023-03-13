@@ -67,6 +67,18 @@ There are also properties the `Player` class has to access certain values:
   - `float`
   - Returns the player’s position in a track in milliseconds.
 
+* - `Player.adjusted_position`
+  - `float`
+  - Returns the player’s position in a track in milliseconds, adjusted for rate if affected.
+
+* - `Player.adjusted_length`
+  - `float`
+  - Returns the current track length in milliseconds, adjusted for rate if affected.
+
+* - `Player.rate`
+  - `float`
+  - Returns the players current rate, which represents the speed of the currently playing track. This rate is affected by the `Timescale` filter.
+
 * - `Player.volume`
   - `int`
   - Returns the players current volume.
