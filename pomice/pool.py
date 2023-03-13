@@ -50,6 +50,8 @@ __all__ = (
     "NodePool",
 )
 
+VERSION_REGEX = re.compile(r"(\d+)(?:\.(\d+))?(?:\.(\d+))?(?:[a-zA-Z0-9_-]+)?")
+
 
 class Node:
     """The base class for a node.
@@ -244,15 +246,24 @@ class Node:
             self._version = LavalinkVersion(major=4, minor=0, fix=0)
             return
 
-        # this crazy ass line maps the split version string into
-        # an iterable with ints instead of strings and then
-        # turns that iterable into a tuple. yeah, i know
+        _version_rx = VERSION_REGEX.match(version)
+        if not _version_rx:
+            self._available = False
+            raise LavalinkVersionIncompatible(
+                "The Lavalink version you're using is incompatible. "
+                "Lavalink version 3.7.0 or above is required to use this library.",
+            )
 
-        split = tuple(map(int, tuple(version.split("."))))
-        self._version = LavalinkVersion(*split)
-        if not version.endswith("-SNAPSHOT") and (
-            self._version.major == 3 and self._version.minor < 7
-        ):
+        _version_groups = _version_rx.groups()
+        major, minor, fix = (
+            int(_version_groups[0] or 0),
+            int(_version_groups[1] or 0),
+            int(_version_groups[2] or 0),
+        )
+
+        self._log.debug(f"Parsed Lavalink version: {major}.{minor}.{fix}")
+        self._version = LavalinkVersion(major=major, minor=minor, fix=fix)
+        if self._version < LavalinkVersion(3, 7, 0):
             self._available = False
             raise LavalinkVersionIncompatible(
                 "The Lavalink version you're using is incompatible. "
