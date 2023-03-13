@@ -1,3 +1,4 @@
+# type: ignore
 import discord
 from discord.ext import commands
 

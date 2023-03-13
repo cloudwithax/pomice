@@ -149,7 +149,6 @@ class Player(VoiceProtocol):
         self.channel: VoiceChannel = channel
 
         self._bot: Client = client
-        self._guild: Guild = channel.guild
         self._node: Node = node if node else NodePool.get_node()
         self._current: Optional[Track] = None
         self._filters: Filters = Filters()

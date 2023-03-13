@@ -93,7 +93,7 @@ await NodePool.create_node(
     spotify_client_secret="<your spotify client secret here>"
     apple_music=<True/False>,
     fallback=<True/False>,
-    log_level=<optiona LogLevel here>
+    log_level=<optional LogLevel here>
 )
 
 ```

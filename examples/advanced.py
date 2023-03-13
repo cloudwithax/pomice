@@ -1,3 +1,4 @@
+# type: ignore
 """
 This example aims to show the full capabilities of the library.
 This is in the form of a drop-in cog you can use and modify to your liking.

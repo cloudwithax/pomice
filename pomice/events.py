@@ -65,7 +65,7 @@ class TrackStartEvent(PomiceEvent):
         self.handler_args = self.player, self.track
 
     def __repr__(self) -> str:
-        return f"<Pomice.TrackStartEvent player={self.player} track_id={self.track.track_id}>"
+        return f"<Pomice.TrackStartEvent player={self.player!r} track={self.track!r}>"
 
 
 class TrackEndEvent(PomiceEvent):
@@ -87,8 +87,8 @@ class TrackEndEvent(PomiceEvent):
 
     def __repr__(self) -> str:
         return (
-            f"<Pomice.TrackEndEvent player={self.player} track_id={self.track.track_id} "
-            f"reason={self.reason}>"
+            f"<Pomice.TrackEndEvent player={self.player!r} track_id={self.track!r} "
+            f"reason={self.reason!r}>"
         )
 
 
