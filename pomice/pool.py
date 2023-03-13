@@ -217,6 +217,7 @@ class Node:
     def _setup_logging(self, level: LogLevel) -> logging.Logger:
         logger = logging.getLogger("pomice")
         logger.setLevel(level)
+        handler = None
 
         if self._log_handler is not None:
             handler = self._log_handler
@@ -230,6 +231,8 @@ class Node:
                 style="{",
             )
             handler.setFormatter(formatter)
+
+        if handler:
             logger.addHandler(handler)
 
         return logger
