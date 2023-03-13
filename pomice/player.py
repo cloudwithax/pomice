@@ -131,12 +131,8 @@ class Player(VoiceProtocol):
         "_player_endpoint_uri",
     )
 
-    def __call__(self, client: Client, channel: VoiceChannel):
-        self.client: Client = client
-        self.channel: VoiceChannel = channel
-        self._guild: Guild = channel.guild
-
-        return self
+    def __call__(self, client: Client, channel: VoiceChannel) -> Player:
+        return self.__class__(client, channel)
 
     def __init__(
         self,
@@ -262,7 +258,7 @@ class Player(VoiceProtocol):
         """
         return self.guild.id not in self._node._players
 
-    def _adjust_end_time(self):
+    def _adjust_end_time(self) -> Optional[str]:
         if self._node._version >= LavalinkVersion(3, 7, 5):
             return None
 
