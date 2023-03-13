@@ -59,8 +59,7 @@ class TrackStartEvent(PomiceEvent):
 
     def __init__(self, data: dict, player: Player):
         self.player: Player = player
-        assert self.player._current is not None
-        self.track: Track = self.player._current
+        self.track: Optional[Track] = self.player._current
 
         # on_pomice_track_start(player, track)
         self.handler_args = self.player, self.track
@@ -80,8 +79,7 @@ class TrackEndEvent(PomiceEvent):
 
     def __init__(self, data: dict, player: Player):
         self.player: Player = player
-        assert self.player._ending_track is not None
-        self.track: Track = self.player._ending_track
+        self.track: Optional[Track] = self.player._ending_track
         self.reason: str = data["reason"]
 
         # on_pomice_track_end(player, track, reason)
@@ -106,8 +104,7 @@ class TrackStuckEvent(PomiceEvent):
 
     def __init__(self, data: dict, player: Player):
         self.player: Player = player
-        assert self.player._ending_track is not None
-        self.track: Track = self.player._ending_track
+        self.track: Optional[Track] = self.player._ending_track
         self.threshold: float = data["thresholdMs"]
 
         # on_pomice_track_stuck(player, track, threshold)
@@ -132,7 +129,7 @@ class TrackExceptionEvent(PomiceEvent):
     def __init__(self, data: dict, player: Player):
         self.player: Player = player
         assert self.player._ending_track is not None
-        self.track: Track = self.player._ending_track
+        self.track: Optional[Track] = self.player._ending_track
         # Error is for Lavalink <= 3.3
         self.exception: str = data.get(
             "error",
