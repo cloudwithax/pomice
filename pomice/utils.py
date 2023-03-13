@@ -20,6 +20,7 @@ __all__ = (
     "FailingIPBlock",
     "RouteStats",
     "Ping",
+    "LavalinkVersion",
 )
 
 

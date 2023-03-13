@@ -11,6 +11,7 @@ __all__ = (
     "RouteStrategy",
     "RouteIPType",
     "URLRegex",
+    "LogLevel",
 )
 
 
