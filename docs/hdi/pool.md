@@ -70,6 +70,10 @@ After you have initialized your function, we need to fill in the proper paramete
   - `LogLevel`
   - The logging level for the node. The default logging level is `LogLevel.INFO`.
 
+* - `log_handler`
+  - `Optional[logging.Handler]`
+  - The logging handler for the node. Set to `None` to disable the default logging handler.
+
 :::
 
 
