@@ -233,6 +233,7 @@ class Node:
             handler.setFormatter(formatter)
 
         if handler:
+            logger.handlers.clear()
             logger.addHandler(handler)
 
         return logger
