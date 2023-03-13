@@ -112,7 +112,7 @@ class Node:
         apple_music: bool = False,
         fallback: bool = False,
         log_level: LogLevel = LogLevel.INFO,
-        log_handler: Optional[logging.Handler] = MISSING,
+        log_handler: Optional[logging.Handler] = None,
     ):
         self._bot: commands.Bot = bot
         self._host: str = host
@@ -221,10 +221,9 @@ class Node:
         logger.setLevel(level)
         handler = None
 
-        if self._log_handler is not None:
+        if self._log_handler:
             handler = self._log_handler
-
-        elif self._log_handler is MISSING:
+        else:
             handler = logging.StreamHandler()
             dt_fmt = "%Y-%m-%d %H:%M:%S"
             formatter = logging.Formatter(
