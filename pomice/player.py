@@ -129,8 +129,11 @@ class Player(VoiceProtocol):
         "_player_endpoint_uri",
     )
 
-    def __call__(self, client: Client, channel: VoiceChannel) -> Player:
-        self.__init__(client, channel)  # type: ignore
+    def __call__(self, client: Client, channel: VoiceChannel):
+        self.client: Client = client
+        self.channel: VoiceChannel = channel
+        self._guild: Guild = channel.guild
+
         return self
 
     def __init__(
@@ -256,12 +259,21 @@ class Player(VoiceProtocol):
         """
         return self.guild.id not in self._node._players
 
+    def _adjust_end_time(self):
+        version = self._node._version
+        if version.major == 4:
+            return None
+        if version.major == 3:
+            if version.minor == 7 and version.fix == 5:
+                return None
+            else:
+                return "0"
+
     async def _update_state(self, data: dict) -> None:
         state: dict = data.get("state", {})
-        self._last_update = time.time() * 1000.0
+        self._last_update = int(state.get("time", 0))
         self._is_connected = bool(state.get("connected"))
-        position = state.get("position")
-        self._last_position = int(position) if position else 0
+        self._last_position = int(state.get("position", 0))
 
     async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None) -> None:
         if {"sessionId", "event"} != self._voice_state.keys():
@@ -319,11 +331,8 @@ class Player(VoiceProtocol):
             self._ending_track = self._current
 
     async def _swap_node(self, *, new_node: Node) -> None:
-        data: dict = {
-            "position": self.position,
-        }
         if self.current:
-            data["encodedTrack"] = self.current.track_id
+            data: dict = {"position": self.position, "encodedTrack": self.current.track_id}
 
         del self._node._players[self._guild.id]
         self._node = new_node
@@ -422,6 +431,9 @@ class Player(VoiceProtocol):
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
 
+        end_time = self._adjust_end_time()
+        print(f"got end time of {end_time}")
+
         # Make sure we've never searched the track before
         if track.original is None:
             # First lets try using the tracks ISRC, every track has one (hopefully)
@@ -453,7 +465,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": search.track_id,
                 "position": str(start),
-                "endTime": str(track.length),
+                "endTime": end_time,
             }
             track.original = search
             track.track_id = search.track_id
@@ -462,7 +474,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": track.track_id,
                 "position": str(start),
-                "endTime": str(track.length),
+                "endTime": end_time,
             }
 
         # Lets set the current track before we play it so any
@@ -489,8 +501,8 @@ class Player(VoiceProtocol):
 
         # Lavalink v4 changed the way the end time parameter works
         # so now the end time cannot be zero.
-        # If it isnt zero, it'll match the length of the track,
-        # otherwise itll be set here:
+        # If it isnt zero, it'll be set to None.
+        # Otherwise, it'll be set here:
 
         if end > 0:
             data["endTime"] = str(end)

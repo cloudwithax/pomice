@@ -34,6 +34,7 @@ from .objects import Playlist
 from .objects import Track
 from .routeplanner import RoutePlanner
 from .utils import ExponentialBackoff
+from .utils import LavalinkVersion
 from .utils import NodeStats
 from .utils import Ping
 
@@ -122,7 +123,7 @@ class Node:
 
         self._session_id: Optional[str] = None
         self._available: bool = False
-        self._version: int = 0
+        self._version: LavalinkVersion = None
 
         self._route_planner = RoutePlanner(self)
 
@@ -200,6 +201,27 @@ class Node:
     def ping(self) -> float:
         """Alias for `Node.latency`, returns the latency of the node"""
         return self.latency
+
+    async def _handle_version_check(self, version: str):
+        if version.endswith("-SNAPSHOT"):
+            # we're just gonna assume all snapshot versions correlate with v4
+            self._version = LavalinkVersion(major=4, minor=0, fix=0)
+            return
+
+        # this crazy ass line maps the split version string into
+        # an iterable with ints instead of strings and then
+        # turns that iterable into a tuple. yeah, i know
+
+        split = tuple(map(int, tuple(version.split("."))))
+        self._version = LavalinkVersion(*split)
+        if not version.endswith("-SNAPSHOT") and (
+            self._version.major == 3 and self._version.minor < 7
+        ):
+            self._available = False
+            raise LavalinkVersionIncompatible(
+                "The Lavalink version you're using is incompatible. "
+                "Lavalink version 3.7.0 or above is required to use this library.",
+            )
 
     async def _update_handler(self, data: dict) -> None:
         await self._bot.wait_until_ready()
@@ -294,7 +316,7 @@ class Node:
 
         uri: str = (
             f"{self._rest_uri}/"
-            f'{f"v{self._version}/" if include_version else ""}'
+            f'{f"v{self._version.major}/" if include_version else ""}'
             f"{path}"
             f'{f"/{guild_id}" if guild_id else ""}'
             f'{f"?{query}" if query else ""}'
@@ -338,22 +360,11 @@ class Node:
                 ignore_if_available=True,
                 include_version=False,
             )
-            version = version.replace(".", "")
-            if not version.endswith("-SNAPSHOT") and int(version) < 370:
-                self._available = False
-                raise LavalinkVersionIncompatible(
-                    "The Lavalink version you're using is incompatible. "
-                    "Lavalink version 3.7.0 or above is required to use this library.",
-                )
 
-            if version.endswith("-SNAPSHOT"):
-                # we're just gonna assume all snapshot versions correlate with v4
-                self._version = 4
-            else:
-                self._version = int(version[:1])
+            await self._handle_version_check(version=version)
 
             self._websocket = await self._session.ws_connect(
-                f"{self._websocket_uri}/v{self._version}/websocket",
+                f"{self._websocket_uri}/v{self._version.major}/websocket",
                 headers=self._headers,
                 heartbeat=self._heartbeat,
             )

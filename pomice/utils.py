@@ -8,6 +8,7 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Iterable
+from typing import NamedTuple
 from typing import Optional
 
 from .enums import RouteIPType
@@ -224,3 +225,9 @@ class Ping:
         s_runtime = 1000 * (cost_time)
 
         return s_runtime
+
+
+class LavalinkVersion(NamedTuple):
+    major: int
+    minor: int
+    fix: int
