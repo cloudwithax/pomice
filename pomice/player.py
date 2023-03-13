@@ -132,7 +132,11 @@ class Player(VoiceProtocol):
     )
 
     def __call__(self, client: Client, channel: VoiceChannel) -> Player:
-        return self.__class__(client, channel)
+        self.client = client
+        self.channel = channel
+        self._guild = channel.guild
+
+        return self
 
     def __init__(
         self,
