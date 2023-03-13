@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import random
 import re
+import time
 from typing import Any
 from typing import Dict
 from typing import List
@@ -20,6 +22,7 @@ from . import __version__
 from . import applemusic
 from . import spotify
 from .enums import *
+from .enums import LogLevel
 from .exceptions import AppleMusicNotEnabled
 from .exceptions import InvalidSpotifyClientAuthorization
 from .exceptions import LavalinkVersionIncompatible
@@ -102,6 +105,7 @@ class Node:
         spotify_client_secret: Optional[str] = None,
         apple_music: bool = False,
         fallback: bool = False,
+        log_level: LogLevel = LogLevel.INFO,
     ):
         self._bot: commands.Bot = bot
         self._host: str = host
@@ -112,6 +116,7 @@ class Node:
         self._heartbeat: int = heartbeat
         self._secure: bool = secure
         self._fallback: bool = fallback
+        self._log_level: LogLevel = log_level
 
         self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
@@ -126,6 +131,7 @@ class Node:
         self._version: LavalinkVersion = None
 
         self._route_planner = RoutePlanner(self)
+        self._log = self._setup_logging(self._log_level)
 
         if not self._bot.user:
             raise NodeCreationError("Bot user is not ready yet.")
@@ -201,6 +207,20 @@ class Node:
     def ping(self) -> float:
         """Alias for `Node.latency`, returns the latency of the node"""
         return self.latency
+
+    def _setup_logging(self, level: LogLevel) -> logging.Logger:
+        logger = logging.getLogger()
+        handler = logging.StreamHandler()
+        dt_fmt = "%Y-%m-%d %H:%M:%S"
+        formatter = logging.Formatter(
+            "[{asctime}] [{levelname:<8}] {name}: {message}",
+            dt_fmt,
+            style="{",
+        )
+        handler.setFormatter(formatter)
+        logger.setLevel(level)
+        logger.addHandler(handler)
+        return logger
 
     async def _handle_version_check(self, version: str):
         if version.endswith("-SNAPSHOT"):
@@ -328,6 +348,7 @@ class Node:
             headers=self._headers,
             json=data or {},
         ) as resp:
+            self._log.debug(f"Making REST request with method {method} to {uri}")
             if resp.status >= 300:
                 resp_data: dict = await resp.json()
                 raise NodeRestException(
@@ -335,11 +356,20 @@ class Node:
                 )
 
             if method == "DELETE" or resp.status == 204:
+                self._log.debug(
+                    f"REST request with method {method} to {uri} completed sucessfully and returned no data.",
+                )
                 return await resp.json(content_type=None)
 
             if resp.content_type == "text/plain":
+                self._log.debug(
+                    f"REST request with method {method} to {uri} completed sucessfully and returned text with body {await resp.text()}",
+                )
                 return await resp.text()
 
+            self._log.debug(
+                f"REST request with method {method} to {uri} completed sucessfully and returned JSON with body {await resp.json()}",
+            )
             return await resp.json()
 
     def get_player(self, guild_id: int) -> Optional[Player]:
@@ -349,6 +379,8 @@ class Node:
     async def connect(self) -> "Node":
         """Initiates a connection with a Lavalink node and adds it to the node pool."""
         await self._bot.wait_until_ready()
+
+        start = time.perf_counter()
 
         if not self._session:
             self._session = aiohttp.ClientSession()
@@ -363,16 +395,26 @@ class Node:
 
             await self._handle_version_check(version=version)
 
+            self._log.debug(f"Version check from node successful. Returned version {version}")
+
             self._websocket = await self._session.ws_connect(
                 f"{self._websocket_uri}/v{self._version.major}/websocket",
                 headers=self._headers,
                 heartbeat=self._heartbeat,
             )
 
+            self._log.debug(
+                f"Connected to node websocket using {self._websocket_uri}/v{self._version.major}/websocket",
+            )
+
             if not self._task:
                 self._task = self._loop.create_task(self._listen())
 
             self._available = True
+
+            end = time.perf_counter()
+
+            self._log.info(f"Connected to node {self._identifier}. Took {end - start:.3f}s")
             return self
 
         except (aiohttp.ClientConnectorError, ConnectionRefusedError):
@@ -392,20 +434,33 @@ class Node:
         """Disconnects a connected Lavalink node and removes it from the node pool.
         This also destroys any players connected to the node.
         """
+
+        start = time.perf_counter()
+
         for player in self.players.copy().values():
             await player.destroy()
+            self._log.debug("All players disconnected from node.")
 
         await self._websocket.close()
         await self._session.close()
+        self._log.debug("Websocket and http session closed.")
+
         if self._spotify_client:
             await self._spotify_client.close()
+            self._log.debug("Spotify client session closed.")
 
         if self._apple_music_client:
             await self._apple_music_client.close()
+            self._log.debug("Apple Music client session closed.")
 
         del self._pool._nodes[self._identifier]
         self.available = False
         self._task.cancel()
+
+        end = time.perf_counter()
+        self._log.info(
+            f"Successfully disconnected from node {self._identifier} and closed all sessions. Took {end - start:.3f}s",
+        )
 
     async def build_track(self, identifier: str, ctx: Optional[commands.Context] = None) -> Track:
         """

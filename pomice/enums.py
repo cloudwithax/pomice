@@ -174,7 +174,7 @@ class RouteIPType(Enum):
 
 class URLRegex:
     """
-    The enums for all the URL Regexes in use by Pomice.
+    The enum for all the URL Regexes in use by Pomice.
 
     URLRegex.SPOTIFY_URL returns the Spotify URL Regex.
 
@@ -245,3 +245,33 @@ class URLRegex:
     LAVALINK_SEARCH = re.compile(r"(?P<type>ytm?|sc)search:")
 
     BASE_URL = re.compile(r"https?://(?:www\.)?.+")
+
+
+class LogLevel(Enum):
+    """
+    The enum for specifying the logging level within Pomice.
+    This class serves as shorthand for logging.<level>
+    This enum is exclusively for the logging feature in Pomice.
+    If you are not using this feature, this class is not necessary.
+
+
+    LogLevel.DEBUG sets the logging level to "debug".
+
+    LogLevel.INFO sets the logging level to "info".
+
+    LogLevel.WARN sets the logging level to "warn".
+
+    LogLevel.ERROR sets the logging level to "error".
+
+    LogLevel.CRITICAL sets the logging level to "CRITICAL".
+
+    """
+
+    DEBUG = 10
+    INFO = 20
+    WARN = 30
+    ERROR = 40
+    CRITICAL = 50
+
+    def __str__(self) -> str:
+        return self.value

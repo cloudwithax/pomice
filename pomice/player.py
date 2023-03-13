@@ -30,6 +30,7 @@ from .objects import Playlist
 from .objects import Track
 from .pool import Node
 from .pool import NodePool
+from pomice.utils import LavalinkVersion
 
 if TYPE_CHECKING:
     from discord.types.voice import VoiceServerUpdate
@@ -158,6 +159,7 @@ class Player(VoiceProtocol):
         self._last_position: int = 0
         self._last_update: float = 0
         self._ending_track: Optional[Track] = None
+        self._log = self._node._log
 
         self._voice_state: dict = {}
 
@@ -260,20 +262,17 @@ class Player(VoiceProtocol):
         return self.guild.id not in self._node._players
 
     def _adjust_end_time(self):
-        version = self._node._version
-        if version.major == 4:
+        if self._node._version >= LavalinkVersion(3, 7, 5):
             return None
-        if version.major == 3:
-            if version.minor == 7 and version.fix == 5:
-                return None
-            else:
-                return "0"
+
+        return "0"
 
     async def _update_state(self, data: dict) -> None:
         state: dict = data.get("state", {})
         self._last_update = int(state.get("time", 0))
         self._is_connected = bool(state.get("connected"))
         self._last_position = int(state.get("position", 0))
+        self._log.debug(f"Got player update state with data {state}")
 
     async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None) -> None:
         if {"sessionId", "event"} != self._voice_state.keys():
@@ -293,6 +292,8 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"voice": data},
         )
+
+        self._log.debug(f"Dispatched voice update to {state['event']['endpoint']} with data {data}")
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         self._voice_state.update({"event": data})
@@ -330,6 +331,8 @@ class Player(VoiceProtocol):
         if isinstance(event, TrackStartEvent):
             self._ending_track = self._current
 
+        self._log.debug(f"Dispatched event {data['type']} to player.")
+
     async def _swap_node(self, *, new_node: Node) -> None:
         if self.current:
             data: dict = {"position": self.position, "encodedTrack": self.current.track_id}
@@ -347,6 +350,8 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data=data,
         )
+
+        self._log.debug(f"Swapped all players to new node {new_node._identifier}.")
 
     async def get_tracks(
         self,
@@ -401,6 +406,8 @@ class Player(VoiceProtocol):
             data={"encodedTrack": None},
         )
 
+        self._log.debug(f"Player has been stopped.")
+
     async def disconnect(self, *, force: bool = False) -> None:
         """Disconnects the player from voice."""
         try:
@@ -426,13 +433,12 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
         )
 
+        self._log.debug("Player has been destroyed.")
+
     async def play(
         self, track: Track, *, start: int = 0, end: int = 0, ignore_if_playing: bool = False
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
-
-        end_time = self._adjust_end_time()
-        print(f"got end time of {end_time}")
 
         # Make sure we've never searched the track before
         if track.original is None:
@@ -465,7 +471,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": search.track_id,
                 "position": str(start),
-                "endTime": end_time,
+                "endTime": self._adjust_end_time(),
             }
             track.original = search
             track.track_id = search.track_id
@@ -474,7 +480,7 @@ class Player(VoiceProtocol):
             data = {
                 "encodedTrack": track.track_id,
                 "position": str(start),
-                "endTime": end_time,
+                "endTime": self._adjust_end_time(),
             }
 
         # Lets set the current track before we play it so any
@@ -515,6 +521,10 @@ class Player(VoiceProtocol):
             query=f"noReplace={ignore_if_playing}",
         )
 
+        self._log.debug(
+            f"Playing {track.title} from uri {track.uri} with a length of {track.length}",
+        )
+
         return self._current
 
     async def seek(self, position: float) -> float:
@@ -533,6 +543,8 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"position": position},
         )
+
+        self._log.debug(f"Seeking to {position}.")
         return self.position
 
     async def set_pause(self, pause: bool) -> bool:
@@ -544,6 +556,8 @@ class Player(VoiceProtocol):
             data={"paused": pause},
         )
         self._paused = pause
+
+        self._log.debug(f"Player has been {'paused' if pause else 'resumed'}.")
         return self._paused
 
     async def set_volume(self, volume: int) -> int:
@@ -555,6 +569,8 @@ class Player(VoiceProtocol):
             data={"volume": volume},
         )
         self._volume = volume
+
+        self._log.debug(f"Player volume has been adjusted to {volume}")
         return self._volume
 
     async def add_filter(self, _filter: Filter, fast_apply: bool = False) -> Filters:
@@ -573,7 +589,10 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"filters": payload},
         )
+
+        self._log.debug(f"Filter has been applied to player with tag {_filter.tag}")
         if fast_apply:
+            self._log.debug(f"Fast apply passed, now applying filter instantly.")
             await self.seek(self.position)
 
         return self._filters
@@ -594,7 +613,9 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"filters": payload},
         )
+        self._log.debug(f"Filter has been removed from player with tag {filter_tag}")
         if fast_apply:
+            self._log.debug(f"Fast apply passed, now removing filter instantly.")
             await self.seek(self.position)
 
         return self._filters
@@ -618,6 +639,8 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"filters": {}},
         )
+        self._log.debug(f"All filters have been removed from player.")
 
         if fast_apply:
+            self._log.debug(f"Fast apply passed, now removing all filters instantly.")
             await self.seek(self.position)
