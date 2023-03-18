@@ -72,7 +72,7 @@ After you have initialized your function, we need to fill in the proper paramete
 
 * - `log_handler`
   - `Optional[logging.Handler]`
-  - The logging handler for the node. Set to `None` to disable the default logging handler.
+  - The logging handler for the node. Set to `None` to default to the built-in logging handler.
 
 :::
 
