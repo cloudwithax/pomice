@@ -52,6 +52,8 @@ class TrackType(Enum):
     TrackType.APPLE_MUSIC defines that the track is from Apple Music.
 
     TrackType.HTTP defines that the track is from an HTTP source.
+
+    TrackType.LOCAL defines that the track is from a local source.
     """
 
     # We don't have to define anything special for these, since these just serve as flags
@@ -60,6 +62,7 @@ class TrackType(Enum):
     SPOTIFY = "spotify"
     APPLE_MUSIC = "apple_music"
     HTTP = "http"
+    LOCAL = "local"
 
     def __str__(self) -> str:
         return self.value

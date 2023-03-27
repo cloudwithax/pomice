@@ -5,6 +5,8 @@ import logging
 import random
 import re
 import time
+from os import path
+from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import List
@@ -530,9 +532,6 @@ class Node:
 
         timestamp = None
 
-        if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
-            query = f"{search_type}:{query}"
-
         if filters:
             for filter in filters:
                 filter.set_preload()
@@ -696,7 +695,38 @@ class Node:
                 ),
             ]
 
+        elif path.exists(path.dirname(query)):
+            local_file = Path(query)
+            data: dict = await self.send(  # type: ignore
+                method="GET",
+                path="loadtracks",
+                query=f"identifier={quote(query)}",
+            )
+
+            track: dict = data["tracks"][0]  # type: ignore
+            info: dict = track["info"]  # type: ignore
+
+            return [
+                Track(
+                    track_id=track["track"],
+                    info={
+                        "title": local_file.name,
+                        "author": "Unknown",
+                        "length": info["length"],
+                        "uri": quote(local_file.as_uri()),
+                        "position": info["position"],
+                        "identifier": info["identifier"],
+                    },
+                    ctx=ctx,
+                    track_type=TrackType.LOCAL,
+                    filters=filters,
+                ),
+            ]
+
         else:
+            if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
+                query = f"{search_type}:{query}"
+
             # If YouTube url contains a timestamp, capture it for use later.
 
             if match := URLRegex.YOUTUBE_TIMESTAMP.match(query):

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import logging
 import re
 from datetime import datetime
 from typing import Dict
@@ -36,6 +37,7 @@ class Client:
         self.token: str = ""
         self.headers: Dict[str, str] = {}
         self.session: aiohttp.ClientSession = None  # type: ignore
+        self._log = logging.getLogger(__name__)
 
     async def request_token(self) -> None:
         if not self.session:
@@ -65,6 +67,7 @@ class Client:
             ).decode()
             token_data = json.loads(token_json)
             self.expiry = datetime.fromtimestamp(token_data["exp"])
+            self._log.debug(f"Fetched Apple Music bearer token successfully")
 
     async def search(self, query: str) -> Union[Album, Playlist, Song, Artist]:
         if not self.token or datetime.utcnow() > self.expiry:
@@ -96,6 +99,9 @@ class Client:
                     f"Error while fetching results: {resp.status} {resp.reason}",
                 )
             data: dict = await resp.json(loads=json.loads)
+            self._log.debug(
+                f"Made request to Apple Music API with status {resp.status} and response {data}",
+            )
 
         data = data["data"][0]
 

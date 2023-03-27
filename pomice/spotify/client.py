@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 import time
 from base64 import b64encode
@@ -46,6 +47,7 @@ class Client:
             "Authorization": f"Basic {self._auth_token.decode()}",
         }
         self._bearer_headers: Optional[Dict] = None
+        self._log = logging.getLogger(__name__)
 
     async def _fetch_bearer_token(self) -> None:
         _data = {"grant_type": "client_credentials"}
@@ -60,6 +62,7 @@ class Client:
                 )
 
             data: dict = await resp.json(loads=json.loads)
+            self._log.debug(f"Fetched Spotify bearer token successfully")
 
         self._bearer_token = data["access_token"]
         self._expiry = time.time() + (int(data["expires_in"]) - 10)
@@ -87,6 +90,9 @@ class Client:
                 )
 
             data: dict = await resp.json(loads=json.loads)
+            self._log.debug(
+                f"Made request to Spotify API with status {resp.status} and response {data}",
+            )
 
         if spotify_type == "track":
             return Track(data)

@@ -348,7 +348,23 @@ class Queue(Iterable[Track]):
             track.filters = None
 
     def jump(self, item: Track) -> None:
-        """Removes all tracks before the."""
+        """
+        Jumps to the item specified in the queue.
+
+        If the queue is not looping, the queue will be mutated.
+        Otherwise, the current item will be adjusted to the item
+        before the specified track.
+
+        The queue is adjusted so that the next item that is retrieved
+        is the track that is specified, effectively 'jumping' the queue.
+        """
+
+        if self._loop_mode == LoopMode.TRACK:
+            raise QueueException("Jumping the queue whilst looping a track is not allowed.")
+
         index = self.find_position(item)
-        new_queue = self._queue[index : self.size]
-        self._queue = new_queue
+        if self._loop_mode == LoopMode.QUEUE:
+            self._current_item = self._queue[index - 1]
+        else:
+            new_queue = self._queue[index : self.size]
+            self._queue = new_queue
