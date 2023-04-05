@@ -18,7 +18,7 @@ class Track:
         self.length: float = data["duration_ms"]
         self.id: str = data["id"]
 
-        self.issrc: Optional[str] = None
+        self.isrc: Optional[str] = None
         if data.get("external_ids"):
             self.isrc = data["external_ids"]["isrc"]
 

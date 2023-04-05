@@ -78,7 +78,7 @@ class Track:
         self.author: str = info.get("author", "Unknown Author")
         self.uri: str = info.get("uri", "")
         self.identifier: str = info.get("identifier", "")
-        self.isrc: str = info.get("isrc", "")
+        self.isrc: Optional[str] = info.get("isrc", None)
         self.thumbnail: Optional[str] = info.get("thumbnail")
 
         if self.uri and self.track_type is TrackType.YOUTUBE:
