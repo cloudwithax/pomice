@@ -34,7 +34,7 @@ your application. Here are all the definitions:
 
 
 All events related to tracks carry a `Player` object so you can access player-specific functions
-and properties for further evaluation. They also carry a `Track` object so you can access track-specific functions and properites for further evaluation as well.
+and properties for further evaluation. They also carry a `Track` object so you can access track-specific functions and properties for further evaluation as well.
 
 `Event.TrackEndEvent()` carries the reason for the track ending. If the track ends suddenly, you can use the reason provided to determine a solution.
 
