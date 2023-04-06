@@ -506,7 +506,7 @@ class Player(VoiceProtocol):
             for filter in track.filters:
                 await self.add_filter(_filter=filter)
 
-        # Lavalink v4 changed the way the end time parameter works
+        # Lavalink v3.7.5 changed the way the end time parameter works
         # so now the end time cannot be zero.
         # If it isnt zero, it'll be set to None.
         # Otherwise, it'll be set here:
@@ -573,6 +573,24 @@ class Player(VoiceProtocol):
 
         self._log.debug(f"Player volume has been adjusted to {volume}")
         return self._volume
+
+    async def move_to(self, *, channel: VoiceChannel) -> None:
+        """Moves the player to a new voice channel."""
+
+        if self.current:
+            data: dict = {"position": self.position, "encodedTrack": self.current.track_id}
+
+        await self.guild.change_voice_state(channel=channel)
+
+        self.channel = channel
+
+        await self._dispatch_voice_update()
+        await self._node.send(
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
+            data=data,
+        )
 
     async def add_filter(self, _filter: Filter, fast_apply: bool = False) -> Filters:
         """Adds a filter to the player. Takes a pomice.Filter object.
