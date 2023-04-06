@@ -116,6 +116,9 @@ class Node:
         log_level: LogLevel = LogLevel.INFO,
         log_handler: Optional[logging.Handler] = None,
     ):
+        if not isinstance(port, int):
+            raise TypeError("Port must be an integer")
+
         self._bot: commands.Bot = bot
         self._host: str = host
         self._port: int = port
