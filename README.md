@@ -3,11 +3,16 @@
 ![](https://raw.githubusercontent.com/cloudwithax/pomice/main/banner.jpg)
 
 
-[![GPL](https://img.shields.io/badge/license-GPL-2f2f2f)](https://github.com/cloudwithax/pomice/blob/main/LICENSE) ![](https://img.shields.io/badge/python-3.8-2f2f2f)
-[![Discord](https://img.shields.io/discord/899324069235810315)](https://discord.gg/r64qjTSHG8) [![Read the Docs](https://readthedocs.org/projects/pomice/badge/?version=latest)](https://pomice.readthedocs.io/en/latest/)
+[![GPL](https://img.shields.io/github/license/cloudwithax/pomice?color=2f2f2f)](https://github.com/cloudwithax/pomice/blob/main/LICENSE) ![](https://img.shields.io/pypi/pyversions/pomice?color=2f2f2f) [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Discord](https://img.shields.io/discord/899324069235810315?color=%237289DA&label=Pomice%20Support&logo=discord&logoColor=white)](https://discord.gg/r64qjTSHG8) [![Read the Docs](https://readthedocs.org/projects/pomice/badge/?version=latest)](https://pomice.readthedocs.io/en/latest/)
 
 
-Pomice is a fully asynchronous Python library designed for communicating with [Lavalink](https://github.com/freyacodes/Lavalink) seamlessly within the [discord.py](https://github.com/Rapptz/discord.py) library. It features 100% API coverage of the entire [Lavalink](https://github.com/freyacodes/Lavalink) spec that can be accessed with easy-to-understand functions. We also include Spotify and Apple Music querying capabilites using built-in custom clients, making it easier to develop your next big music bot.
+Pomice is a fully asynchronous Python library designed for communicating with [Lavalink](https://github.com/freyacodes/Lavalink) seamlessly within the [discord.py](https://github.com/Rapptz/discord.py) library. It features 100% coverage of the [Lavalink](https://github.com/freyacodes/Lavalink) spec that can be accessed with easy-to-understand functions along with Spotify and Apple Music querying capabilities using built-in custom clients, making it easier to develop your next big music bot.
+
+## Quick Links
+- [Discord Server](https://discord.gg/r64qjTSHG8)
+- [Read the Docs](https://pomice.readthedocs.io/en/latest/)
+- [PyPI Homepage](https://pypi.org/project/pomice/)
 
 
 # Install
@@ -23,7 +28,7 @@ pip install pomice
 pip install git+https://github.com/cloudwithax/pomice
 ```
 
-# Support
+# Support And Documentation
 
 The official documentation is [here](https://pomice.readthedocs.io/en/latest/)
 
@@ -31,7 +36,7 @@ You can join our support server [here](https://discord.gg/r64qjTSHG8)
 
 
 # Examples
-In-depth examples are located in the examples folder
+In-depth examples are located in the [examples folder](https://github.com/cloudwithax/pomice/tree/main/examples)
 
 Here's a quick example:
 
