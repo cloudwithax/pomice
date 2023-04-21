@@ -101,13 +101,13 @@ class Music(commands.Cog):
         await self.pomice.create_node(
             bot=self.bot,
             host="127.0.0.1",
-            port="3030",
+            port=3030,
             password="youshallnotpass",
             identifier="MAIN",
         )
         print(f"Node is ready!")
 
-    async def required(self, ctx: commands.Context):
+    def required(self, ctx: commands.Context):
         """Method which returns required votes based on amount of members in a channel."""
         player: Player = ctx.voice_client
         channel = self.bot.get_channel(int(player.channel.id))
@@ -119,7 +119,7 @@ class Music(commands.Cog):
 
         return required
 
-    async def is_privileged(self, ctx: commands.Context):
+    def is_privileged(self, ctx: commands.Context):
         """Check whether the user is an Admin or DJ."""
         player: Player = ctx.voice_client
 
