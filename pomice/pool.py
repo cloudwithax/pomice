@@ -109,7 +109,7 @@ class Node:
         heartbeat: int = 30,
         loop: Optional[asyncio.AbstractEventLoop] = None,
         session: Optional[aiohttp.ClientSession] = None,
-        spotify_client_id: Optional[int] = None,
+        spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
         apple_music: bool = False,
         fallback: bool = False,
@@ -159,7 +159,7 @@ class Node:
 
         self._players: Dict[int, Player] = {}
 
-        self._spotify_client_id: Optional[int] = spotify_client_id
+        self._spotify_client_id: Optional[str] = spotify_client_id
         self._spotify_client_secret: Optional[str] = spotify_client_secret
 
         self._apple_music_client: Optional[applemusic.Client] = None
