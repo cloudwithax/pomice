@@ -101,7 +101,7 @@ class Music(commands.Cog):
         await self.pomice.create_node(
             bot=self.bot,
             host="127.0.0.1",
-            port="3030",
+            port=3030,
             password="youshallnotpass",
             identifier="MAIN",
         )
