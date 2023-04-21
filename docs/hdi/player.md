@@ -365,7 +365,7 @@ await Player.stop()
 
 To move the player to another channel, we need to use `Player.move_to()`
 
-```py 
+```py
 
 await Player.move_to(...)
 
