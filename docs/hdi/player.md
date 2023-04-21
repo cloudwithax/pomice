@@ -361,6 +361,27 @@ await Player.stop()
 
 ```
 
+### Moving the player to another channel
+
+To move the player to another channel, we need to use `Player.move_to()`
+
+```py 
+
+await Player.move_to(...)
+
+```
+
+After you have initialized your function, we need to include the `channel` parameter, which is a `VoiceChannel`:
+
+```py
+
+await Player.move_to(channel)
+
+```
+
+After running this function, your player should be in the new voice channel. All voice state updates should also be handled.
+
+
 ## Controlling filters
 
 Pomice has an extensive suite of filter management tools to help you make the most of Lavalink and it's filters.
