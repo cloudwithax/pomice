@@ -101,7 +101,7 @@ class Music(commands.Cog):
         await self.pomice.create_node(
             bot=self.bot,
             host="127.0.0.1",
-            port=3030,
+            port="3030",
             password="youshallnotpass",
             identifier="MAIN",
         )
@@ -119,7 +119,7 @@ class Music(commands.Cog):
 
         return required
 
-    async def is_privileged(self, ctx: commands.Context):
+    def is_privileged(self, ctx: commands.Context):
         """Check whether the user is an Admin or DJ."""
         player: Player = ctx.voice_client
 
