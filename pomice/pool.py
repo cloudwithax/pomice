@@ -928,7 +928,7 @@ class NodePool:
         secure: bool = False,
         heartbeat: int = 30,
         loop: Optional[asyncio.AbstractEventLoop] = None,
-        spotify_client_id: Optional[int] = None,
+        spotify_client_id: Optional[str] = None,
         spotify_client_secret: Optional[str] = None,
         session: Optional[aiohttp.ClientSession] = None,
         apple_music: bool = False,

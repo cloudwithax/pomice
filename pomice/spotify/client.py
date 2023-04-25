@@ -32,8 +32,8 @@ class Client:
     for any Spotify URL you throw at it.
     """
 
-    def __init__(self, client_id: int, client_secret: str) -> None:
-        self._client_id: int = client_id
+    def __init__(self, client_id: str, client_secret: str) -> None:
+        self._client_id: str = client_id
         self._client_secret: str = client_secret
 
         self.session: aiohttp.ClientSession = None  # type: ignore
