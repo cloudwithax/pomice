@@ -43,7 +43,7 @@ class Client:
         if not self.session:
             self.session = aiohttp.ClientSession()
 
-        async with self.session.get("https://music.apple.com/assets/index.919fe17f.js") as resp:
+        async with self.session.get("https://music.apple.com/assets/index-e16a87ba.js") as resp:
             if resp.status != 200:
                 raise AppleMusicRequestException(
                     f"Error while fetching results: {resp.status} {resp.reason}",

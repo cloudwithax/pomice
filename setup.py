@@ -4,7 +4,7 @@ import re
 import setuptools
 
 version = ""
-requirements = ["discord.py>=2.0.0", "aiohttp>=3.7.4,<4", "orjson"]
+requirements = ["aiohttp>=3.7.4,<4", "orjson"]
 with open("pomice/__init__.py") as f:
     version = re.search(
         r'^__version__\s*=\s*[\'"]([^\'"]*)[\'"]',
