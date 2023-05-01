@@ -334,6 +334,9 @@ class Player(VoiceProtocol):
 
         self._log.debug(f"Dispatched event {data['type']} to player.")
 
+    async def _refresh_endpoint_uri(self, session_id: Optional[str]) -> None:
+        self._player_endpoint_uri = f"sessions/{session_id}/players"
+
     async def _swap_node(self, *, new_node: Node) -> None:
         if self.current:
             data: dict = {"position": self.position, "encodedTrack": self.current.track_id}
@@ -342,8 +345,7 @@ class Player(VoiceProtocol):
         self._node = new_node
         self._node._players[self._guild.id] = self
         # reassign uri to update session id
-        self._player_endpoint_uri = f"sessions/{self._node._session_id}/players"
-
+        await self._refresh_endpoint_uri(new_node._session_id)
         await self._dispatch_voice_update()
         await self._node.send(
             method="PATCH",
