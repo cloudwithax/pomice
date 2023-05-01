@@ -122,68 +122,71 @@ class Client:
         else:
             request_url = AM_REQ_URL.format(country=country, type=type, id=id)
 
-        async with self.session.get(request_url, headers=self.headers) as resp:
-            if resp.status != 200:
-                raise AppleMusicRequestException(
-                    f"Error while fetching results: {resp.status} {resp.reason}",
-                )
-            data: dict = await resp.json(loads=json.loads)
-            self._log.debug(
-                f"Made request to Apple Music API with status {resp.status} and response {data}",
+        resp = await self.session.get(request_url, headers=self.headers)
+
+        if resp.status != 200:
+            raise AppleMusicRequestException(
+                f"Error while fetching results: {resp.status} {resp.reason}",
             )
+
+        data: dict = await resp.json(loads=json.loads)
+        self._log.debug(
+            f"Made request to Apple Music API with status {resp.status} and response {data}",
+        )
 
         data = data["data"][0]
 
         if type == "song":
             return Song(data)
 
-        if type == "album":
+        elif type == "album":
             return Album(data)
 
-        if type == "artist":
-            async with self.session.get(
+        elif type == "artist":
+            resp = await self.session.get(
                 f"{request_url}/view/top-songs",
                 headers=self.headers,
-            ) as resp:
-                if resp.status != 200:
-                    raise AppleMusicRequestException(
-                        f"Error while fetching results: {resp.status} {resp.reason}",
-                    )
-                top_tracks: dict = await resp.json(loads=json.loads)
-                artist_tracks: dict = top_tracks["data"]
+            )
+            if resp.status != 200:
+                raise AppleMusicRequestException(
+                    f"Error while fetching results: {resp.status} {resp.reason}",
+                )
+
+            top_tracks: dict = await resp.json(loads=json.loads)
+            artist_tracks: dict = top_tracks["data"]
 
             return Artist(data, tracks=artist_tracks)
+        else:
+            track_data: dict = data["relationships"]["tracks"]
+            album_tracks: List[Song] = [Song(track) for track in track_data["data"]]
 
-        track_data: dict = data["relationships"]["tracks"]
-        album_tracks: List[Song] = [Song(track) for track in track_data["data"]]
+            if not len(album_tracks):
+                raise AppleMusicRequestException(
+                    "This playlist is empty and therefore cannot be queued.",
+                )
 
-        if not len(album_tracks):
-            raise AppleMusicRequestException(
-                "This playlist is empty and therefore cannot be queued.",
-            )
+            _next = track_data.get("next")
+            if _next:
+                next_page_url = AM_BASE_URL + _next
 
-        _next = track_data.get("next")
-        if _next:
-            next_page_url = AM_BASE_URL + _next
+                while next_page_url is not None:
+                    resp = await self.session.get(next_page_url, headers=self.headers)
 
-            while next_page_url is not None:
-                async with self.session.get(next_page_url, headers=self.headers) as resp:
                     if resp.status != 200:
                         raise AppleMusicRequestException(
                             f"Error while fetching results: {resp.status} {resp.reason}",
                         )
 
                     next_data: dict = await resp.json(loads=json.loads)
+                    album_tracks.extend(Song(track) for track in next_data["data"])
 
-                album_tracks.extend(Song(track) for track in next_data["data"])
+                    _next = next_data.get("next")
+                    if _next:
+                        next_page_url = AM_BASE_URL + _next
+                    else:
+                        next_page_url = None
 
-                _next = next_data.get("next")
-                if _next:
-                    next_page_url = AM_BASE_URL + _next
-                else:
-                    next_page_url = None
-
-        return Playlist(data, album_tracks)
+            return Playlist(data, album_tracks)
 
     async def close(self) -> None:
         if self.session:

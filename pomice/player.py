@@ -83,6 +83,10 @@ class Filters:
         """Checks if a filter exists in the list of filters using its filter tag"""
         return any(f for f in self._filters if f.tag == filter_tag)
 
+    def has_filter_type(self, *, filter_type: Filter) -> bool:
+        """Checks if any filters applied match the specified filter type."""
+        return any(f for f in self._filters if type(f) == type(filter_type))
+
     def reset_filters(self) -> None:
         """Removes all filters from the list"""
         self._filters = []
