@@ -22,6 +22,9 @@ AM_URL_REGEX = re.compile(
 AM_SINGLE_IN_ALBUM_REGEX = re.compile(
     r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)",
 )
+
+AM_SCRIPT_REGEX = re.compile(r'<script.*?src="(/assets/index-.*?)"')
+
 AM_REQ_URL = "https://api.music.apple.com/v1/catalog/{country}/{type}s/{id}"
 AM_BASE_URL = "https://api.music.apple.com"
 
@@ -43,31 +46,57 @@ class Client:
         if not self.session:
             self.session = aiohttp.ClientSession()
 
-        async with self.session.get("https://music.apple.com/assets/index-e16a87ba.js") as resp:
-            if resp.status != 200:
-                raise AppleMusicRequestException(
-                    f"Error while fetching results: {resp.status} {resp.reason}",
-                )
-            text = await resp.text()
-            match = re.search('"(eyJ.+?)"', text)
-            if not match:
-                raise AppleMusicRequestException(
-                    "Could not find token in response.",
-                )
-            result = match.group(1)
+        # First lets get the raw response from the main page
 
-            self.token = result
-            self.headers = {
-                "Authorization": f"Bearer {result}",
-                "Origin": "https://apple.com",
-            }
-            token_split = self.token.split(".")[1]
-            token_json = base64.b64decode(
-                token_split + "=" * (-len(token_split) % 4),
-            ).decode()
-            token_data = json.loads(token_json)
-            self.expiry = datetime.fromtimestamp(token_data["exp"])
-            self._log.debug(f"Fetched Apple Music bearer token successfully")
+        resp = await self.session.get("https://music.apple.com")
+
+        if resp.status != 200:
+            raise AppleMusicRequestException(
+                f"Error while fetching results: {resp.status} {resp.reason}",
+            )
+
+        # Looking for script tag that fits criteria
+
+        text = await resp.text()
+        match = re.search(AM_SCRIPT_REGEX, text)
+
+        if not match:
+            raise AppleMusicRequestException(
+                "Could not find valid script URL in response.",
+            )
+
+        # Found the script file, lets grab our token
+
+        result = match.group(1)
+        asset_url = result
+
+        resp = await self.session.get("https://music.apple.com" + asset_url)
+
+        if resp.status != 200:
+            raise AppleMusicRequestException(
+                f"Error while fetching results: {resp.status} {resp.reason}",
+            )
+
+        text = await resp.text()
+        match = re.search('"(eyJ.+?)"', text)
+        if not match:
+            raise AppleMusicRequestException(
+                "Could not find token in response.",
+            )
+        result = match.group(1)
+
+        self.token = result
+        self.headers = {
+            "Authorization": f"Bearer {result}",
+            "Origin": "https://apple.com",
+        }
+        token_split = self.token.split(".")[1]
+        token_json = base64.b64decode(
+            token_split + "=" * (-len(token_split) % 4),
+        ).decode()
+        token_data = json.loads(token_json)
+        self.expiry = datetime.fromtimestamp(token_data["exp"])
+        self._log.debug(f"Fetched Apple Music bearer token successfully")
 
     async def search(self, query: str) -> Union[Album, Playlist, Song, Artist]:
         if not self.token or datetime.utcnow() > self.expiry:
