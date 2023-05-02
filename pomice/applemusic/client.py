@@ -42,10 +42,10 @@ class Client:
         self.session: aiohttp.ClientSession = None  # type: ignore
         self._log = logging.getLogger(__name__)
 
-    async def request_token(self) -> None:
-        if not self.session:
-            self.session = aiohttp.ClientSession()
+    async def _set_session(self, session: aiohttp.ClientSession) -> None:
+        self.session = session
 
+    async def request_token(self) -> None:
         # First lets get the raw response from the main page
 
         resp = await self.session.get("https://music.apple.com")
@@ -187,8 +187,3 @@ class Client:
                         next_page_url = None
 
             return Playlist(data, album_tracks)
-
-    async def close(self) -> None:
-        if self.session:
-            await self.session.close()
-            self.session = None  # type: ignore

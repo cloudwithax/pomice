@@ -274,6 +274,13 @@ class Node:
                 "Lavalink version 3.7.0 or above is required to use this library.",
             )
 
+    async def _set_ext_client_session(self, session: aiohttp.ClientSession) -> None:
+        if self._spotify_client:
+            await self._spotify_client._set_session(session=session)
+
+        if self._apple_music_client:
+            await self._apple_music_client._set_session(session=session)
+
     async def _update_handler(self, data: dict) -> None:
         await self._bot.wait_until_ready()
 
@@ -373,37 +380,37 @@ class Node:
             f'{f"?{query}" if query else ""}'
         )
 
-        async with self._session.request(
+        resp = await self._session.request(
             method=method,
             url=uri,
             headers=self._headers,
             json=data or {},
-        ) as resp:
-            self._log.debug(
-                f"Making REST request to Node {self._identifier} with method {method} to {uri}",
+        )
+        self._log.debug(
+            f"Making REST request to Node {self._identifier} with method {method} to {uri}",
+        )
+        if resp.status >= 300:
+            resp_data: dict = await resp.json()
+            raise NodeRestException(
+                f'Error from Node {self._identifier} fetching from Lavalink REST api: {resp.status} {resp.reason}: {resp_data["message"]}',
             )
-            if resp.status >= 300:
-                resp_data: dict = await resp.json()
-                raise NodeRestException(
-                    f'Error from Node {self._identifier} fetching from Lavalink REST api: {resp.status} {resp.reason}: {resp_data["message"]}',
-                )
 
-            if method == "DELETE" or resp.status == 204:
-                self._log.debug(
-                    f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned no data.",
-                )
-                return await resp.json(content_type=None)
-
-            if resp.content_type == "text/plain":
-                self._log.debug(
-                    f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned text with body {await resp.text()}",
-                )
-                return await resp.text()
-
+        if method == "DELETE" or resp.status == 204:
             self._log.debug(
-                f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned JSON with body {await resp.json()}",
+                f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned no data.",
             )
-            return await resp.json()
+            return await resp.json(content_type=None)
+
+        if resp.content_type == "text/plain":
+            self._log.debug(
+                f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned text with body {await resp.text()}",
+            )
+            return await resp.text()
+
+        self._log.debug(
+            f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned JSON with body {await resp.json()}",
+        )
+        return await resp.json()
 
     def get_player(self, guild_id: int) -> Optional[Player]:
         """Takes a guild ID as a parameter. Returns a pomice Player object or None."""
@@ -428,6 +435,7 @@ class Node:
                 )
 
                 await self._handle_version_check(version=version)
+                await self._set_ext_client_session(session=self._session)
 
                 self._log.debug(
                     f"Version check from Node {self._identifier} successful. Returned version {version}",
@@ -484,14 +492,6 @@ class Node:
         await self._websocket.close()
         await self._session.close()
         self._log.debug("Websocket and http session closed.")
-
-        if self._spotify_client:
-            await self._spotify_client.close()
-            self._log.debug("Spotify client session closed.")
-
-        if self._apple_music_client:
-            await self._apple_music_client.close()
-            self._log.debug("Apple Music client session closed.")
 
         del self._pool._nodes[self._identifier]
         self.available = False

@@ -49,20 +49,21 @@ class Client:
         self._bearer_headers: Optional[Dict] = None
         self._log = logging.getLogger(__name__)
 
+    async def _set_session(self, session: aiohttp.ClientSession) -> None:
+        self.session = session
+
     async def _fetch_bearer_token(self) -> None:
         _data = {"grant_type": "client_credentials"}
 
-        if not self.session:
-            self.session = aiohttp.ClientSession()
+        resp = await self.session.post(GRANT_URL, data=_data, headers=self._grant_headers)
 
-        async with self.session.post(GRANT_URL, data=_data, headers=self._grant_headers) as resp:
-            if resp.status != 200:
-                raise SpotifyRequestException(
-                    f"Error fetching bearer token: {resp.status} {resp.reason}",
-                )
+        if resp.status != 200:
+            raise SpotifyRequestException(
+                f"Error fetching bearer token: {resp.status} {resp.reason}",
+            )
 
-            data: dict = await resp.json(loads=json.loads)
-            self._log.debug(f"Fetched Spotify bearer token successfully")
+        data: dict = await resp.json(loads=json.loads)
+        self._log.debug(f"Fetched Spotify bearer token successfully")
 
         self._bearer_token = data["access_token"]
         self._expiry = time.time() + (int(data["expires_in"]) - 10)
@@ -83,34 +84,34 @@ class Client:
 
         request_url = REQUEST_URL.format(type=spotify_type, id=spotify_id)
 
-        async with self.session.get(request_url, headers=self._bearer_headers) as resp:
-            if resp.status != 200:
-                raise SpotifyRequestException(
-                    f"Error while fetching results: {resp.status} {resp.reason}",
-                )
-
-            data: dict = await resp.json(loads=json.loads)
-            self._log.debug(
-                f"Made request to Spotify API with status {resp.status} and response {data}",
+        resp = await self.session.get(request_url, headers=self._bearer_headers)
+        if resp.status != 200:
+            raise SpotifyRequestException(
+                f"Error while fetching results: {resp.status} {resp.reason}",
             )
+
+        data: dict = await resp.json(loads=json.loads)
+        self._log.debug(
+            f"Made request to Spotify API with status {resp.status} and response {data}",
+        )
 
         if spotify_type == "track":
             return Track(data)
         elif spotify_type == "album":
             return Album(data)
         elif spotify_type == "artist":
-            async with self.session.get(
+            resp = await self.session.get(
                 f"{request_url}/top-tracks?market=US",
                 headers=self._bearer_headers,
-            ) as resp:
-                if resp.status != 200:
-                    raise SpotifyRequestException(
-                        f"Error while fetching results: {resp.status} {resp.reason}",
-                    )
+            )
+            if resp.status != 200:
+                raise SpotifyRequestException(
+                    f"Error while fetching results: {resp.status} {resp.reason}",
+                )
 
-                track_data: dict = await resp.json(loads=json.loads)
-                tracks = track_data["tracks"]
-                return Artist(data, tracks)
+            track_data: dict = await resp.json(loads=json.loads)
+            tracks = track_data["tracks"]
+            return Artist(data, tracks)
         else:
             tracks = [
                 Track(track["track"])
@@ -126,13 +127,13 @@ class Client:
             next_page_url = data["tracks"]["next"]
 
             while next_page_url is not None:
-                async with self.session.get(next_page_url, headers=self._bearer_headers) as resp:
-                    if resp.status != 200:
-                        raise SpotifyRequestException(
-                            f"Error while fetching results: {resp.status} {resp.reason}",
-                        )
+                resp = await self.session.get(next_page_url, headers=self._bearer_headers)
+                if resp.status != 200:
+                    raise SpotifyRequestException(
+                        f"Error while fetching results: {resp.status} {resp.reason}",
+                    )
 
-                    next_data: dict = await resp.json(loads=json.loads)
+                next_data: dict = await resp.json(loads=json.loads)
 
                 tracks += [
                     Track(track["track"])
@@ -164,19 +165,13 @@ class Client:
             id=f"?seed_tracks={spotify_id}",
         )
 
-        async with self.session.get(request_url, headers=self._bearer_headers) as resp:
-            if resp.status != 200:
-                raise SpotifyRequestException(
-                    f"Error while fetching results: {resp.status} {resp.reason}",
-                )
+        resp = await self.session.get(request_url, headers=self._bearer_headers)
+        if resp.status != 200:
+            raise SpotifyRequestException(
+                f"Error while fetching results: {resp.status} {resp.reason}",
+            )
 
-            data: dict = await resp.json(loads=json.loads)
-
+        data: dict = await resp.json(loads=json.loads)
         tracks = [Track(track) for track in data["tracks"]]
 
         return tracks
-
-    async def close(self) -> None:
-        if self.session:
-            await self.session.close()
-            self.session = None  # type: ignore
