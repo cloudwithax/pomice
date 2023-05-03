@@ -159,13 +159,14 @@ class Node:
 
         self._players: Dict[int, Player] = {}
 
+        self._spotify_client: Optional[spotify.Client] = None
+        self._apple_music_client: Optional[applemusic.Client] = None
+
         self._spotify_client_id: Optional[str] = spotify_client_id
         self._spotify_client_secret: Optional[str] = spotify_client_secret
 
-        self._apple_music_client: Optional[applemusic.Client] = None
-
         if self._spotify_client_id and self._spotify_client_secret:
-            self._spotify_client: spotify.Client = spotify.Client(
+            self._spotify_client = spotify.Client(
                 self._spotify_client_id,
                 self._spotify_client_secret,
             )
@@ -621,7 +622,7 @@ class Node:
                     "please obtain Spotify API credentials here: https://developer.spotify.com/",
                 )
 
-            spotify_results = await self._spotify_client.search(query=query)
+            spotify_results = await self._spotify_client.search(query=query)  # type: ignore
 
             if isinstance(spotify_results, spotify.Track):
                 return [
@@ -819,7 +820,7 @@ class Node:
         Context object on all tracks that get recommended.
         """
         if track.track_type == TrackType.SPOTIFY:
-            results = await self._spotify_client.get_recommendations(query=track.uri)
+            results = await self._spotify_client.get_recommendations(query=track.uri)  # type: ignore
             tracks = [
                 Track(
                     track_id=track.id,

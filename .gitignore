@@ -13,3 +13,4 @@ Pipfile.lock
 .venv/
 *.code-workspace
 *.ini
+.pypirc
