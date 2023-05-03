@@ -745,12 +745,6 @@ class Node:
             if match := URLRegex.YOUTUBE_TIMESTAMP.match(query):
                 timestamp = float(match.group("time"))
 
-            # If query is a video thats part of a playlist, get the video and queue that instead
-            # (I can't tell you how much i've wanted to implement this in here)
-
-            if match := URLRegex.YOUTUBE_VID_IN_PLAYLIST.match(query):
-                query = match.group("video")
-
             data = await self.send(
                 method="GET",
                 path="loadtracks",

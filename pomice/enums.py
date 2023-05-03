@@ -217,10 +217,6 @@ class URLRegex:
         r"^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))/playlist\?list=.*",
     )
 
-    YOUTUBE_VID_IN_PLAYLIST = re.compile(
-        r"(?P<video>^.*?v.*?)(?P<list>&list.*)",
-    )
-
     YOUTUBE_TIMESTAMP = re.compile(
         r"(?P<video>^.*?)(\?t|&start)=(?P<time>\d+)?.*",
     )
