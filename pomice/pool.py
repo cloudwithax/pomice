@@ -159,6 +159,7 @@ class Node:
 
         self._players: Dict[int, Player] = {}
 
+        self._spotify_client: Optional[spotify.Client] = None
         self._spotify_client_id: Optional[str] = spotify_client_id
         self._spotify_client_secret: Optional[str] = spotify_client_secret
 
@@ -169,8 +170,6 @@ class Node:
                 self._spotify_client_id,
                 self._spotify_client_secret,
             )
-        else:
-            self._spotify_client = None
 
         if apple_music:
             self._apple_music_client = applemusic.Client()
