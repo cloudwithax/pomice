@@ -169,6 +169,8 @@ class Node:
                 self._spotify_client_id,
                 self._spotify_client_secret,
             )
+        else:
+            self._spotify_client = None
 
         if apple_music:
             self._apple_music_client = applemusic.Client()
