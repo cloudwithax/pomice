@@ -434,11 +434,12 @@ class Player(VoiceProtocol):
             assert not self.is_connected and not self.channel
 
         self._node._players.pop(self.guild.id)
-        await self._node.send(
-            method="DELETE",
-            path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
-        )
+        if self.node.is_connected:
+            await self._node.send(
+                method="DELETE",
+                path=self._player_endpoint_uri,
+                guild_id=self._guild.id,
+            )
 
         self._log.debug("Player has been destroyed.")
 
