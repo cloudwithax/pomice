@@ -98,9 +98,6 @@ class Track:
         if not isinstance(other, Track):
             return False
 
-        if self.ctx and other.ctx:
-            return other.track_id == self.track_id and other.ctx.message.id == self.ctx.message.id
-
         return other.track_id == self.track_id
 
     def __str__(self) -> str:
