@@ -544,7 +544,7 @@ class Node:
         data: dict = await self.send(
             method="GET",
             path="decodetrack",
-            query=f"encodedTrack={identifier}",
+            query=f"encodedTrack={quote(identifier)}",
         )
         return Track(
             track_id=identifier,
