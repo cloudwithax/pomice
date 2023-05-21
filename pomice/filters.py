@@ -77,6 +77,12 @@ class Equalizer(Filter):
     def __repr__(self) -> str:
         return f"<Pomice.EqualizerFilter tag={self.tag} eq={self.eq} raw={self.raw}>"
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Equalizer):
+            return False
+
+        return self.raw == __value.raw
+
     @classmethod
     def flat(cls) -> "Equalizer":
         """Equalizer preset which represents a flat EQ board,
@@ -231,6 +237,16 @@ class Timescale(Filter):
     def __repr__(self) -> str:
         return f"<Pomice.TimescaleFilter tag={self.tag} speed={self.speed} pitch={self.pitch} rate={self.rate}>"
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Timescale):
+            return False
+
+        return (
+            self.speed == __value.speed
+            and self.pitch == __value.pitch
+            and self.rate == __value.rate
+        )
+
 
 class Karaoke(Filter):
     """Filter which filters the vocal track from any song and leaves the instrumental.
@@ -270,6 +286,17 @@ class Karaoke(Filter):
             f"filter_band={self.filter_band} filter_width={self.filter_width}>"
         )
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Karaoke):
+            return False
+
+        return (
+            self.level == __value.level
+            and self.mono_level == __value.mono_level
+            and self.filter_band == __value.filter_band
+            and self.filter_width == __value.filter_width
+        )
+
 
 class Tremolo(Filter):
     """Filter which produces a wavering tone in the music,
@@ -304,6 +331,12 @@ class Tremolo(Filter):
         return (
             f"<Pomice.TremoloFilter tag={self.tag} frequency={self.frequency} depth={self.depth}>"
         )
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Tremolo):
+            return False
+
+        return self.frequency == __value.frequency and self.depth == __value.depth
 
 
 class Vibrato(Filter):
@@ -340,6 +373,12 @@ class Vibrato(Filter):
             f"<Pomice.VibratoFilter tag={self.tag} frequency={self.frequency} depth={self.depth}>"
         )
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Vibrato):
+            return False
+
+        return self.frequency == __value.frequency and self.depth == __value.depth
+
 
 class Rotation(Filter):
     """Filter which produces a stereo-like panning effect, which sounds like
@@ -356,6 +395,12 @@ class Rotation(Filter):
 
     def __repr__(self) -> str:
         return f"<Pomice.RotationFilter tag={self.tag} rotation_hertz={self.rotation_hertz}>"
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Rotation):
+            return False
+
+        return self.rotation_hertz == __value.rotation_hertz
 
 
 class ChannelMix(Filter):
@@ -416,6 +461,17 @@ class ChannelMix(Filter):
         return (
             f"<Pomice.ChannelMix tag={self.tag} left_to_left={self.left_to_left} left_to_right={self.left_to_right} "
             f"right_to_left={self.right_to_left} right_to_right={self.right_to_right}>"
+        )
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, ChannelMix):
+            return False
+
+        return (
+            self.left_to_left == __value.left_to_left
+            and self.left_to_right == __value.left_to_right
+            and self.right_to_left == __value.right_to_left
+            and self.right_to_right == __value.right_to_right
         )
 
 
@@ -479,6 +535,21 @@ class Distortion(Filter):
             f"tan_scale={self.tan_scale} offset={self.offset} scale={self.scale}"
         )
 
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, Distortion):
+            return False
+
+        return (
+            self.sin_offset == __value.sin_offset
+            and self.sin_scale == __value.sin_scale
+            and self.cos_offset == __value.cos_offset
+            and self.cos_scale == __value.cos_scale
+            and self.tan_offset == __value.tan_offset
+            and self.tan_scale == __value.tan_scale
+            and self.offset == __value.offset
+            and self.scale == __value.scale
+        )
+
 
 class LowPass(Filter):
     """Filter which supresses higher frequencies and allows lower frequencies to pass.
@@ -495,3 +566,9 @@ class LowPass(Filter):
 
     def __repr__(self) -> str:
         return f"<Pomice.LowPass tag={self.tag} smoothing={self.smoothing}>"
+
+    def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, LowPass):
+            return False
+
+        return self.smoothing == __value.smoothing

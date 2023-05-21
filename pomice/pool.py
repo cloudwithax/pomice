@@ -112,7 +112,7 @@ class Node:
         password: str,
         identifier: str,
         secure: bool = False,
-        heartbeat: int = 60,
+        heartbeat: int = 120,
         resume_key: Optional[str] = None,
         resume_timeout: int = 60,
         loop: Optional[asyncio.AbstractEventLoop] = None,
@@ -234,13 +234,15 @@ class Node:
 
     def _setup_logging(self, level: LogLevel) -> logging.Logger:
         logger = logging.getLogger("pomice")
-        logger.setLevel(level)
+
         handler = None
 
         if self._log_handler:
             handler = self._log_handler
+            logger.setLevel(handler.level)
         else:
             handler = logging.StreamHandler()
+            logger.setLevel(level)
             dt_fmt = "%Y-%m-%d %H:%M:%S"
             formatter = logging.Formatter(
                 "[{asctime}] [{levelname:<8}] {name}: {message}",
@@ -960,7 +962,7 @@ class NodePool:
         password: str,
         identifier: str,
         secure: bool = False,
-        heartbeat: int = 30,
+        heartbeat: int = 120,
         resume_key: Optional[str] = None,
         resume_timeout: int = 60,
         loop: Optional[asyncio.AbstractEventLoop] = None,

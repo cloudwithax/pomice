@@ -79,6 +79,27 @@ class Filters:
             if filter.tag == filter_tag:
                 del self._filters[index]
 
+    def edit_filter(self, *, filter_tag: str, to_apply: Filter) -> None:
+        """Edits a filter in the list of filters applied using its filter tag and replaces it with the new filter."""
+        if not any(f for f in self._filters if f.tag == filter_tag):
+            raise FilterTagInvalid("A filter with that tag was not found.")
+
+        for index, filter in enumerate(self._filters):
+            if filter.tag == filter_tag:
+                if not type(filter) == type(to_apply):
+                    raise FilterInvalidArgument(
+                        "Edited filter is not the same type as the current filter.",
+                    )
+                if self._filters[index] == to_apply:
+                    raise FilterInvalidArgument("Edited filter is the same as the current filter.")
+
+                if to_apply.tag != filter_tag:
+                    raise FilterInvalidArgument(
+                        "Edited filter tag is not the same as the current filter tag.",
+                    )
+
+                self._filters[index] = to_apply
+
     def has_filter(self, *, filter_tag: str) -> bool:
         """Checks if a filter exists in the list of filters using its filter tag"""
         return any(f for f in self._filters if f.tag == filter_tag)
@@ -382,6 +403,16 @@ class Player(VoiceProtocol):
         """
         return await self._node.get_tracks(query, ctx=ctx, search_type=search_type, filters=filters)
 
+    async def build_track(self, identifier: str, ctx: Optional[commands.Context] = None) -> Track:
+        """
+        Builds a track using a valid track identifier
+
+        You can also pass in a discord.py Context object to get a
+        Context object on the track it builds.
+        """
+
+        return await self._node.build_track(identifier, ctx=ctx)
+
     async def get_recommendations(
         self, *, track: Track, ctx: Optional[commands.Context] = None
     ) -> Optional[Union[List[Track], Playlist]]:
@@ -431,7 +462,7 @@ class Player(VoiceProtocol):
         except AttributeError:
             # 'NoneType' has no attribute '_get_voice_client_key' raised by self.cleanup() ->
             # assume we're already disconnected and cleaned up
-            assert not self.is_connected and not self.channel
+            assert self.channel is None and not self.is_connected
 
         self._node._players.pop(self.guild.id)
         if self.node.is_connected:
@@ -633,6 +664,33 @@ class Player(VoiceProtocol):
         self._log.debug(f"Filter has been removed from player with tag {filter_tag}")
         if fast_apply:
             self._log.debug(f"Fast apply passed, now removing filter instantly.")
+            await self.seek(self.position)
+
+        return self._filters
+
+    async def edit_filter(
+        self, *, filter_tag: str, edited_filter: Filter, fast_apply: bool = False
+    ) -> Filters:
+        """Edits a filter from the player using its filter tag and a new filter of the same type.
+        The filter to be replaced must have the same tag as the one you are replacing it with.
+        This will only work if you are using a version of Lavalink that supports filters.
+
+        If you would like for the filter to apply instantly, set the `fast_apply` arg to `True`.
+
+        (You must have a song playing in order for `fast_apply` to work.)
+        """
+
+        self._filters.edit_filter(filter_tag=filter_tag, to_apply=edited_filter)
+        payload = self._filters.get_all_payloads()
+        await self._node.send(
+            method="PATCH",
+            path=self._player_endpoint_uri,
+            guild_id=self._guild.id,
+            data={"filters": payload},
+        )
+        self._log.debug(f"Filter with tag {filter_tag} has been edited to {edited_filter!r}")
+        if fast_apply:
+            self._log.debug(f"Fast apply passed, now editing filter instantly.")
             await self.seek(self.position)
 
         return self._filters
