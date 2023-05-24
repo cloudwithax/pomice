@@ -18,9 +18,6 @@ from urllib.parse import quote
 
 import aiohttp
 import orjson as json
-from discord import Client
-from discord.ext import commands
-from discord.utils import MISSING
 from websockets import client
 from websockets import exceptions
 from websockets import typing as wstype
@@ -106,7 +103,7 @@ class Node:
         self,
         *,
         pool: Type[NodePool],
-        bot: commands.Bot,
+        bot_id: int,
         host: str,
         port: int,
         password: str,
@@ -127,7 +124,7 @@ class Node:
         if not isinstance(port, int):
             raise TypeError("Port must be an integer")
 
-        self._bot: commands.Bot = bot
+        self._bot_id: int = bot_id
         self._host: str = host
         self._port: int = port
         self._pool: Type[NodePool] = pool
@@ -208,9 +205,9 @@ class Node:
         return self._players
 
     @property
-    def bot(self) -> Client:
-        """Property which returns the discord.py client linked to this node"""
-        return self._bot
+    def bot_id(self) -> int:
+        """Property which returns the bot id linked to this node"""
+        return self._bot_id
 
     @property
     def player_count(self) -> int:
@@ -535,7 +532,7 @@ class Node:
             f"Successfully disconnected from node {self._identifier} and closed all sessions. Took {end - start:.3f}s",
         )
 
-    async def build_track(self, identifier: str, ctx: Optional[commands.Context] = None) -> Track:
+    async def build_track(self, identifier: str = None) -> Track:
         """
         Builds a track using a valid track identifier
 
@@ -550,7 +547,6 @@ class Node:
         )
         return Track(
             track_id=identifier,
-            ctx=ctx,
             info=data,
             track_type=TrackType(data["sourceName"]),
         )
@@ -559,7 +555,6 @@ class Node:
         self,
         query: str,
         *,
-        ctx: Optional[commands.Context] = None,
         search_type: SearchType = SearchType.ytsearch,
         filters: Optional[List[Filter]] = None,
     ) -> Optional[Union[Playlist, List[Track]]]:
@@ -593,7 +588,6 @@ class Node:
                 return [
                     Track(
                         track_id=apple_music_results.id,
-                        ctx=ctx,
                         track_type=TrackType.APPLE_MUSIC,
                         search_type=search_type,
                         filters=filters,
@@ -615,7 +609,6 @@ class Node:
             tracks = [
                 Track(
                     track_id=track.id,
-                    ctx=ctx,
                     track_type=TrackType.APPLE_MUSIC,
                     search_type=search_type,
                     filters=filters,
@@ -660,7 +653,6 @@ class Node:
                 return [
                     Track(
                         track_id=spotify_results.id,
-                        ctx=ctx,
                         track_type=TrackType.SPOTIFY,
                         search_type=search_type,
                         filters=filters,
@@ -682,7 +674,6 @@ class Node:
             tracks = [
                 Track(
                     track_id=track.id,
-                    ctx=ctx,
                     track_type=TrackType.SPOTIFY,
                     search_type=search_type,
                     filters=filters,
@@ -734,7 +725,6 @@ class Node:
                         "position": info["position"],
                         "identifier": info["identifier"],
                     },
-                    ctx=ctx,
                     track_type=TrackType.HTTP,
                     filters=filters,
                 ),
@@ -762,7 +752,6 @@ class Node:
                         "position": info["position"],
                         "identifier": info["identifier"],
                     },
-                    ctx=ctx,
                     track_type=TrackType.LOCAL,
                     filters=filters,
                 ),
@@ -804,7 +793,6 @@ class Node:
                 Track(
                     track_id=track["encoded"],
                     info=track["info"],
-                    ctx=ctx,
                     track_type=TrackType(track["info"]["sourceName"]),
                 )
                 for track in data["tracks"]
@@ -822,7 +810,6 @@ class Node:
                 Track(
                     track_id=track["encoded"],
                     info=track["info"],
-                    ctx=ctx,
                     track_type=TrackType(track["info"]["sourceName"]),
                     filters=filters,
                     timestamp=timestamp,
@@ -835,9 +822,7 @@ class Node:
                 "There was an error while trying to load this track.",
             )
 
-    async def get_recommendations(
-        self, *, track: Track, ctx: Optional[commands.Context] = None
-    ) -> Optional[Union[List[Track], Playlist]]:
+    async def get_recommendations(self, *, track: Track) -> Optional[Union[List[Track], Playlist]]:
         """
         Gets recommendations from either YouTube or Spotify.
         The track that is passed in must be either from
@@ -850,7 +835,6 @@ class Node:
             tracks = [
                 Track(
                     track_id=track.id,
-                    ctx=ctx,
                     track_type=TrackType.SPOTIFY,
                     info={
                         "title": track.name,
@@ -873,7 +857,6 @@ class Node:
         elif track.track_type == TrackType.YOUTUBE:
             return await self.get_tracks(
                 query=f"ytsearch:https://www.youtube.com/watch?v={track.identifier}&list=RD{track.identifier}",
-                ctx=ctx,
             )
 
         else:
@@ -956,7 +939,7 @@ class NodePool:
     async def create_node(
         cls,
         *,
-        bot: commands.Bot,
+        bot_id: int,
         host: str,
         port: int,
         password: str,
@@ -984,7 +967,7 @@ class NodePool:
 
         node = Node(
             pool=cls,
-            bot=bot,
+            bot_id=bot_id,
             host=host,
             port=port,
             password=password,

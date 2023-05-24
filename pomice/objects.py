@@ -2,12 +2,6 @@ from __future__ import annotations
 
 from typing import List
 from typing import Optional
-from typing import Union
-
-from discord import ClientUser
-from discord import Member
-from discord import User
-from discord.ext import commands
 
 from .enums import PlaylistType
 from .enums import SearchType
@@ -53,12 +47,10 @@ class Track:
         *,
         track_id: str,
         info: dict,
-        ctx: Optional[commands.Context] = None,
         track_type: TrackType,
         search_type: SearchType = SearchType.ytsearch,
         filters: Optional[List[Filter]] = None,
         timestamp: Optional[float] = None,
-        requester: Optional[Union[Member, User, ClientUser]] = None,
     ):
         self.track_id: str = track_id
         self.info: dict = info
@@ -88,11 +80,6 @@ class Track:
         self.is_stream: bool = info.get("isStream", False)
         self.is_seekable: bool = info.get("isSeekable", False)
         self.position: int = info.get("position", 0)
-
-        self.ctx: Optional[commands.Context] = ctx
-        self.requester: Optional[Union[Member, User, ClientUser]] = requester
-        if not self.requester and self.ctx:
-            self.requester = self.ctx.author
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Track):

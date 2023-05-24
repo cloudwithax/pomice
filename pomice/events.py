@@ -6,10 +6,6 @@ from typing import Optional
 from typing import Tuple
 from typing import TYPE_CHECKING
 
-from discord import Client
-from discord import Guild
-from discord.ext import commands
-
 from .objects import Track
 from .pool import NodePool
 
@@ -40,9 +36,6 @@ class PomiceEvent(ABC):
 
     name = "event"
     handler_args: Tuple
-
-    def dispatch(self, bot: Client) -> None:
-        bot.dispatch(f"pomice_{self.name}", *self.handler_args)
 
 
 class TrackStartEvent(PomiceEvent):
@@ -147,7 +140,7 @@ class WebSocketClosedPayload:
     __slots__ = ("guild", "code", "reason", "by_remote")
 
     def __init__(self, data: dict):
-        self.guild: Optional[Guild] = NodePool.get_node().bot.get_guild(int(data["guildId"]))
+        self.guild: int = data["guildId"]
         self.code: int = data["code"]
         self.reason: str = data["code"]
         self.by_remote: bool = data["byRemote"]

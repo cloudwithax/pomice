@@ -5,14 +5,7 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import TYPE_CHECKING
 from typing import Union
-
-from discord import Client
-from discord import Guild
-from discord import VoiceChannel
-from discord import VoiceProtocol
-from discord.ext import commands
 
 from . import events
 from .enums import SearchType
@@ -32,9 +25,6 @@ from .pool import Node
 from .pool import NodePool
 from pomice.utils import LavalinkVersion
 
-if TYPE_CHECKING:
-    from discord.types.voice import VoiceServerUpdate
-    from discord.types.voice import GuildVoiceState
 
 __all__ = ("Filters", "Player")
 
@@ -129,7 +119,7 @@ class Filters:
         return self._filters
 
 
-class Player(VoiceProtocol):
+class Player:
     """The base player class for Pomice.
     In order to initiate a player, you must pass it in as a cls when you connect to a channel.
     i.e: ```py
@@ -156,25 +146,11 @@ class Player(VoiceProtocol):
         "_player_endpoint_uri",
     )
 
-    def __call__(self, client: Client, channel: VoiceChannel) -> Player:
-        self.client = client
-        self.channel = channel
-        self._guild = channel.guild
-
-        return self
-
     def __init__(
         self,
-        client: Client,
-        channel: VoiceChannel,
         *,
         node: Optional[Node] = None,
     ) -> None:
-        self.client: Client = client
-        self.channel: VoiceChannel = channel
-        self._guild = channel.guild
-
-        self._bot: Client = client
         self._node: Node = node if node else NodePool.get_node()
         self._current: Optional[Track] = None
         self._filters: Filters = Filters()
@@ -261,11 +237,6 @@ class Player(VoiceProtocol):
         return self._node
 
     @property
-    def guild(self) -> Guild:
-        """Property which returns the guild associated with the player"""
-        return self._guild
-
-    @property
     def volume(self) -> int:
         """Property which returns the players current volume"""
         return self._volume
@@ -276,16 +247,16 @@ class Player(VoiceProtocol):
         return self._filters
 
     @property
-    def bot(self) -> Client:
-        """Property which returns the bot associated with this player instance"""
-        return self._bot
+    def bot_id(self) -> int:
+        """Property which returns the bot id associated with this player instance"""
+        return self._node._bot_id
 
     @property
     def is_dead(self) -> bool:
         """Returns a bool representing whether the player is dead or not.
         A player is considered dead if it has been destroyed and removed from stored players.
         """
-        return self.guild.id not in self._node._players
+        return self not in self._node._players
 
     def _adjust_end_time(self) -> Optional[str]:
         if self._node._version >= LavalinkVersion(3, 7, 5):
@@ -320,30 +291,6 @@ class Player(VoiceProtocol):
         )
 
         self._log.debug(f"Dispatched voice update to {state['event']['endpoint']} with data {data}")
-
-    async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
-        self._voice_state.update({"event": data})
-        await self._dispatch_voice_update(self._voice_state)
-
-    async def on_voice_state_update(self, data: GuildVoiceState) -> None:
-        self._voice_state.update({"sessionId": data.get("session_id")})
-
-        channel_id = data.get("channel_id")
-        if not channel_id:
-            await self.disconnect()
-            self._voice_state.clear()
-            return
-
-        channel = self.guild.get_channel(int(channel_id))
-        if not channel:
-            await self.disconnect()
-            self._voice_state.clear()
-            return
-
-        if not data.get("token"):
-            return
-
-        await self._dispatch_voice_update({**self._voice_state, "event": data})
 
     async def _dispatch_event(self, data: dict) -> None:
         event_type: str = data["type"]
@@ -385,7 +332,6 @@ class Player(VoiceProtocol):
         self,
         query: str,
         *,
-        ctx: Optional[commands.Context] = None,
         search_type: SearchType = SearchType.ytsearch,
         filters: Optional[List[Filter]] = None,
     ) -> Optional[Union[List[Track], Playlist]]:
@@ -401,38 +347,22 @@ class Player(VoiceProtocol):
         You may also pass in a List of filters
         to be applied to your track once it plays.
         """
-        return await self._node.get_tracks(query, ctx=ctx, search_type=search_type, filters=filters)
+        return await self._node.get_tracks(query, search_type=search_type, filters=filters)
 
-    async def build_track(self, identifier: str, ctx: Optional[commands.Context] = None) -> Track:
+    async def build_track(self, identifier: str) -> Track:
         """
         Builds a track using a valid track identifier
-
-        You can also pass in a discord.py Context object to get a
-        Context object on the track it builds.
         """
 
-        return await self._node.build_track(identifier, ctx=ctx)
+        return await self._node.build_track(identifier)
 
-    async def get_recommendations(
-        self, *, track: Track, ctx: Optional[commands.Context] = None
-    ) -> Optional[Union[List[Track], Playlist]]:
+    async def get_recommendations(self, *, track: Track) -> Optional[Union[List[Track], Playlist]]:
         """
         Gets recommendations from either YouTube or Spotify.
         You can pass in a discord.py Context object to get a
         Context object on all tracks that get recommended.
         """
-        return await self._node.get_recommendations(track=track, ctx=ctx)
-
-    async def connect(
-        self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False
-    ) -> None:
-        await self.guild.change_voice_state(
-            channel=self.channel,
-            self_deaf=self_deaf,
-            self_mute=self_mute,
-        )
-        self._node._players[self.guild.id] = self
-        self._is_connected = True
+        return await self._node.get_recommendations(track=track)
 
     async def stop(self) -> None:
         """Stops the currently playing track."""
@@ -445,15 +375,6 @@ class Player(VoiceProtocol):
         )
 
         self._log.debug(f"Player has been stopped.")
-
-    async def disconnect(self, *, force: bool = False) -> None:
-        """Disconnects the player from voice."""
-        try:
-            await self.guild.change_voice_state(channel=None)
-        finally:
-            self.cleanup()
-            self._is_connected = False
-            self.channel = None  # type: ignore
 
     async def destroy(self) -> None:
         """Disconnects and destroys the player, and runs internal cleanup."""
@@ -486,9 +407,7 @@ class Player(VoiceProtocol):
                 if not track.isrc:
                     # We have to bare raise here because theres no other way to skip this block feasibly
                     raise
-                search = (
-                    await self._node.get_tracks(f"{track._search_type}:{track.isrc}", ctx=track.ctx)
-                )[
+                search = (await self._node.get_tracks(f"{track._search_type}:{track.isrc}"))[
                     0
                 ]  # type: ignore
             except Exception:
@@ -497,7 +416,6 @@ class Player(VoiceProtocol):
                     search = (
                         await self._node.get_tracks(
                             f"{track._search_type}:{track.title} - {track.author}",
-                            ctx=track.ctx,
                         )
                     )[
                         0
@@ -611,15 +529,6 @@ class Player(VoiceProtocol):
 
         self._log.debug(f"Player volume has been adjusted to {volume}")
         return self._volume
-
-    async def move_to(self, channel: VoiceChannel) -> None:
-        """Moves the player to a new voice channel."""
-
-        await self.guild.change_voice_state(channel=channel)
-
-        self.channel = channel
-
-        await self._dispatch_voice_update()
 
     async def add_filter(self, _filter: Filter, fast_apply: bool = False) -> Filters:
         """Adds a filter to the player. Takes a pomice.Filter object.
