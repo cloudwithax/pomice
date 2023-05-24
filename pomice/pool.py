@@ -35,6 +35,7 @@ from .exceptions import NodeCreationError
 from .exceptions import NodeNotAvailable
 from .exceptions import NodeRestException
 from .exceptions import NoNodesAvailable
+from .exceptions import PlayerCreationError
 from .exceptions import TrackLoadError
 from .filters import Filter
 from .objects import Playlist
@@ -64,8 +65,7 @@ class Node:
     """
 
     __slots__ = (
-        "_bot",
-        "_bot_user",
+        "_bot_id",
         "_host",
         "_port",
         "_pool",
@@ -153,14 +153,9 @@ class Node:
         self._route_planner = RoutePlanner(self)
         self._log = self._setup_logging(self._log_level)
 
-        if not self._bot.user:
-            raise NodeCreationError("Bot user is not ready yet.")
-
-        self._bot_user = self._bot.user
-
         self._headers = {
             "Authorization": self._password,
-            "User-Id": str(self._bot_user.id),
+            "User-Id": str(self._bot_id),
             "Client-Name": f"Pomice/{__version__}",
         }
 
@@ -180,8 +175,6 @@ class Node:
 
         if apple_music:
             self._apple_music_client = applemusic.Client()
-
-        self._bot.add_listener(self._update_handler, "on_socket_response")
 
     def __repr__(self) -> str:
         return (
@@ -290,31 +283,6 @@ class Node:
 
         if self._apple_music_client:
             await self._apple_music_client._set_session(session=session)
-
-    async def _update_handler(self, data: dict) -> None:
-        await self._bot.wait_until_ready()
-
-        if not data:
-            return
-
-        if data["t"] == "VOICE_SERVER_UPDATE":
-            guild_id = int(data["d"]["guild_id"])
-            try:
-                player = self._players[guild_id]
-                await player.on_voice_server_update(data["d"])
-            except KeyError:
-                return
-
-        elif data["t"] == "VOICE_STATE_UPDATE":
-            if int(data["d"]["user_id"]) != self._bot_user.id:
-                return
-
-            guild_id = int(data["d"]["guild_id"])
-            try:
-                player = self._players[guild_id]
-                await player.on_voice_state_update(data["d"])
-            except KeyError:
-                return
 
     async def _handle_node_switch(self) -> None:
         nodes = [node for node in self.pool._nodes.copy().values() if node.is_connected]
@@ -444,9 +412,25 @@ class Node:
         """Takes a guild ID as a parameter. Returns a pomice Player object or None."""
         return self._players.get(guild_id, None)
 
+    def register_player(self, player: Player) -> None:
+        """Registers a player to the node."""
+        if not player.guild_id:
+            raise PlayerCreationError(
+                "You must pass in a guild ID to create a player.",
+            )
+
+        if player.guild_id in self._players:
+            raise PlayerCreationError(
+                f"Player with guild ID {player.guild_id} already exists.",
+            )
+
+        self._players[player.guild_id] = player
+        self._log.debug(
+            f"Registered player with guild ID {player.guild_id} to Node {self._identifier}",
+        )
+
     async def connect(self, *, reconnect: bool = False) -> "Node":
         """Initiates a connection with a Lavalink node and adds it to the node pool."""
-        await self._bot.wait_until_ready()
 
         start = time.perf_counter()
 
@@ -562,9 +546,6 @@ class Node:
 
         If you passed in Spotify API credentials, you can also pass in a
         Spotify URL of a playlist, album or track and it will be parsed accordingly.
-
-        You can pass in a discord.py Context object to get a
-        Context object on any track you search.
 
         You may also pass in a List of filters
         to be applied to your track once it plays.
@@ -827,8 +808,6 @@ class Node:
         Gets recommendations from either YouTube or Spotify.
         The track that is passed in must be either from
         YouTube or Spotify or else this will not work.
-        You can pass in a discord.py Context object to get a
-        Context object on all tracks that get recommended.
         """
         if track.track_type == TrackType.SPOTIFY:
             results = await self._spotify_client.get_recommendations(query=track.uri)  # type: ignore

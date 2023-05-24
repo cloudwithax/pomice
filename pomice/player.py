@@ -121,19 +121,19 @@ class Filters:
 
 class Player:
     """The base player class for Pomice.
-    In order to initiate a player, you must pass it in as a cls when you connect to a channel.
-    i.e: ```py
-    await ctx.author.voice.channel.connect(cls=pomice.Player)
+    In order to initialize a player, you must pass in a guild id and register it to a node.
+    You can also pass in a node if you would like to specify which node to use.
+
+    Example:
+    ```py
+    player = pomice.Player(guild_id=1234567890)
+    node.register_player(player)
     ```
     """
 
     __slots__ = (
-        "client",
-        "channel",
-        "_bot",
-        "_guild",
         "_node",
-        "_current",
+        "_guild_id" "_current",
         "_filters",
         "_volume",
         "_paused",
@@ -149,9 +149,11 @@ class Player:
     def __init__(
         self,
         *,
+        guild_id: int,
         node: Optional[Node] = None,
     ) -> None:
         self._node: Node = node if node else NodePool.get_node()
+        self._guild_id: int = guild_id
         self._current: Optional[Track] = None
         self._filters: Filters = Filters()
         self._volume: int = 100
@@ -163,13 +165,11 @@ class Player:
         self._ending_track: Optional[Track] = None
         self._log = self._node._log
 
-        self._voice_state: dict = {}
-
         self._player_endpoint_uri: str = f"sessions/{self._node._session_id}/players"
 
     def __repr__(self) -> str:
         return (
-            f"<Pomice.player bot={self.bot} guildId={self.guild.id} "
+            f"<Pomice.player bot_id={self.bot_id} guild_id={self.guild_id} "
             f"is_connected={self.is_connected} is_playing={self.is_playing}>"
         )
 
@@ -237,6 +237,11 @@ class Player:
         return self._node
 
     @property
+    def guild_id(self) -> int:
+        """Property which returns the guild id associated with this player instance"""
+        return self._guild_id
+
+    @property
     def volume(self) -> int:
         """Property which returns the players current volume"""
         return self._volume
@@ -271,26 +276,37 @@ class Player:
         self._last_position = int(state.get("position", 0))
         self._log.debug(f"Got player update state with data {state}")
 
-    async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None) -> None:
-        if {"sessionId", "event"} != self._voice_state.keys():
-            return
+    async def dispatch_voice_update(self, voice_data: dict) -> None:
+        """
+        Dispatches a voice update to the node.
+        This method is required for the player to work properly.
 
-        state = voice_data or self._voice_state
-
-        data = {
-            "token": state["event"]["token"],
-            "endpoint": state["event"]["endpoint"],
-            "sessionId": state["sessionId"],
+        All data must be formatted as follows:
+        ```json
+        {
+            "token": "voice token",
+            "endpoint": "voice endpoint url",
+            "sessionId": "voice session id"
         }
+        ```
+
+        """
+        if not voice_data:
+            raise ValueError("Voice data must be passed in.")
+
+        if not all(key in voice_data for key in ("token", "endpoint", "sessionId")):
+            raise ValueError("Voice data must contain 'token', 'endpoint' and 'sessionId' keys.")
 
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
-            data={"voice": data},
+            guild_id=self._guild_id,
+            data={"voice": voice_data},
         )
 
-        self._log.debug(f"Dispatched voice update to {state['event']['endpoint']} with data {data}")
+        self._log.debug(
+            f"Dispatched voice update to {voice_data['endpoint']} with data {voice_data}",
+        )
 
     async def _dispatch_event(self, data: dict) -> None:
         event_type: str = data["type"]
@@ -313,16 +329,16 @@ class Player:
         if self.current:
             data: dict = {"position": self.position, "encodedTrack": self.current.track_id}
 
-        del self._node._players[self._guild.id]
+        del self._node._players[self._guild_id]
         self._node = new_node
-        self._node._players[self._guild.id] = self
+        self._node._players[self._guild_id] = self
         # reassign uri to update session id
         await self._refresh_endpoint_uri(new_node._session_id)
         await self._dispatch_voice_update()
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data=data or None,
         )
 
@@ -341,9 +357,6 @@ class Player:
         you can also pass in a Spotify URL of a playlist, album or track and it will be parsed
         accordingly.
 
-        You can pass in a discord.py Context object to get a
-        Context object on any track you search.
-
         You may also pass in a List of filters
         to be applied to your track once it plays.
         """
@@ -359,8 +372,6 @@ class Player:
     async def get_recommendations(self, *, track: Track) -> Optional[Union[List[Track], Playlist]]:
         """
         Gets recommendations from either YouTube or Spotify.
-        You can pass in a discord.py Context object to get a
-        Context object on all tracks that get recommended.
         """
         return await self._node.get_recommendations(track=track)
 
@@ -370,27 +381,20 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"encodedTrack": None},
         )
 
         self._log.debug(f"Player has been stopped.")
 
     async def destroy(self) -> None:
-        """Disconnects and destroys the player, and runs internal cleanup."""
-        try:
-            await self.disconnect()
-        except AttributeError:
-            # 'NoneType' has no attribute '_get_voice_client_key' raised by self.cleanup() ->
-            # assume we're already disconnected and cleaned up
-            assert self.channel is None and not self.is_connected
-
-        self._node._players.pop(self.guild.id)
+        """Destroys the player and removes it from the node's stored players."""
+        self._node._players.pop(self.guild_id)
         if self.node.is_connected:
             await self._node.send(
                 method="DELETE",
                 path=self._player_endpoint_uri,
-                guild_id=self._guild.id,
+                guild_id=self._guild_id,
             )
 
         self._log.debug("Player has been destroyed.")
@@ -473,7 +477,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data=data,
             query=f"noReplace={ignore_if_playing}",
         )
@@ -497,7 +501,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"position": position},
         )
 
@@ -509,7 +513,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"paused": pause},
         )
         self._paused = pause
@@ -522,7 +526,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"volume": volume},
         )
         self._volume = volume
@@ -543,7 +547,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"filters": payload},
         )
 
@@ -567,7 +571,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"filters": payload},
         )
         self._log.debug(f"Filter has been removed from player with tag {filter_tag}")
@@ -594,7 +598,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"filters": payload},
         )
         self._log.debug(f"Filter with tag {filter_tag} has been edited to {edited_filter!r}")
@@ -620,7 +624,7 @@ class Player:
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
-            guild_id=self._guild.id,
+            guild_id=self._guild_id,
             data={"filters": {}},
         )
         self._log.debug(f"All filters have been removed from player.")

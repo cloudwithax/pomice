@@ -25,14 +25,7 @@ __all__ = (
 
 
 class PomiceEvent(ABC):
-    """The base class for all events dispatched by a node.
-    Every event must be formatted within your bot's code as a listener.
-    i.e: If you want to listen for when a track starts, the event would be:
-    ```py
-    @bot.listen
-    async def on_pomice_track_start(self, event):
-    ```
-    """
+    """The base class for all events dispatched by a node."""
 
     name = "event"
     handler_args: Tuple

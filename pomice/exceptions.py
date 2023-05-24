@@ -7,6 +7,7 @@ __all__ = (
     "NodeRestException",
     "NodeNotAvailable",
     "NoNodesAvailable",
+    "PlayerCreationError",
     "TrackInvalidPosition",
     "TrackLoadError",
     "FilterInvalidArgument",
@@ -57,6 +58,12 @@ class NodeNotAvailable(PomiceException):
 
 class NoNodesAvailable(PomiceException):
     """There are no nodes currently available."""
+
+    pass
+
+
+class PlayerCreationError(PomiceException):
+    """There was a problem while creating the player."""
 
     pass
 
