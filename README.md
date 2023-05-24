@@ -7,7 +7,7 @@
 [![Discord](https://img.shields.io/discord/899324069235810315?color=%237289DA&label=Pomice%20Support&logo=discord&logoColor=white)](https://discord.gg/r64qjTSHG8) [![Read the Docs](https://readthedocs.org/projects/pomice/badge/?version=latest)](https://pomice.readthedocs.io/en/latest/)
 
 
-Pomice is a fully asynchronous Python library designed for communicating with [Lavalink](https://github.com/freyacodes/Lavalink) seamlessly within the [discord.py](https://github.com/Rapptz/discord.py) library. It features 100% coverage of the [Lavalink](https://github.com/freyacodes/Lavalink) spec that can be accessed with easy-to-understand functions along with Spotify and Apple Music querying capabilities using built-in custom clients, making it easier to develop your next big music bot.
+Pomice is a fully asynchronous Python library designed for communicating with [Lavalink](https://github.com/freyacodes/Lavalink). It features 100% coverage of the [Lavalink](https://github.com/freyacodes/Lavalink) spec that can be accessed with easy-to-understand functions along with Spotify and Apple Music querying capabilities using built-in custom clients, making it easier to develop your next big music bot.
 
 ## Quick Links
 - [Discord Server](https://discord.gg/r64qjTSHG8)

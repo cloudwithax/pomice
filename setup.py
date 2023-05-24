@@ -50,7 +50,7 @@ setuptools.setup(
     url="https://github.com/cloudwithax/pomice",
     packages=setuptools.find_packages(),
     license="GPL",
-    description="The modern Lavalink wrapper designed for Discord.py",
+    description="The modern Lavalink wrapper for Python.",
     long_description=readme,
     long_description_content_type="text/markdown",
     package_data={"pomice": ["py.typed"]},
@@ -69,5 +69,5 @@ setuptools.setup(
         "Topic :: Internet",
     ],
     python_requires=">=3.8",
-    keywords=["pomice", "lavalink", "discord.py"],
+    keywords=["pomice", "lavalink", "discord"],
 )
