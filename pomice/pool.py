@@ -447,7 +447,7 @@ class Node:
         """Takes a guild ID as a parameter. Returns a pomice Player object or None."""
         return self._players.get(guild_id, None)
 
-    async def connect(self, *, reconnect: bool = False) -> "Node":
+    async def connect(self, *, reconnect: bool = False) -> Node:
         """Initiates a connection with a Lavalink node and adds it to the node pool."""
         await self._bot.wait_until_ready()
 
