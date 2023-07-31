@@ -836,7 +836,7 @@ class Node:
             )
 
     async def get_recommendations(
-        self, *, track: Track, ctx: Optional[commands.Context] = None
+        self, *, track: Track, ctx: Optional[commands.Context] = None,
     ) -> Optional[Union[List[Track], Playlist]]:
         """
         Gets recommendations from either YouTube or Spotify.
