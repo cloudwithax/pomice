@@ -414,7 +414,7 @@ class Player(VoiceProtocol):
         return await self._node.build_track(identifier, ctx=ctx)
 
     async def get_recommendations(
-        self, *, track: Track, ctx: Optional[commands.Context] = None
+        self, *, track: Track, ctx: Optional[commands.Context] = None,
     ) -> Optional[Union[List[Track], Playlist]]:
         """
         Gets recommendations from either YouTube or Spotify.
@@ -424,7 +424,7 @@ class Player(VoiceProtocol):
         return await self._node.get_recommendations(track=track, ctx=ctx)
 
     async def connect(
-        self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False
+        self, *, timeout: float, reconnect: bool, self_deaf: bool = False, self_mute: bool = False,
     ) -> None:
         await self.guild.change_voice_state(
             channel=self.channel,
@@ -475,7 +475,7 @@ class Player(VoiceProtocol):
         self._log.debug("Player has been destroyed.")
 
     async def play(
-        self, track: Track, *, start: int = 0, end: int = 0, ignore_if_playing: bool = False
+        self, track: Track, *, start: int = 0, end: int = 0, ignore_if_playing: bool = False,
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
 
@@ -669,7 +669,7 @@ class Player(VoiceProtocol):
         return self._filters
 
     async def edit_filter(
-        self, *, filter_tag: str, edited_filter: Filter, fast_apply: bool = False
+        self, *, filter_tag: str, edited_filter: Filter, fast_apply: bool = False,
     ) -> Filters:
         """Edits a filter from the player using its filter tag and a new filter of the same type.
         The filter to be replaced must have the same tag as the one you are replacing it with.
