@@ -3,3 +3,4 @@ discord.py[voice]
 furo
 myst_parser
 orjson
+websockets
