@@ -11,29 +11,29 @@ repos:
     -   id: requirements-txt-fixer
     -   id: trailing-whitespace
 -   repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.7.0
     hooks:
     - id: black
       language_version: python3.11
 -   repo: https://github.com/asottile/blacken-docs
-    rev: 1.13.0
+    rev: 1.15.0
     hooks:
     -   id: blacken-docs
 -   repo: https://github.com/asottile/pyupgrade
-    rev: v3.4.0
+    rev: v3.10.1
     hooks:
     -   id: pyupgrade
         args: [--py37-plus, --keep-runtime-typing]
 -   repo: https://github.com/asottile/reorder-python-imports
-    rev: v3.9.0
+    rev: v3.10.0
     hooks:
     -   id: reorder-python-imports
 -   repo: https://github.com/asottile/add-trailing-comma
-    rev: v2.4.0
+    rev: v3.0.1
     hooks:
     -   id: add-trailing-comma
 -   repo: https://github.com/hadialqattan/pycln
-    rev: v2.1.3
+    rev: v2.2.1
     hooks:
     -   id: pycln
 
