@@ -329,14 +329,16 @@ class Node:
         await self.disconnect()
 
     async def _configure_resuming(self) -> None:
-        if self._resume_key and self._version.major == 3:
-            data = {"resumingKey": self._resume_key, "timeout": self._resume_timeout}
-        elif self._resume_key and self._version.major == 4:
+        if not self._resume_key:
+            return
+
+        data = {"timeout": self._resume_timeout}
+
+        if self._version.major == 3:
+            data["resumingKey"] = self._resume_key
+        elif self._version.major == 4:
             self._log.warning("Using a resume key with Lavalink v4 is deprecated.")
-            data = {
-                "resuming": True if self._resume_key else False,
-                "timeout": self._resume_timeout,
-            }
+            data["resuming"] = True
 
         await self.send(
             method="PATCH",
