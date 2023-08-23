@@ -329,14 +329,21 @@ class Node:
         await self.disconnect()
 
     async def _configure_resuming(self) -> None:
-        if self._resume_key:
+        if self._resume_key and self._version.major == 3:
             data = {"resumingKey": self._resume_key, "timeout": self._resume_timeout}
-            await self.send(
-                method="PATCH",
-                path=f"sessions/{self._session_id}",
-                include_version=True,
-                data=data,
-            )
+        elif self._resume_key and self._version.major == 4:
+            self._log.warning("Using a resume key with Lavalink v4 is deprecated.")
+            data = {
+                "resuming": True if self._resume_key else False,
+                "timeout": self._resume_timeout,
+            }
+
+        await self.send(
+            method="PATCH",
+            path=f"sessions/{self._session_id}",
+            include_version=True,
+            data=data,
+        )
 
     async def _listen(self) -> None:
         while True:
@@ -785,21 +792,25 @@ class Node:
 
         load_type = data.get("loadType")
 
+        # Lavalink v4 changed the name of the key from "tracks" to "data"
+        # so lets account for that
+        data_type = "data" if self._version.major >= 4 else "tracks"
+
         if not load_type:
             raise TrackLoadError(
                 "There was an error while trying to load this track.",
             )
 
-        elif load_type == "LOAD_FAILED":
+        elif load_type in ("LOAD_FAILED", "error"):
             exception = data["exception"]
             raise TrackLoadError(
                 f"{exception['message']} [{exception['severity']}]",
             )
 
-        elif load_type == "NO_MATCHES":
+        elif load_type in ("NO_MATCHES", "empty"):
             return None
 
-        elif load_type == "PLAYLIST_LOADED":
+        elif load_type in ("PLAYLIST_LOADED", "playlist"):
             tracks = [
                 Track(
                     track_id=track["encoded"],
@@ -807,7 +818,7 @@ class Node:
                     ctx=ctx,
                     track_type=TrackType(track["info"]["sourceName"]),
                 )
-                for track in data["tracks"]
+                for track in data[data_type]
             ]
             return Playlist(
                 playlist_info=data["playlistInfo"],
@@ -817,7 +828,7 @@ class Node:
                 uri=query,
             )
 
-        elif load_type == "SEARCH_RESULT" or load_type == "TRACK_LOADED":
+        elif load_type in ("SEARCH_RESULT", "TRACK_LOADED", "track", "search"):
             return [
                 Track(
                     track_id=track["encoded"],
@@ -827,7 +838,7 @@ class Node:
                     filters=filters,
                     timestamp=timestamp,
                 )
-                for track in data["tracks"]
+                for track in data[data_type]
             ]
 
         else:
