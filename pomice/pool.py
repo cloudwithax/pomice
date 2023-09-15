@@ -837,7 +837,7 @@ class Node:
             )
 
         elif load_type in ("SEARCH_RESULT", "TRACK_LOADED", "track", "search"):
-            if self._version.major >= 4 and isinstance(data[data_type],dict):
+            if self._version.major >= 4 and isinstance(data[data_type], dict):
                 data[data_type] = [data[data_type]]
             return [
                 Track(
