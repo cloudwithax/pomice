@@ -813,6 +813,12 @@ class Node:
             return None
 
         elif load_type in ("PLAYLIST_LOADED", "playlist"):
+            if self._version.major >= 4:
+                track_list = data[data_type]["tracks"]
+                playlist_info = data[data_type]["info"]
+            else:
+                track_list = data[data_type]
+                playlist_info = data["playlistInfo"]
             tracks = [
                 Track(
                     track_id=track["encoded"],
@@ -820,10 +826,10 @@ class Node:
                     ctx=ctx,
                     track_type=TrackType(track["info"]["sourceName"]),
                 )
-                for track in data[data_type]
+                for track in track_list
             ]
             return Playlist(
-                playlist_info=data["playlistInfo"],
+                playlist_info=playlist_info,
                 tracks=tracks,
                 playlist_type=PlaylistType(tracks[0].track_type.value),
                 thumbnail=tracks[0].thumbnail,
@@ -831,6 +837,8 @@ class Node:
             )
 
         elif load_type in ("SEARCH_RESULT", "TRACK_LOADED", "track", "search"):
+            if self._version.major >= 4 and isinstance(data[data_type], dict):
+                data[data_type] = [data[data_type]]
             return [
                 Track(
                     track_id=track["encoded"],
