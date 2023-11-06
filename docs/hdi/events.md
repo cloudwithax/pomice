@@ -13,11 +13,9 @@ The classes listed here are as they appear in Pomice. When you use them within y
 the way you use them will be different. Here's an example on how you would use the `TrackStartEvent` within an event listener in a cog:
 
 ```py
-
 @commands.Cog.listener
 async def on_pomice_track_start(self, player: Player, track: Track):
     ...
-
 ```
 
 ## Event definitions
