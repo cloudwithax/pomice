@@ -240,16 +240,6 @@ class Node:
         if self._log_handler:
             handler = self._log_handler
             logger.setLevel(handler.level)
-        else:
-            handler = logging.StreamHandler()
-            logger.setLevel(level)
-            dt_fmt = "%Y-%m-%d %H:%M:%S"
-            formatter = logging.Formatter(
-                "[{asctime}] [{levelname:<8}] {name}: {message}",
-                dt_fmt,
-                style="{",
-            )
-            handler.setFormatter(formatter)
 
         if handler:
             logger.handlers.clear()

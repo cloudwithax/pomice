@@ -213,7 +213,7 @@ class Player(VoiceProtocol):
         difference = (time.time() * 1000) - self._last_update
         position = self._last_position + difference
 
-        return min(position, current.length)
+        return round(min(position, current.length))
 
     @property
     def rate(self) -> float:
@@ -335,6 +335,10 @@ class Player(VoiceProtocol):
             return
 
         channel = self.guild.get_channel(int(channel_id))
+
+        if self.channel != channel:
+            self.channel = channel
+
         if not channel:
             await self.disconnect()
             self._voice_state.clear()
