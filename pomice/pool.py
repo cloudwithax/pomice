@@ -30,8 +30,6 @@ from . import applemusic
 from . import spotify
 from .enums import *
 from .enums import LogLevel
-from .exceptions import AppleMusicNotEnabled
-from .exceptions import InvalidSpotifyClientAuthorization
 from .exceptions import LavalinkVersionIncompatible
 from .exceptions import NodeConnectionFailure
 from .exceptions import NodeCreationError
@@ -97,7 +95,6 @@ class Node:
         "_apple_music_client",
         "_route_planner",
         "_log",
-        "_log_handler",
         "_stats",
         "available",
     )
@@ -121,8 +118,7 @@ class Node:
         spotify_client_secret: Optional[str] = None,
         apple_music: bool = False,
         fallback: bool = False,
-        log_level: LogLevel = LogLevel.INFO,
-        log_handler: Optional[logging.Handler] = None,
+        logger: Optional[logging.Logger] = None,
     ):
         if not isinstance(port, int):
             raise TypeError("Port must be an integer")
@@ -138,8 +134,6 @@ class Node:
         self._resume_timeout: int = resume_timeout
         self._secure: bool = secure
         self._fallback: bool = fallback
-        self._log_level: LogLevel = log_level
-        self._log_handler = log_handler
 
         self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
@@ -154,7 +148,7 @@ class Node:
         self._version: LavalinkVersion = LavalinkVersion(0, 0, 0)
 
         self._route_planner = RoutePlanner(self)
-        self._log = self._setup_logging(self._log_level)
+        self._log = logger
 
         if not self._bot.user:
             raise NodeCreationError("Bot user is not ready yet.")
@@ -231,21 +225,6 @@ class Node:
     def ping(self) -> float:
         """Alias for `Node.latency`, returns the latency of the node"""
         return self.latency
-
-    def _setup_logging(self, level: LogLevel) -> logging.Logger:
-        logger = logging.getLogger("pomice")
-
-        handler = None
-
-        if self._log_handler:
-            handler = self._log_handler
-            logger.setLevel(handler.level)
-
-        if handler:
-            logger.handlers.clear()
-            logger.addHandler(handler)
-
-        return logger
 
     async def _handle_version_check(self, version: str) -> None:
         if version.endswith("-SNAPSHOT"):
@@ -580,13 +559,13 @@ class Node:
             for filter in filters:
                 filter.set_preload()
 
-        if URLRegex.AM_URL.match(query):
-            if not self._apple_music_client:
-                raise AppleMusicNotEnabled(
-                    "You must have Apple Music functionality enabled in order to play Apple Music tracks."
-                    "Please set apple_music to True in your Node class.",
-                )
+        # Due to the inclusion of plugins in the v4 update
+        # we are doing away with raising an error if pomice detects
+        # either a Spotify or Apple Music URL and the respective client
+        # is not enabled. Instead, we will just only parse the URL
+        # if the client is enabled and the URL is valid.
 
+        if self._apple_music_client and URLRegex.AM_URL.match(query):
             apple_music_results = await self._apple_music_client.search(query=query)
             if isinstance(apple_music_results, applemusic.Song):
                 return [
@@ -645,14 +624,7 @@ class Node:
                 uri=apple_music_results.url,
             )
 
-        elif URLRegex.SPOTIFY_URL.match(query):
-            if not self._spotify_client_id and not self._spotify_client_secret:
-                raise InvalidSpotifyClientAuthorization(
-                    "You did not provide proper Spotify client authorization credentials. "
-                    "If you would like to use the Spotify searching feature, "
-                    "please obtain Spotify API credentials here: https://developer.spotify.com/",
-                )
-
+        elif self._spotify_client and URLRegex.SPOTIFY_URL.match(query):
             spotify_results = await self._spotify_client.search(query=query)  # type: ignore
 
             if isinstance(spotify_results, spotify.Track):
@@ -985,8 +957,7 @@ class NodePool:
         session: Optional[aiohttp.ClientSession] = None,
         apple_music: bool = False,
         fallback: bool = False,
-        log_level: LogLevel = LogLevel.INFO,
-        log_handler: Optional[logging.Handler] = None,
+        logger: Optional[logging.Logger] = None,
     ) -> Node:
         """Creates a Node object to be then added into the node pool.
         For Spotify searching capabilites, pass in valid Spotify API credentials.
@@ -1013,8 +984,7 @@ class NodePool:
             spotify_client_secret=spotify_client_secret,
             apple_music=apple_music,
             fallback=fallback,
-            log_level=log_level,
-            log_handler=log_handler,
+            logger=logger,
         )
 
         await node.connect()

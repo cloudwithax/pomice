@@ -66,13 +66,10 @@ After you have initialized your function, we need to fill in the proper paramete
   - Set this value to `True` if you want Pomice to automatically switch all players to another available node if one disconnects.
     You must have two or more nodes to be able to do this.
 
-* - `log_level`
-  - `LogLevel`
-  - The logging level for the node. The default logging level is `LogLevel.INFO`.
+* - `logger`
+  - `Optional[logging.Logger]`
+  - If you would like to receive logging information from Pomice, set this to your logger class
 
-* - `log_handler`
-  - `Optional[logging.Handler]`
-  - The logging handler for the node. Set to `None` to default to the built-in logging handler.
 
 :::
 
@@ -93,13 +90,13 @@ await NodePool.create_node(
     spotify_client_secret="<your spotify client secret here>"
     apple_music=<True/False>,
     fallback=<True/False>,
-    log_level=<optional LogLevel here>
+    logger=<your logger here>
 )
 
 ```
 :::{important}
 
-For features like Spotify and Apple Music, you are **not required** to fill in anything for them if you do not want to use them. If you do end up queuing a Spotify or Apple Music track anyway, they will **not work** because these options are not enabled.
+For features like Spotify and Apple Music, you are **not required** to fill in anything for them if you do not want to use them. If you do end up queuing a Spotify or Apple Music track, it is **up to you** on how you decide to handle it, whether it be through your own methods or a Lavalink plugin.
 
 :::
 
