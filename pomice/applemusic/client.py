@@ -96,7 +96,8 @@ class Client:
         ).decode()
         token_data = json.loads(token_json)
         self.expiry = datetime.fromtimestamp(token_data["exp"])
-        self._log.debug(f"Fetched Apple Music bearer token successfully")
+        if self._log:
+            self._log.debug(f"Fetched Apple Music bearer token successfully")
 
     async def search(self, query: str) -> Union[Album, Playlist, Song, Artist]:
         if not self.token or datetime.utcnow() > self.expiry:
@@ -130,9 +131,10 @@ class Client:
             )
 
         data: dict = await resp.json(loads=json.loads)
-        self._log.debug(
-            f"Made request to Apple Music API with status {resp.status} and response {data}",
-        )
+        if self._log:
+            self._log.debug(
+                f"Made request to Apple Music API with status {resp.status} and response {data}",
+            )
 
         data = data["data"][0]
 

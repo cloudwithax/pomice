@@ -247,7 +247,8 @@ class Node:
             int(_version_groups[2] or 0),
         )
 
-        self._log.debug(f"Parsed Lavalink version: {major}.{minor}.{fix}")
+        if self._log:
+            self._log.debug(f"Parsed Lavalink version: {major}.{minor}.{fix}")
         self._version = LavalinkVersion(major=major, minor=minor, fix=fix)
         if self._version < LavalinkVersion(3, 7, 0):
             self._available = False
@@ -306,7 +307,8 @@ class Node:
         if self._version.major == 3:
             data["resumingKey"] = self._resume_key
         elif self._version.major == 4:
-            self._log.warning("Using a resume key with Lavalink v4 is deprecated.")
+            if self._log:
+                self._log.warning("Using a resume key with Lavalink v4 is deprecated.")
             data["resuming"] = True
 
         await self.send(
@@ -321,7 +323,8 @@ class Node:
             try:
                 msg = await self._websocket.recv()
                 data = json.loads(msg)
-                self._log.debug(f"Recieved raw websocket message {msg}")
+                if self._log:
+                    self._log.debug(f"Recieved raw websocket message {msg}")
                 self._loop.create_task(self._handle_ws_msg(data=data))
             except exceptions.ConnectionClosed:
                 if self.player_count > 0:
@@ -335,14 +338,18 @@ class Node:
 
                 backoff = ExponentialBackoff(base=7)
                 retry = backoff.delay()
-                self._log.debug(f"Retrying connection to Node {self._identifier} in {retry} secs")
+                if self._log:
+                    self._log.debug(
+                        f"Retrying connection to Node {self._identifier} in {retry} secs",
+                    )
                 await asyncio.sleep(retry)
 
                 if not self.is_connected:
                     self._loop.create_task(self.connect(reconnect=True))
 
     async def _handle_ws_msg(self, data: dict) -> None:
-        self._log.debug(f"Recieved raw payload from Node {self._identifier} with data {data}")
+        if self._log:
+            self._log.debug(f"Recieved raw payload from Node {self._identifier} with data {data}")
         op = data.get("op", None)
 
         if op == "stats":
@@ -395,9 +402,10 @@ class Node:
             headers=self._headers,
             json=data or {},
         )
-        self._log.debug(
-            f"Making REST request to Node {self._identifier} with method {method} to {uri}",
-        )
+        if self._log:
+            self._log.debug(
+                f"Making REST request to Node {self._identifier} with method {method} to {uri}",
+            )
         if resp.status >= 300:
             resp_data: dict = await resp.json()
             raise NodeRestException(
@@ -405,20 +413,23 @@ class Node:
             )
 
         if method == "DELETE" or resp.status == 204:
-            self._log.debug(
-                f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned no data.",
-            )
+            if self._log:
+                self._log.debug(
+                    f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned no data.",
+                )
             return await resp.json(content_type=None)
 
         if resp.content_type == "text/plain":
-            self._log.debug(
-                f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned text with body {await resp.text()}",
-            )
+            if self._log:
+                self._log.debug(
+                    f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned text with body {await resp.text()}",
+                )
             return await resp.text()
 
-        self._log.debug(
-            f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned JSON with body {await resp.json()}",
-        )
+        if self._log:
+            self._log.debug(
+                f"REST request to Node {self._identifier} with method {method} to {uri} completed sucessfully and returned JSON with body {await resp.json()}",
+            )
         return await resp.json()
 
     def get_player(self, guild_id: int) -> Optional[Player]:
@@ -446,9 +457,10 @@ class Node:
                 await self._handle_version_check(version=version)
                 await self._set_ext_client_session(session=self._session)
 
-                self._log.debug(
-                    f"Version check from Node {self._identifier} successful. Returned version {version}",
-                )
+                if self._log:
+                    self._log.debug(
+                        f"Version check from Node {self._identifier} successful. Returned version {version}",
+                    )
 
             self._websocket = await client.connect(
                 f"{self._websocket_uri}/v{self._version.major}/websocket",
@@ -457,14 +469,16 @@ class Node:
             )
 
             if reconnect:
-                self._log.debug(f"Trying to reconnect to Node {self._identifier}...")
+                if self._log:
+                    self._log.debug(f"Trying to reconnect to Node {self._identifier}...")
                 if self.player_count:
                     for player in self.players.values():
                         await player._refresh_endpoint_uri(self._session_id)
 
-            self._log.debug(
-                f"Node {self._identifier} successfully connected to websocket using {self._websocket_uri}/v{self._version.major}/websocket",
-            )
+            if self._log:
+                self._log.debug(
+                    f"Node {self._identifier} successfully connected to websocket using {self._websocket_uri}/v{self._version.major}/websocket",
+                )
 
             if not self._task:
                 self._task = self._loop.create_task(self._listen())
@@ -473,7 +487,8 @@ class Node:
 
             end = time.perf_counter()
 
-            self._log.info(f"Connected to node {self._identifier}. Took {end - start:.3f}s")
+            if self._log:
+                self._log.info(f"Connected to node {self._identifier}. Took {end - start:.3f}s")
             return self
 
         except (aiohttp.ClientConnectorError, OSError, ConnectionRefusedError):
@@ -498,20 +513,23 @@ class Node:
 
         for player in self.players.copy().values():
             await player.destroy()
-            self._log.debug("All players disconnected from node.")
+            if self._log:
+                self._log.debug("All players disconnected from node.")
 
         await self._websocket.close()
         await self._session.close()
-        self._log.debug("Websocket and http session closed.")
+        if self._log:
+            self._log.debug("Websocket and http session closed.")
 
         del self._pool._nodes[self._identifier]
         self.available = False
         self._task.cancel()
 
         end = time.perf_counter()
-        self._log.info(
-            f"Successfully disconnected from node {self._identifier} and closed all sessions. Took {end - start:.3f}s",
-        )
+        if self._log:
+            self._log.info(
+                f"Successfully disconnected from node {self._identifier} and closed all sessions. Took {end - start:.3f}s",
+            )
 
     async def build_track(self, identifier: str, ctx: Optional[commands.Context] = None) -> Track:
         """

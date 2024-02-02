@@ -63,7 +63,8 @@ class Client:
             )
 
         data: dict = await resp.json(loads=json.loads)
-        self._log.debug(f"Fetched Spotify bearer token successfully")
+        if self._log:
+            self._log.debug(f"Fetched Spotify bearer token successfully")
 
         self._bearer_token = data["access_token"]
         self._expiry = time.time() + (int(data["expires_in"]) - 10)
@@ -91,9 +92,10 @@ class Client:
             )
 
         data: dict = await resp.json(loads=json.loads)
-        self._log.debug(
-            f"Made request to Spotify API with status {resp.status} and response {data}",
-        )
+        if self._log:
+            self._log.debug(
+                f"Made request to Spotify API with status {resp.status} and response {data}",
+            )
 
         if spotify_type == "track":
             return Track(data)

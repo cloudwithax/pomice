@@ -298,7 +298,8 @@ class Player(VoiceProtocol):
         self._last_update = int(state.get("time", 0))
         self._is_connected = bool(state.get("connected"))
         self._last_position = int(state.get("position", 0))
-        self._log.debug(f"Got player update state with data {state}")
+        if self._log:
+            self._log.debug(f"Got player update state with data {state}")
 
     async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None) -> None:
         if {"sessionId", "event"} != self._voice_state.keys():
@@ -319,7 +320,10 @@ class Player(VoiceProtocol):
             data={"voice": data},
         )
 
-        self._log.debug(f"Dispatched voice update to {state['event']['endpoint']} with data {data}")
+        if self._log:
+            self._log.debug(
+                f"Dispatched voice update to {state['event']['endpoint']} with data {data}",
+            )
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         self._voice_state.update({"event": data})
@@ -361,7 +365,8 @@ class Player(VoiceProtocol):
         if isinstance(event, TrackStartEvent):
             self._ending_track = self._current
 
-        self._log.debug(f"Dispatched event {data['type']} to player.")
+        if self._log:
+            self._log.debug(f"Dispatched event {data['type']} to player.")
 
     async def _refresh_endpoint_uri(self, session_id: Optional[str]) -> None:
         self._player_endpoint_uri = f"sessions/{session_id}/players"
@@ -383,7 +388,8 @@ class Player(VoiceProtocol):
             data=data or None,
         )
 
-        self._log.debug(f"Swapped all players to new node {new_node._identifier}.")
+        if self._log:
+            self._log.debug(f"Swapped all players to new node {new_node._identifier}.")
 
     async def get_tracks(
         self,
@@ -456,7 +462,8 @@ class Player(VoiceProtocol):
             data={"encodedTrack": None},
         )
 
-        self._log.debug(f"Player has been stopped.")
+        if self._log:
+            self._log.debug(f"Player has been stopped.")
 
     async def disconnect(self, *, force: bool = False) -> None:
         """Disconnects the player from voice."""
@@ -484,7 +491,8 @@ class Player(VoiceProtocol):
                 guild_id=self._guild.id,
             )
 
-        self._log.debug("Player has been destroyed.")
+        if self._log:
+            self._log.debug("Player has been destroyed.")
 
     async def play(
         self,
@@ -577,9 +585,10 @@ class Player(VoiceProtocol):
             query=f"noReplace={ignore_if_playing}",
         )
 
-        self._log.debug(
-            f"Playing {track.title} from uri {track.uri} with a length of {track.length}",
-        )
+        if self._log:
+            self._log.debug(
+                f"Playing {track.title} from uri {track.uri} with a length of {track.length}",
+            )
 
         return self._current
 
@@ -600,7 +609,8 @@ class Player(VoiceProtocol):
             data={"position": position},
         )
 
-        self._log.debug(f"Seeking to {position}.")
+        if self._log:
+            self._log.debug(f"Seeking to {position}.")
         return self.position
 
     async def set_pause(self, pause: bool) -> bool:
@@ -613,7 +623,8 @@ class Player(VoiceProtocol):
         )
         self._paused = pause
 
-        self._log.debug(f"Player has been {'paused' if pause else 'resumed'}.")
+        if self._log:
+            self._log.debug(f"Player has been {'paused' if pause else 'resumed'}.")
         return self._paused
 
     async def set_volume(self, volume: int) -> int:
@@ -626,7 +637,8 @@ class Player(VoiceProtocol):
         )
         self._volume = volume
 
-        self._log.debug(f"Player volume has been adjusted to {volume}")
+        if self._log:
+            self._log.debug(f"Player volume has been adjusted to {volume}")
         return self._volume
 
     async def move_to(self, channel: VoiceChannel) -> None:
@@ -655,9 +667,11 @@ class Player(VoiceProtocol):
             data={"filters": payload},
         )
 
-        self._log.debug(f"Filter has been applied to player with tag {_filter.tag}")
+        if self._log:
+            self._log.debug(f"Filter has been applied to player with tag {_filter.tag}")
         if fast_apply:
-            self._log.debug(f"Fast apply passed, now applying filter instantly.")
+            if self._log:
+                self._log.debug(f"Fast apply passed, now applying filter instantly.")
             await self.seek(self.position)
 
         return self._filters
@@ -678,9 +692,11 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"filters": payload},
         )
-        self._log.debug(f"Filter has been removed from player with tag {filter_tag}")
+        if self._log:
+            self._log.debug(f"Filter has been removed from player with tag {filter_tag}")
         if fast_apply:
-            self._log.debug(f"Fast apply passed, now removing filter instantly.")
+            if self._log:
+                self._log.debug(f"Fast apply passed, now removing filter instantly.")
             await self.seek(self.position)
 
         return self._filters
@@ -709,9 +725,11 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"filters": payload},
         )
-        self._log.debug(f"Filter with tag {filter_tag} has been edited to {edited_filter!r}")
+        if self._log:
+            self._log.debug(f"Filter with tag {filter_tag} has been edited to {edited_filter!r}")
         if fast_apply:
-            self._log.debug(f"Fast apply passed, now editing filter instantly.")
+            if self._log:
+                self._log.debug(f"Fast apply passed, now editing filter instantly.")
             await self.seek(self.position)
 
         return self._filters
@@ -735,8 +753,10 @@ class Player(VoiceProtocol):
             guild_id=self._guild.id,
             data={"filters": {}},
         )
-        self._log.debug(f"All filters have been removed from player.")
+        if self._log:
+            self._log.debug(f"All filters have been removed from player.")
 
         if fast_apply:
-            self._log.debug(f"Fast apply passed, now removing all filters instantly.")
+            if self._log:
+                self._log.debug(f"Fast apply passed, now removing all filters instantly.")
             await self.seek(self.position)
