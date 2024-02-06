@@ -20,7 +20,7 @@ if not discord.version_info.major >= 2:
         "using 'pip install discord.py'",
     )
 
-__version__ = "2.8.1"
+__version__ = "2.9.0a"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 __license__ = "GPL-3.0"

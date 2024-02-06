@@ -273,3 +273,10 @@ class LogLevel(IntEnum):
     WARN = 30
     ERROR = 40
     CRITICAL = 50
+
+    @classmethod
+    def from_str(cls, level_str):
+        try:
+            return cls[level_str.upper()]
+        except KeyError:
+            raise ValueError(f"No such log level: {level_str}")

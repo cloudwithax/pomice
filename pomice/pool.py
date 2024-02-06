@@ -30,6 +30,7 @@ from . import applemusic
 from . import spotify
 from .enums import *
 from .enums import LogLevel
+from .exceptions import InvalidSpotifyClientAuthorization
 from .exceptions import LavalinkVersionIncompatible
 from .exceptions import NodeConnectionFailure
 from .exceptions import NodeCreationError
@@ -702,61 +703,6 @@ class Node:
                 uri=spotify_results.uri,
             )
 
-        elif discord_url := URLRegex.DISCORD_MP3_URL.match(query):
-            data: dict = await self.send(
-                method="GET",
-                path="loadtracks",
-                query=f"identifier={quote(query)}",
-            )
-
-            track: dict = data["tracks"][0]
-            info: dict = track["info"]
-
-            return [
-                Track(
-                    track_id=track["track"],
-                    info={
-                        "title": discord_url.group("file"),
-                        "author": "Unknown",
-                        "length": info["length"],
-                        "uri": info["uri"],
-                        "position": info["position"],
-                        "identifier": info["identifier"],
-                    },
-                    ctx=ctx,
-                    track_type=TrackType.HTTP,
-                    filters=filters,
-                ),
-            ]
-
-        elif path.exists(path.dirname(query)):
-            local_file = Path(query)
-            data: dict = await self.send(  # type: ignore
-                method="GET",
-                path="loadtracks",
-                query=f"identifier={quote(query)}",
-            )
-
-            track: dict = data["tracks"][0]  # type: ignore
-            info: dict = track["info"]  # type: ignore
-
-            return [
-                Track(
-                    track_id=track["track"],
-                    info={
-                        "title": local_file.name,
-                        "author": "Unknown",
-                        "length": info["length"],
-                        "uri": quote(local_file.as_uri()),
-                        "position": info["position"],
-                        "identifier": info["identifier"],
-                    },
-                    ctx=ctx,
-                    track_type=TrackType.LOCAL,
-                    filters=filters,
-                ),
-            ]
-
         else:
             if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
                 query = f"{search_type}:{query}"
@@ -819,6 +765,47 @@ class Node:
         elif load_type in ("SEARCH_RESULT", "TRACK_LOADED", "track", "search"):
             if self._version.major >= 4 and isinstance(data[data_type], dict):
                 data[data_type] = [data[data_type]]
+
+            if path.exists(path.dirname(query)):
+                local_file = Path(query)
+
+                return [
+                    Track(
+                        track_id=track["track"],
+                        info={
+                            "title": local_file.name,
+                            "author": "Unknown",
+                            "length": track["info"]["length"],
+                            "uri": quote(local_file.as_uri()),
+                            "position": track["info"]["position"],
+                            "identifier": track["info"]["identifier"],
+                        },
+                        ctx=ctx,
+                        track_type=TrackType.LOCAL,
+                        filters=filters,
+                    )
+                    for track in data[data_type]
+                ]
+
+            elif discord_url := URLRegex.DISCORD_MP3_URL.match(query):
+                return [
+                    Track(
+                        track_id=track["encoded"],
+                        info={
+                            "title": discord_url.group("file"),
+                            "author": "Unknown",
+                            "length": track["info"]["length"],
+                            "uri": track["info"]["uri"],
+                            "position": track["info"]["position"],
+                            "identifier": track["info"]["identifier"],
+                        },
+                        ctx=ctx,
+                        track_type=TrackType.HTTP,
+                        filters=filters,
+                    )
+                    for track in data[data_type]
+                ]
+
             return [
                 Track(
                     track_id=track["encoded"],
@@ -884,6 +871,57 @@ class Node:
             raise TrackLoadError(
                 "The specfied track must be either a YouTube or Spotify track to recieve recommendations.",
             )
+
+    async def search_spotify_recommendations(
+        self,
+        query: str,
+        *,
+        ctx: Optional[commands.Context] = None,
+        filters: Optional[List[Filter]] = None,
+    ) -> Optional[Union[List[Track], Playlist]]:
+        """
+        Searches for recommendations on Spotify and returns a list of tracks based on the query.
+        You must have Spotify enabled for this to work.
+        You can pass in a discord.py Context object to get a
+        Context object on all tracks that get recommended.
+        """
+
+        if not self._spotify_client:
+            raise InvalidSpotifyClientAuthorization(
+                "You must have Spotify enabled to use this feature.",
+            )
+
+        results = await self._spotify_client.track_search(query=query)  # type: ignore
+        if not results:
+            raise TrackLoadError(
+                "Unable to find any tracks based on the query.",
+            )
+
+        tracks = [
+            Track(
+                track_id=track.id,
+                ctx=ctx,
+                track_type=TrackType.SPOTIFY,
+                info={
+                    "title": track.name,
+                    "author": track.artists,
+                    "length": track.length,
+                    "identifier": track.id,
+                    "uri": track.uri,
+                    "isStream": False,
+                    "isSeekable": True,
+                    "position": 0,
+                    "thumbnail": track.image,
+                    "isrc": track.isrc,
+                },
+                requester=self.bot.user,
+            )
+            for track in results
+        ]
+
+        track = tracks[0]
+
+        return await self.get_recommendations(track=track, ctx=ctx)
 
 
 class NodePool:

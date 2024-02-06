@@ -8,6 +8,7 @@ from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
+from urllib.parse import quote
 
 import aiohttp
 import orjson as json
@@ -175,5 +176,22 @@ class Client:
 
         data: dict = await resp.json(loads=json.loads)
         tracks = [Track(track) for track in data["tracks"]]
+
+        return tracks
+
+    async def track_search(self, *, query: str) -> List[Track]:
+        if not self._bearer_token or time.time() >= self._expiry:
+            await self._fetch_bearer_token()
+
+        request_url = f"https://api.spotify.com/v1/search?q={quote(query)}&type=track"
+
+        resp = await self.session.get(request_url, headers=self._bearer_headers)
+        if resp.status != 200:
+            raise SpotifyRequestException(
+                f"Error while fetching results: {resp.status} {resp.reason}",
+            )
+
+        data: dict = await resp.json(loads=json.loads)
+        tracks = [Track(track) for track in data["tracks"]["items"]]
 
         return tracks
