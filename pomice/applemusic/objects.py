@@ -1,4 +1,5 @@
 """Module for managing Apple Music objects"""
+
 from typing import List
 
 __all__ = (

@@ -7,12 +7,12 @@ import re
 import time
 from os import path
 from pathlib import Path
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Type
-from typing import TYPE_CHECKING
 from typing import Union
 from urllib.parse import quote
 
@@ -28,8 +28,8 @@ from websockets import typing as wstype
 from . import __version__
 from . import applemusic
 from . import spotify
-from .enums import *
 from .enums import LogLevel
+from .enums import *
 from .exceptions import InvalidSpotifyClientAuthorization
 from .exceptions import LavalinkVersionIncompatible
 from .exceptions import NodeConnectionFailure
