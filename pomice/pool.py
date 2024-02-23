@@ -20,16 +20,13 @@ import aiohttp
 import orjson as json
 from discord import Client
 from discord.ext import commands
-from discord.utils import MISSING
 from websockets import client
 from websockets import exceptions
-from websockets import typing as wstype
 
 from . import __version__
 from . import applemusic
 from . import spotify
 from .enums import *
-from .enums import LogLevel
 from .exceptions import InvalidSpotifyClientAuthorization
 from .exceptions import LavalinkVersionIncompatible
 from .exceptions import NodeConnectionFailure
@@ -43,9 +40,9 @@ from .objects import Playlist
 from .objects import Track
 from .routeplanner import RoutePlanner
 from .utils import ExponentialBackoff
-from .utils import LavalinkVersion
 from .utils import NodeStats
 from .utils import Ping
+from pomice.models.version import LavalinkVersion
 
 if TYPE_CHECKING:
     from .player import Player

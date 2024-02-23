@@ -30,7 +30,7 @@ from .objects import Playlist
 from .objects import Track
 from .pool import Node
 from .pool import NodePool
-from pomice.utils import LavalinkVersion
+from pomice.models.version import LavalinkVersion
 
 if TYPE_CHECKING:
     from discord.types.voice import VoiceServerUpdate
