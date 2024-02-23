@@ -1,4 +1,6 @@
-from typing import NamedTuple
+from typing import Literal, NamedTuple, Union
+
+__all__ = ("LavalinkVersion",)
 
 
 class LavalinkVersion(NamedTuple):
@@ -25,3 +27,18 @@ class LavalinkVersion(NamedTuple):
         if self.fix > other.fix:
             return False
         return True
+
+
+class LavalinkVersion3Type(LavalinkVersion):
+    major: Literal[3]
+    minor: int
+    fix: int
+
+
+class LavalinkVersion4Type(LavalinkVersion):
+    major: Literal[4]
+    minor: int
+    fix: int
+
+
+LavalinkVersionType = Union[LavalinkVersion3Type, LavalinkVersion4Type, LavalinkVersion]
