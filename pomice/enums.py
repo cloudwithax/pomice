@@ -15,8 +15,13 @@ __all__ = (
 )
 
 
+class BaseStrEnum(str, Enum):
+    def __str__(self):
+        return self.value
+
+
 @unique
-class SearchType(str, Enum):
+class SearchType(BaseStrEnum):
     """
     The enum for the different search types for Pomice.
     This feature is exclusively for the Spotify search feature of Pomice.
@@ -38,7 +43,7 @@ class SearchType(str, Enum):
 
 
 @unique
-class TrackType(str, Enum):
+class TrackType(BaseStrEnum):
     """
     The enum for the different track types for Pomice.
 
@@ -65,7 +70,7 @@ class TrackType(str, Enum):
 
 
 @unique
-class PlaylistType(str, Enum):
+class PlaylistType(BaseStrEnum):
     """
     The enum for the different playlist types for Pomice.
 
@@ -86,7 +91,7 @@ class PlaylistType(str, Enum):
 
 
 @unique
-class NodeAlgorithm(str, Enum):
+class NodeAlgorithm(BaseStrEnum):
     """
     The enum for the different node algorithms in Pomice.
 
@@ -108,7 +113,7 @@ class NodeAlgorithm(str, Enum):
 
 
 @unique
-class LoopMode(str, Enum):
+class LoopMode(BaseStrEnum):
     """
     The enum for the different loop modes.
     This feature is exclusively for the queue utility of pomice.
@@ -125,7 +130,7 @@ class LoopMode(str, Enum):
 
 
 @unique
-class RouteStrategy(str, Enum):
+class RouteStrategy(BaseStrEnum):
     """
     The enum for specifying the route planner strategy for Lavalink.
     This feature is exclusively for the RoutePlanner class.
@@ -152,7 +157,7 @@ class RouteStrategy(str, Enum):
 
 
 @unique
-class RouteIPType(str, Enum):
+class RouteIPType(BaseStrEnum):
     """
     The enum for specifying the route planner IP block type for Lavalink.
     This feature is exclusively for the RoutePlanner class.
