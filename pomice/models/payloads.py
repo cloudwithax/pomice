@@ -1,5 +1,5 @@
 from pydantic import Field
-from typing import Literal, Union
+from typing import Union
 
 from pydantic import TypeAdapter
 from pomice.models import BaseModel
@@ -27,7 +27,7 @@ class ResumePayloadV3(BaseModel):
 class ResumePayloadV4(BaseModel):
     version: LavalinkVersion4Type
     timeout: int
-    resuming: Literal[True] = True
+    resuming: bool = True
 
 
 _ResumePayloadType = Union[ResumePayloadV3, ResumePayloadV4]
