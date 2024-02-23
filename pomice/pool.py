@@ -722,7 +722,7 @@ class Node:
 
         # Based off of https://github.com/lavalink-devs/Lavalink/blob/ae3deb1ad61ea31f040ddaa4a283a38c298f326f/protocol/src/commonMain/kotlin/dev/arbjerg/lavalink/protocol/v4/loadResult.kt
         data_type = "data" if self._version.major >= 4 else "tracks"
-        exception_type = "data" if self._version.major >= 4 else "error"
+        exception_type = "data" if self._version.major >= 4 else "exception"
 
         if not load_type:
             raise TrackLoadError(
