@@ -720,9 +720,9 @@ class Node:
 
         load_type = data.get("loadType")
 
-        # Lavalink v4 changed the name of the key from "tracks" to "data"
-        # so lets account for that
+        # Based off of https://github.com/lavalink-devs/Lavalink/blob/ae3deb1ad61ea31f040ddaa4a283a38c298f326f/protocol/src/commonMain/kotlin/dev/arbjerg/lavalink/protocol/v4/loadResult.kt
         data_type = "data" if self._version.major >= 4 else "tracks"
+        exception_type = "data" if self._version.major >= 4 else "error"
 
         if not load_type:
             raise TrackLoadError(
@@ -730,7 +730,7 @@ class Node:
             )
 
         elif load_type in ("LOAD_FAILED", "error"):
-            exception = data["exception"]
+            exception = data[exception_type]
             raise TrackLoadError(
                 f"{exception['message']} [{exception['severity']}]",
             )
