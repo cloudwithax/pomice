@@ -303,7 +303,9 @@ class Node:
             return
 
         data = ResumePayloadType(
-            version=self._version, timeout=self._resume_timeout, resuming_key=self._resume_key,
+            version=self._version,
+            timeout=self._resume_timeout,
+            resuming_key=self._resume_key,
         ).model_dump()
 
         if isinstance(data, ResumePayloadV4):
