@@ -157,8 +157,4 @@ class PlaylistExtended(Playlist):
 
 
 PlaylistModelType = Union[Playlist, PlaylistExtended]
-PlaylistModelAdapter = lambda **kwargs: TypeAdapter(
-    PlaylistModelType,
-    Playlist,
-    PlaylistExtended,
-).validate_python(kwargs)
+PlaylistModelAdapter = lambda **kwargs: TypeAdapter(PlaylistModelType).validate_python(kwargs)
