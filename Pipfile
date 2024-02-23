@@ -5,7 +5,9 @@ name = "pypi"
 
 [packages]
 orjson = "*"
+pydantic = ">=2"
 "discord.py" = {extras = ["voice"], version = "*"}
+websockets = "*"
 
 [dev-packages]
 mypy = "*"
