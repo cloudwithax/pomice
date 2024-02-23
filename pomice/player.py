@@ -200,10 +200,10 @@ class Player(VoiceProtocol):
     @property
     def position(self) -> float:
         """Property which returns the player's position in a track in milliseconds"""
-        if not self.is_playing:
+        if not self.is_playing or not self._current:
             return 0
 
-        current: Track = self._current  # type: ignore
+        current: Track = self._current
         if current.original:
             current = current.original
 
@@ -230,10 +230,10 @@ class Player(VoiceProtocol):
     @property
     def adjusted_length(self) -> float:
         """Property which returns the player's track length in milliseconds adjusted for rate"""
-        if not self.is_playing:
+        if not self.is_playing or not self._current:
             return 0
 
-        return self.current.length / self.rate  # type: ignore
+        return self.current.length / self.rate
 
     @property
     def is_playing(self) -> bool:
