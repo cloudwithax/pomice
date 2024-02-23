@@ -55,7 +55,7 @@ class Track:
         info: dict,
         ctx: Optional[commands.Context] = None,
         track_type: TrackType,
-        search_type: SearchType = SearchType.ytsearch,
+        search_type: SearchType = SearchType.YTSEARCH,
         filters: Optional[List[Filter]] = None,
         timestamp: Optional[float] = None,
         requester: Optional[Union[Member, User, ClientUser]] = None,

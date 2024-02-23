@@ -396,7 +396,7 @@ class Player(VoiceProtocol):
         query: str,
         *,
         ctx: Optional[commands.Context] = None,
-        search_type: SearchType = SearchType.ytsearch,
+        search_type: SearchType = SearchType.YTSEARCH,
         filters: Optional[List[Filter]] = None,
     ) -> Optional[Union[List[Track], Playlist]]:
         """Fetches tracks from the node's REST api to parse into Lavalink.

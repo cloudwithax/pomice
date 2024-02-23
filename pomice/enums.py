@@ -38,9 +38,9 @@ class SearchType(BaseStrEnum):
     which is an alternative to YouTube or YouTube Music.
     """
 
-    ytsearch = "ytsearch"
-    ytmsearch = "ytmsearch"
-    scsearch = "scsearch"
+    YTSEARCH = "ytsearch"
+    YTMSEARCH = "ytmsearch"
+    SCSEARCH = "scsearch"
 
 
 @unique
