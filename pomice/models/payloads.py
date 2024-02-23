@@ -1,7 +1,9 @@
-from pydantic import Field
+from typing import Literal
 from typing import Union
 
+from pydantic import Field
 from pydantic import TypeAdapter
+
 from pomice.models import BaseModel
 from pomice.models import LavalinkVersion
 from pomice.models import LavalinkVersion3Type

@@ -23,8 +23,6 @@ from discord.ext import commands
 from websockets import client
 from websockets import exceptions
 
-from pomice.models.payloads import ResumePayloadType, ResumePayloadV4
-
 from . import __version__
 from . import applemusic
 from . import spotify
@@ -44,6 +42,8 @@ from .routeplanner import RoutePlanner
 from .utils import ExponentialBackoff
 from .utils import NodeStats
 from .utils import Ping
+from pomice.models.payloads import ResumePayloadType
+from pomice.models.payloads import ResumePayloadV4
 from pomice.models.version import LavalinkVersion
 
 if TYPE_CHECKING:
@@ -303,7 +303,7 @@ class Node:
             return
 
         data = ResumePayloadType(
-            version=self._version, timeout=self._resume_timeout, resuming_key=self._resume_key
+            version=self._version, timeout=self._resume_timeout, resuming_key=self._resume_key,
         ).model_dump()
 
         if isinstance(data, ResumePayloadV4):
