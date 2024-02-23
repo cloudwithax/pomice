@@ -3,14 +3,16 @@ from __future__ import annotations
 import abc
 from enum import Enum
 from enum import unique
-from typing import TYPE_CHECKING
 from typing import Literal
+from typing import TYPE_CHECKING
+
 from discord import Guild
 from pydantic import computed_field
 from pydantic import Field
+
 from pomice.models import BaseModel
-from pomice.player import Player
 from pomice.objects import Track
+from pomice.player import Player
 from pomice.pool import NodePool
 
 if TYPE_CHECKING:
@@ -41,7 +43,8 @@ class PomiceEvent(BaseModel, abc.ABC):
     name: str
 
     @abc.abstractmethod
-    def dispatch(self, bot: Client) -> None: ...
+    def dispatch(self, bot: Client) -> None:
+        ...
 
 
 class TrackStartEvent(PomiceEvent):

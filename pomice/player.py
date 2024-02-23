@@ -16,9 +16,6 @@ from discord.ext import commands
 
 from . import events
 from .enums import SearchType
-from pomice.models.events import PomiceEvent
-from pomice.models.events import TrackEndEvent
-from pomice.models.events import TrackStartEvent
 from .exceptions import FilterInvalidArgument
 from .exceptions import FilterTagAlreadyInUse
 from .exceptions import FilterTagInvalid
@@ -30,6 +27,9 @@ from .objects import Playlist
 from .objects import Track
 from .pool import Node
 from .pool import NodePool
+from pomice.models.events import PomiceEvent
+from pomice.models.events import TrackEndEvent
+from pomice.models.events import TrackStartEvent
 from pomice.models.version import LavalinkVersion
 
 if TYPE_CHECKING:
