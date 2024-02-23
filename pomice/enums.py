@@ -1,6 +1,7 @@
 import re
-from enum import Enum, unique
+from enum import Enum
 from enum import IntEnum
+from enum import unique
 
 __all__ = (
     "SearchType",
