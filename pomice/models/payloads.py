@@ -8,7 +8,13 @@ from pomice.models import LavalinkVersion
 from pomice.models import LavalinkVersion3Type
 from pomice.models import LavalinkVersion4Type
 
-__all__ = ("ResumePayload", "ResumePayloadV3", "ResumePayloadV4")
+__all__ = (
+    "ResumePayload",
+    "ResumePayloadV3",
+    "ResumePayloadV4",
+    "ResumePayloadType",
+    "ResumePayloadTypeAdapter",
+)
 
 
 class ResumePayload(BaseModel):
