@@ -1,4 +1,6 @@
-from typing import Literal, NamedTuple, Union
+from typing import Literal
+from typing import NamedTuple
+from typing import Union
 
 __all__ = ("LavalinkVersion",)
 
