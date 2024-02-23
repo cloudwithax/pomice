@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 from typing import List
+from typing import Literal
 from typing import Optional
+from typing import Union
 
 from discord.ext.commands import Context
 from discord.user import _UserTag
 from pydantic import Field
 from pydantic import model_validator
+from pydantic import TypeAdapter
 
 from pomice.enums import PlaylistType
 from pomice.enums import SearchType
@@ -17,6 +20,10 @@ from pomice.models import BaseModel
 __all__ = (
     "Track",
     "TrackInfo",
+    "Playlist",
+    "PlaylistInfo",
+    "PlaylistExtended",
+    "PlaylistModelAdapter",
 )
 
 
@@ -45,6 +52,7 @@ class Track(BaseModel):
     search_type: SearchType = SearchType.YTSEARCH
     filters: List[Filter] = Field(default_factory=list)
     timestamp: Optional[float] = None
+    playlist: Optional[Playlist] = None
     original: Optional[Track] = None
     ctx: Optional[Context] = None
     requester: Optional[_UserTag] = None
@@ -107,16 +115,10 @@ class Playlist(BaseModel):
     info: PlaylistInfo
     tracks: List[Track]
     playlist_type: PlaylistType
-    uri: str
-    artwork_url: Optional[str] = None
 
     @property
     def name(self) -> str:
         return self.info.name
-
-    @property
-    def thumbnail(self) -> Optional[str]:
-        return self.artwork_url
 
     @property
     def selected_track(self) -> Optional[Track]:
@@ -134,3 +136,29 @@ class Playlist(BaseModel):
 
     def __repr__(self) -> str:
         return f"<Pomice.Playlist name={self.info.name!r} total_tracks={self.track_count}>"
+
+    @model_validator(mode="after")
+    def _set_playlist(self) -> Playlist:
+        for track in self.tracks:
+            track.playlist = self
+        return self
+
+
+class PlaylistExtended(Playlist):
+    """Playlist object with additional information for external services."""
+
+    playlist_type: Union[Literal[PlaylistType.APPLE_MUSIC, PlaylistType.SPOTIFY]]
+    uri: str
+    artwork_url: str
+
+    @property
+    def thumbnail(self) -> Optional[str]:
+        return self.artwork_url
+
+
+PlaylistModelType = Union[Playlist, PlaylistExtended]
+PlaylistModelAdapter = lambda **kwargs: TypeAdapter(
+    PlaylistModelType,
+    Playlist,
+    PlaylistExtended,
+).validate_python(kwargs)
