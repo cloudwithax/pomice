@@ -7,6 +7,7 @@ Copyright (c) 2023, cloudwithax
 
 Licensed under GPL-3.0
 """
+
 import discord
 
 if not discord.version_info.major >= 2:
@@ -27,7 +28,7 @@ __license__ = "GPL-3.0"
 __copyright__ = "Copyright (c) 2023, cloudwithax"
 
 from .enums import *
-from .events import *
+from .models import *
 from .exceptions import *
 from .filters import *
 from .objects import *

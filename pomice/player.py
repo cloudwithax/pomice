@@ -16,9 +16,9 @@ from discord.ext import commands
 
 from . import events
 from .enums import SearchType
-from .events import PomiceEvent
-from .events import TrackEndEvent
-from .events import TrackStartEvent
+from pomice.models.events import PomiceEvent
+from pomice.models.events import TrackEndEvent
+from pomice.models.events import TrackStartEvent
 from .exceptions import FilterInvalidArgument
 from .exceptions import FilterTagAlreadyInUse
 from .exceptions import FilterTagInvalid
@@ -355,9 +355,9 @@ class Player(VoiceProtocol):
 
     async def _dispatch_event(self, data: dict) -> None:
         event_type: str = data["type"]
-        event: PomiceEvent = getattr(events, event_type)(data, self)
+        event: PomiceEvent = getattr(events, event_type)(player=self, **data)
 
-        if isinstance(event, TrackEndEvent) and event.reason not in ("REPLACED", "replaced"):
+        if isinstance(event, TrackEndEvent) and event.reason != "replaced":
             self._current = None
 
         event.dispatch(self._bot)
