@@ -22,7 +22,7 @@ class ResumePayload(BaseModel):
 class ResumePayloadV3(BaseModel):
     version: LavalinkVersion3Type
     timeout: int
-    resuming_key: str = Field(serialization_alias="resumingKey")
+    resuming_key: str = Field(alias="resumingKey")
 
 
 class ResumePayloadV4(BaseModel):
