@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import collections
 from typing import Any
 from typing import Dict
@@ -84,7 +86,7 @@ class Equalizer(Filter):
         return self.raw == __value.raw
 
     @classmethod
-    def flat(cls) -> "Equalizer":
+    def flat(cls) -> Equalizer:
         """Equalizer preset which represents a flat EQ board,
         with all levels set to their default values.
         """
@@ -109,7 +111,7 @@ class Equalizer(Filter):
         return cls(tag="flat", levels=levels)
 
     @classmethod
-    def boost(cls) -> "Equalizer":
+    def boost(cls) -> Equalizer:
         """Equalizer preset which boosts the sound of a track,
         making it sound fun and energetic by increasing the bass
         and the highs.
@@ -135,7 +137,7 @@ class Equalizer(Filter):
         return cls(tag="boost", levels=levels)
 
     @classmethod
-    def metal(cls) -> "Equalizer":
+    def metal(cls) -> Equalizer:
         """Equalizer preset which increases the mids of a track,
         preferably one of the metal genre, to make it sound
         more full and concert-like.
@@ -162,7 +164,7 @@ class Equalizer(Filter):
         return cls(tag="metal", levels=levels)
 
     @classmethod
-    def piano(cls) -> "Equalizer":
+    def piano(cls) -> Equalizer:
         """Equalizer preset which increases the mids and highs
         of a track, preferably a piano based one, to make it
         stand out.
@@ -215,7 +217,7 @@ class Timescale(Filter):
         }
 
     @classmethod
-    def vaporwave(cls) -> "Timescale":
+    def vaporwave(cls) -> Timescale:
         """Timescale preset which slows down the currently playing track,
         giving it the effect of a half-speed record/casette playing.
 
@@ -225,7 +227,7 @@ class Timescale(Filter):
         return cls(tag="vaporwave", speed=0.8, pitch=0.8)
 
     @classmethod
-    def nightcore(cls) -> "Timescale":
+    def nightcore(cls) -> Timescale:
         """Timescale preset which speeds up the currently playing track,
         which matches up to nightcore, a genre of sped-up music
 
