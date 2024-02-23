@@ -42,7 +42,7 @@ from .routeplanner import RoutePlanner
 from .utils import ExponentialBackoff
 from .utils import NodeStats
 from .utils import Ping
-from pomice.models.payloads import ResumePayloadType
+from pomice.models.payloads import ResumePayloadTypeAdapter
 from pomice.models.payloads import ResumePayloadV4
 from pomice.models.version import LavalinkVersion
 
@@ -302,8 +302,10 @@ class Node:
         if not self._resume_key:
             return
 
-        data = ResumePayloadType(
-            version=self._version, timeout=self._resume_timeout, resuming_key=self._resume_key,
+        data = ResumePayloadTypeAdapter(
+            version=self._version,
+            timeout=self._resume_timeout,
+            resuming_key=self._resume_key,
         ).model_dump()
 
         if isinstance(data, ResumePayloadV4):

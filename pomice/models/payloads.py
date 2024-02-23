@@ -31,5 +31,5 @@ class ResumePayloadV4(BaseModel):
     resuming: bool = True
 
 
-_ResumePayloadType = Union[ResumePayloadV3, ResumePayloadV4]
-ResumePayloadType = lambda **kwargs: TypeAdapter(_ResumePayloadType).validate_python(kwargs)
+ResumePayloadType = Union[ResumePayloadV3, ResumePayloadV4]
+ResumePayloadTypeAdapter = lambda **kwargs: TypeAdapter(ResumePayloadType).validate_python(kwargs)
