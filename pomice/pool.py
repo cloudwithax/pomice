@@ -23,6 +23,8 @@ from discord.ext import commands
 from websockets import client
 from websockets import exceptions
 
+from pomice.models.payloads import ResumePayloadType, ResumePayloadV4
+
 from . import __version__
 from . import applemusic
 from . import spotify
@@ -300,14 +302,13 @@ class Node:
         if not self._resume_key:
             return
 
-        data = {"timeout": self._resume_timeout}
+        data = ResumePayloadType(
+            version=self._version, timeout=self._resume_timeout, resuming_key=self._resume_key
+        ).model_dump()
 
-        if self._version.major == 3:
-            data["resumingKey"] = self._resume_key
-        elif self._version.major == 4:
+        if isinstance(data, ResumePayloadV4):
             if self._log:
                 self._log.warning("Using a resume key with Lavalink v4 is deprecated.")
-            data["resuming"] = True
 
         await self.send(
             method="PATCH",

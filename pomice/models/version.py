@@ -2,7 +2,12 @@ from typing import Literal
 from typing import NamedTuple
 from typing import Union
 
-__all__ = ("LavalinkVersion",)
+__all__ = (
+    "LavalinkVersion",
+    "LavalinkVersion3Type",
+    "LavalinkVersion4Type",
+    "LavalinkVersionType",
+)
 
 
 class LavalinkVersion(NamedTuple):
