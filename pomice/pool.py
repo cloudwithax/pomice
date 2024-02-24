@@ -23,31 +23,31 @@ from discord.ext import commands
 from websockets import client
 from websockets import exceptions
 
-from . import __version__
-from . import applemusic
-from . import spotify
-from .enums import *
-from .exceptions import InvalidSpotifyClientAuthorization
-from .exceptions import LavalinkVersionIncompatible
-from .exceptions import NodeConnectionFailure
-from .exceptions import NodeCreationError
-from .exceptions import NodeNotAvailable
-from .exceptions import NodeRestException
-from .exceptions import NoNodesAvailable
-from .exceptions import TrackLoadError
-from .filters import Filter
-from .objects import Playlist
-from .objects import Track
-from .routeplanner import RoutePlanner
-from .utils import ExponentialBackoff
-from .utils import NodeStats
-from .utils import Ping
+from pomice import __version__
+from pomice import applemusic
+from pomice import spotify
+from pomice.enums import *
+from pomice.exceptions import InvalidSpotifyClientAuthorization
+from pomice.exceptions import LavalinkVersionIncompatible
+from pomice.exceptions import NodeConnectionFailure
+from pomice.exceptions import NodeCreationError
+from pomice.exceptions import NodeNotAvailable
+from pomice.exceptions import NodeRestException
+from pomice.exceptions import NoNodesAvailable
+from pomice.exceptions import TrackLoadError
+from pomice.filters import Filter
+from pomice.models.music import Playlist
+from pomice.models.music import Track
 from pomice.models.payloads import ResumePayloadTypeAdapter
 from pomice.models.payloads import ResumePayloadV4
 from pomice.models.version import LavalinkVersion
+from pomice.routeplanner import RoutePlanner
+from pomice.utils import ExponentialBackoff
+from pomice.utils import NodeStats
+from pomice.utils import Ping
 
 if TYPE_CHECKING:
-    from .player import Player
+    from pomice.player import Player
 
 __all__ = (
     "Node",

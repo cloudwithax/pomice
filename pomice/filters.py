@@ -7,7 +7,7 @@ from typing import List
 from typing import Optional
 from typing import Tuple
 
-from .exceptions import FilterInvalidArgument
+from pomice.exceptions import FilterInvalidArgument
 
 __all__ = (
     "Filter",
