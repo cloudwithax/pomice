@@ -8,11 +8,11 @@ from typing import List
 from typing import Optional
 from typing import Union
 
-from .enums import LoopMode
-from .exceptions import QueueEmpty
-from .exceptions import QueueException
-from .exceptions import QueueFull
-from .objects import Track
+from pomice.enums import LoopMode
+from pomice.exceptions import QueueEmpty
+from pomice.exceptions import QueueException
+from pomice.exceptions import QueueFull
+from pomice.models.music import Track
 
 __all__ = ("Queue",)
 

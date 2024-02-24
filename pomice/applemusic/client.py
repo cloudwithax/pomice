@@ -11,17 +11,12 @@ from typing import Union
 import aiohttp
 import orjson as json
 
-from .exceptions import *
-from .objects import *
+from pomice.applemusic.exceptions import *
+from pomice.applemusic.objects import *
+from pomice.enums import URLRegex
 
 __all__ = ("Client",)
 
-AM_URL_REGEX = re.compile(
-    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^?]+)",
-)
-AM_SINGLE_IN_ALBUM_REGEX = re.compile(
-    r"https?://music.apple.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>.+)(\?i=)(?P<id2>.+)",
-)
 
 AM_SCRIPT_REGEX = re.compile(r'<script.*?src="(/assets/index-.*?)"')
 
@@ -103,7 +98,7 @@ class Client:
         if not self.token or datetime.utcnow() > self.expiry:
             await self.request_token()
 
-        result = AM_URL_REGEX.match(query)
+        result = URLRegex.AM_URL.match(query)
         if not result:
             raise InvalidAppleMusicURL(
                 "The Apple Music link provided is not valid.",
@@ -113,7 +108,7 @@ class Client:
         type = result.group("type")
         id = result.group("id")
 
-        if type == "album" and (sia_result := AM_SINGLE_IN_ALBUM_REGEX.match(query)):
+        if type == "album" and (sia_result := URLRegex.AM_SINGLE_IN_ALBUM_REGEX.match(query)):
             # apple music likes to generate links for singles off an album
             # by adding a param at the end of the url
             # so we're gonna scan for that and correct it

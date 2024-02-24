@@ -1,6 +1,7 @@
 import re
 from enum import Enum
 from enum import IntEnum
+from enum import unique
 
 __all__ = (
     "SearchType",
@@ -15,7 +16,13 @@ __all__ = (
 )
 
 
-class SearchType(Enum):
+class BaseStrEnum(str, Enum):
+    def __str__(self):
+        return self.value
+
+
+@unique
+class SearchType(BaseStrEnum):
     """
     The enum for the different search types for Pomice.
     This feature is exclusively for the Spotify search feature of Pomice.
@@ -31,15 +38,13 @@ class SearchType(Enum):
     which is an alternative to YouTube or YouTube Music.
     """
 
-    ytsearch = "ytsearch"
-    ytmsearch = "ytmsearch"
-    scsearch = "scsearch"
-
-    def __str__(self) -> str:
-        return self.value
+    YTSEARCH = "ytsearch"
+    YTMSEARCH = "ytmsearch"
+    SCSEARCH = "scsearch"
 
 
-class TrackType(Enum):
+@unique
+class TrackType(BaseStrEnum):
     """
     The enum for the different track types for Pomice.
 
@@ -64,11 +69,9 @@ class TrackType(Enum):
     HTTP = "http"
     LOCAL = "local"
 
-    def __str__(self) -> str:
-        return self.value
 
-
-class PlaylistType(Enum):
+@unique
+class PlaylistType(BaseStrEnum):
     """
     The enum for the different playlist types for Pomice.
 
@@ -87,11 +90,9 @@ class PlaylistType(Enum):
     SPOTIFY = "spotify"
     APPLE_MUSIC = "apple_music"
 
-    def __str__(self) -> str:
-        return self.value
 
-
-class NodeAlgorithm(Enum):
+@unique
+class NodeAlgorithm(BaseStrEnum):
     """
     The enum for the different node algorithms in Pomice.
 
@@ -111,11 +112,9 @@ class NodeAlgorithm(Enum):
     by_ping = "BY_PING"
     by_players = "BY_PLAYERS"
 
-    def __str__(self) -> str:
-        return self.value
 
-
-class LoopMode(Enum):
+@unique
+class LoopMode(BaseStrEnum):
     """
     The enum for the different loop modes.
     This feature is exclusively for the queue utility of pomice.
@@ -124,18 +123,15 @@ class LoopMode(Enum):
     LoopMode.TRACK sets the queue loop to the current track.
 
     LoopMode.QUEUE sets the queue loop to the whole queue.
-
     """
 
     # We don't have to define anything special for these, since these just serve as flags
     TRACK = "track"
     QUEUE = "queue"
 
-    def __str__(self) -> str:
-        return self.value
 
-
-class RouteStrategy(Enum):
+@unique
+class RouteStrategy(BaseStrEnum):
     """
     The enum for specifying the route planner strategy for Lavalink.
     This feature is exclusively for the RoutePlanner class.
@@ -153,7 +149,6 @@ class RouteStrategy(Enum):
     RouteStrategy.ROTATING_NANO_SWITCH specifies that the node is switching
     between IPs every CPU clock cycle and is rotating between IP blocks on
     ban.
-
     """
 
     ROTATE_ON_BAN = "RotatingIpRoutePlanner"
@@ -162,7 +157,8 @@ class RouteStrategy(Enum):
     ROTATING_NANO_SWITCH = "RotatingNanoIpRoutePlanner"
 
 
-class RouteIPType(Enum):
+@unique
+class RouteIPType(BaseStrEnum):
     """
     The enum for specifying the route planner IP block type for Lavalink.
     This feature is exclusively for the RoutePlanner class.
@@ -177,9 +173,43 @@ class RouteIPType(Enum):
     IPV6 = "Inet6Address"
 
 
+@unique
+class LogLevel(IntEnum):
+    """
+    The enum for specifying the logging level within Pomice.
+    This class serves as shorthand for logging.<level>
+    This enum is exclusively for the logging feature in Pomice.
+    If you are not using this feature, this class is not necessary.
+
+
+    LogLevel.DEBUG sets the logging level to "debug".
+
+    LogLevel.INFO sets the logging level to "info".
+
+    LogLevel.WARN sets the logging level to "warn".
+
+    LogLevel.ERROR sets the logging level to "error".
+
+    LogLevel.CRITICAL sets the logging level to "CRITICAL".
+    """
+
+    DEBUG = 10
+    INFO = 20
+    WARN = 30
+    ERROR = 40
+    CRITICAL = 50
+
+    @classmethod
+    def from_str(cls, level_str):
+        try:
+            return cls[level_str.upper()]
+        except KeyError:
+            raise ValueError(f"No such log level: {level_str}")
+
+
 class URLRegex:
     """
-    The enum for all the URL Regexes in use by Pomice.
+    The class for all the URL Regexes in use by Pomice.
 
     URLRegex.SPOTIFY_URL returns the Spotify URL Regex.
 
@@ -196,7 +226,6 @@ class URLRegex:
     URLRegex.SOUNDCLOUD_URL returns the SoundCloud URL Regex.
 
     URLRegex.BASE_URL returns the standard URL Regex.
-
     """
 
     SPOTIFY_URL = re.compile(
@@ -246,37 +275,3 @@ class URLRegex:
     LAVALINK_SEARCH = re.compile(r"(?P<type>ytm?|sc)search:")
 
     BASE_URL = re.compile(r"https?://(?:www\.)?.+")
-
-
-class LogLevel(IntEnum):
-    """
-    The enum for specifying the logging level within Pomice.
-    This class serves as shorthand for logging.<level>
-    This enum is exclusively for the logging feature in Pomice.
-    If you are not using this feature, this class is not necessary.
-
-
-    LogLevel.DEBUG sets the logging level to "debug".
-
-    LogLevel.INFO sets the logging level to "info".
-
-    LogLevel.WARN sets the logging level to "warn".
-
-    LogLevel.ERROR sets the logging level to "error".
-
-    LogLevel.CRITICAL sets the logging level to "CRITICAL".
-
-    """
-
-    DEBUG = 10
-    INFO = 20
-    WARN = 30
-    ERROR = 40
-    CRITICAL = 50
-
-    @classmethod
-    def from_str(cls, level_str):
-        try:
-            return cls[level_str.upper()]
-        except KeyError:
-            raise ValueError(f"No such log level: {level_str}")

@@ -125,7 +125,7 @@ class Music(commands.Cog):
 
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
 
-    # The following are events from pomice.events
+    # The following are events from pomice.models.events
     # We are using these so that if the track either stops or errors,
     # we can just skip to the next track
 
