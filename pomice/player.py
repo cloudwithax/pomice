@@ -14,23 +14,24 @@ from discord import VoiceChannel
 from discord import VoiceProtocol
 from discord.ext import commands
 
-from . import events
-from .enums import SearchType
-from .exceptions import FilterInvalidArgument
-from .exceptions import FilterTagAlreadyInUse
-from .exceptions import FilterTagInvalid
-from .exceptions import TrackInvalidPosition
-from .exceptions import TrackLoadError
-from .filters import Filter
-from .filters import Timescale
-from .objects import Playlist
-from .objects import Track
-from .pool import Node
-from .pool import NodePool
+from pomice import events
+from pomice.enums import SearchType
+from pomice.exceptions import FilterInvalidArgument
+from pomice.exceptions import FilterTagAlreadyInUse
+from pomice.exceptions import FilterTagInvalid
+from pomice.exceptions import TrackInvalidPosition
+from pomice.exceptions import TrackLoadError
+from pomice.filters import Filter
+from pomice.filters import Timescale
 from pomice.models.events import PomiceEvent
 from pomice.models.events import TrackEndEvent
 from pomice.models.events import TrackStartEvent
-from pomice.models.version import LavalinkVersion
+from pomice.models.music import Playlist
+from pomice.models.music import Track
+from pomice.models.payloads import TrackUpdatePayload
+from pomice.models.payloads import VoiceUpdatePayload
+from pomice.pool import Node
+from pomice.pool import NodePool
 
 if TYPE_CHECKING:
     from discord.types.voice import VoiceServerUpdate
@@ -287,12 +288,6 @@ class Player(VoiceProtocol):
         """
         return self.guild.id not in self._node._players
 
-    def _adjust_end_time(self) -> Optional[str]:
-        if self._node._version >= LavalinkVersion(3, 7, 5):
-            return None
-
-        return "0"
-
     async def _update_state(self, data: dict) -> None:
         state: dict = data.get("state", {})
         self._last_update = int(state.get("time", 0))
@@ -301,23 +296,18 @@ class Player(VoiceProtocol):
         if self._log:
             self._log.debug(f"Got player update state with data {state}")
 
-    async def _dispatch_voice_update(self, voice_data: Optional[Dict[str, Any]] = None) -> None:
-        if {"sessionId", "event"} != self._voice_state.keys():
+    async def _dispatch_voice_update(self, voice_data: Dict[str, Union[str, int]]) -> None:
+        state = voice_data or self._voice_state
+        if {"sessionId", "event"} != state.keys():
             return
 
-        state = voice_data or self._voice_state
-
-        data = {
-            "token": state["event"]["token"],
-            "endpoint": state["event"]["endpoint"],
-            "sessionId": state["sessionId"],
-        }
+        data = VoiceUpdatePayload.model_validate(state)
 
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
             guild_id=self._guild.id,
-            data={"voice": data},
+            data={"voice": data.model_dump()},
         )
 
         if self._log:
@@ -327,30 +317,26 @@ class Player(VoiceProtocol):
 
     async def on_voice_server_update(self, data: VoiceServerUpdate) -> None:
         self._voice_state.update({"event": data})
-        await self._dispatch_voice_update(self._voice_state)
+        await self._dispatch_voice_update()
 
     async def on_voice_state_update(self, data: GuildVoiceState) -> None:
-        self._voice_state.update({"sessionId": data.get("session_id")})
+        self._voice_state.update({"sessionId": data["session_id"]})
 
-        channel_id = data.get("channel_id")
-        if not channel_id:
-            await self.disconnect()
-            self._voice_state.clear()
-            return
-
+        channel_id = data["session_id"]
         channel = self.guild.get_channel(int(channel_id))
-
-        if self.channel != channel:
-            self.channel = channel
 
         if not channel:
             await self.disconnect()
             self._voice_state.clear()
             return
 
+        if self.channel != channel:
+            self.channel = channel
+
         if not data.get("token"):
             return
 
+        self._voice_state.update({"event": data})
         await self._dispatch_voice_update({**self._voice_state, "event": data})
 
     async def _dispatch_event(self, data: dict) -> None:
@@ -359,11 +345,10 @@ class Player(VoiceProtocol):
 
         if isinstance(event, TrackEndEvent) and event.reason != "replaced":
             self._current = None
-
-        event.dispatch(self._bot)
-
         if isinstance(event, TrackStartEvent):
             self._ending_track = self._current
+
+        event.dispatch(self._bot)
 
         if self._log:
             self._log.debug(f"Dispatched event {data['type']} to player.")
@@ -373,7 +358,10 @@ class Player(VoiceProtocol):
 
     async def _swap_node(self, *, new_node: Node) -> None:
         if self.current:
-            data: dict = {"position": self.position, "encodedTrack": self.current.track_id}
+            data: dict = TrackUpdatePayload(
+                encoded_track=self.current.track_id,
+                position=self.position,
+            ).model_dump()
 
         del self._node._players[self._guild.id]
         self._node = new_node
@@ -629,6 +617,9 @@ class Player(VoiceProtocol):
 
     async def set_volume(self, volume: int) -> int:
         """Sets the volume of the player as an integer. Lavalink accepts values from 0 to 500."""
+        if volume < 0 or volume > 500:
+            raise ValueError("Volume must be between 0 and 500")
+
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,

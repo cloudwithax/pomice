@@ -10,8 +10,8 @@ from typing import Dict
 from typing import Iterable
 from typing import Optional
 
-from .enums import RouteIPType
-from .enums import RouteStrategy
+from pomice.enums import RouteIPType
+from pomice.enums import RouteStrategy
 
 __all__ = (
     "ExponentialBackoff",

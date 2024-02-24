@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .pool import Node
 
-from .utils import RouteStats
+from pomice.utils import RouteStats
 
 __all__ = ("RoutePlanner",)
 
