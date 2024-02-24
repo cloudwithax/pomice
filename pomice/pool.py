@@ -174,8 +174,6 @@ class Node:
         if apple_music:
             self._apple_music_client = applemusic.Client()
 
-        self._bot.add_listener(self._update_handler, "on_socket_response")
-
     def __repr__(self) -> str:
         return (
             f"<Pomice.node ws_uri={self._websocket_uri} rest_uri={self._rest_uri} "
@@ -259,31 +257,6 @@ class Node:
 
         if self._apple_music_client:
             await self._apple_music_client._set_session(session=session)
-
-    async def _update_handler(self, data: dict) -> None:
-        await self._bot.wait_until_ready()
-
-        if not data:
-            return
-
-        if data["t"] == "VOICE_SERVER_UPDATE":
-            guild_id = int(data["d"]["guild_id"])
-            try:
-                player = self._players[guild_id]
-                await player.on_voice_server_update(data["d"])
-            except KeyError:
-                return
-
-        elif data["t"] == "VOICE_STATE_UPDATE":
-            if int(data["d"]["user_id"]) != self._bot_user.id:
-                return
-
-            guild_id = int(data["d"]["guild_id"])
-            try:
-                player = self._players[guild_id]
-                await player.on_voice_state_update(data["d"])
-            except KeyError:
-                return
 
     async def _handle_node_switch(self) -> None:
         nodes = [node for node in self.pool._nodes.copy().values() if node.is_connected]
