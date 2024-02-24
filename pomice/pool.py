@@ -166,15 +166,11 @@ class Node:
         self._spotify_client: Optional[spotify.Client] = None
         self._apple_music_client: Optional[applemusic.Client] = None
 
-        self._spotify_client_id: Optional[str] = spotify_client_id
-        self._spotify_client_secret: Optional[str] = spotify_client_secret
-
-        if self._spotify_client_id and self._spotify_client_secret:
+        if spotify_client_id and spotify_client_secret:
             self._spotify_client = spotify.Client(
-                self._spotify_client_id,
-                self._spotify_client_secret,
+                spotify_client_id,
+                spotify_client_secret,
             )
-
         if apple_music:
             self._apple_music_client = applemusic.Client()
 

@@ -34,15 +34,12 @@ class Client:
     """
 
     def __init__(self, client_id: str, client_secret: str) -> None:
-        self._client_id: str = client_id
-        self._client_secret: str = client_secret
-
         self.session: aiohttp.ClientSession = None  # type: ignore
 
         self._bearer_token: Optional[str] = None
         self._expiry: float = 0.0
         self._auth_token = b64encode(
-            f"{self._client_id}:{self._client_secret}".encode(),
+            f"{client_id}:{client_secret}".encode(),
         )
         self._grant_headers = {
             "Authorization": f"Basic {self._auth_token.decode()}",
