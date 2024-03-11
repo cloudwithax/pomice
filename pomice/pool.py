@@ -546,18 +546,13 @@ class Node:
             query=f"encodedTrack={quote(identifier)}",
         )
 
-        if self._version.major >= 4:
-            track_info = data["info"]
-            track_type = data["info"]["sourceName"]
-        else:
-            track_info = data
-            track_type = data["sourceName"]
+        track_info = data["info"] if self._version.major >= 4 else data
 
         return Track(
             track_id=identifier,
             ctx=ctx,
             info=track_info,
-            track_type=TrackType(track_type),
+            track_type=TrackType(track_info["sourceName"]),
         )
 
     async def get_tracks(
