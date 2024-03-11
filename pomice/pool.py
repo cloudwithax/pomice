@@ -545,11 +545,19 @@ class Node:
             path="decodetrack",
             query=f"encodedTrack={quote(identifier)}",
         )
+
+        if self._version.major >= 4:
+            track_info = data["info"]
+            track_type = data["info"]["sourceName"]
+        else:
+            track_info = data
+            track_type = data["sourceName"]
+
         return Track(
             track_id=identifier,
             ctx=ctx,
-            info=data,
-            track_type=TrackType(data["sourceName"]),
+            info=track_info,
+            track_type=TrackType(track_type),
         )
 
     async def get_tracks(
