@@ -7,7 +7,6 @@ Copyright (c) 2023, cloudwithax
 
 Licensed under GPL-3.0
 """
-
 import discord
 
 if not discord.version_info.major >= 2:
