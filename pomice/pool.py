@@ -733,7 +733,7 @@ class Node:
             )
 
         elif load_type in ("LOAD_FAILED", "error"):
-            exception = data['data'] if self._version.major >= 4 else data["exception"]
+            exception = data["data"] if self._version.major >= 4 else data["exception"]
             raise TrackLoadError(
                 f"{exception['message']} [{exception['severity']}]",
             )
