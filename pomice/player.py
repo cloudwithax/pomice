@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import time
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import TYPE_CHECKING
 from typing import Union
 
 from discord import Client
@@ -13,6 +13,8 @@ from discord import Guild
 from discord import VoiceChannel
 from discord import VoiceProtocol
 from discord.ext import commands
+
+from pomice.utils import LavalinkVersion
 
 from . import events
 from .enums import SearchType
@@ -30,11 +32,10 @@ from .objects import Playlist
 from .objects import Track
 from .pool import Node
 from .pool import NodePool
-from pomice.utils import LavalinkVersion
 
 if TYPE_CHECKING:
-    from discord.types.voice import VoiceServerUpdate
     from discord.types.voice import GuildVoiceState
+    from discord.types.voice import VoiceServerUpdate
 
 __all__ = ("Filters", "Player")
 

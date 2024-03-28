@@ -7,6 +7,7 @@ Copyright (c) 2023, cloudwithax
 
 Licensed under GPL-3.0
 """
+
 import discord
 
 if not discord.version_info.major >= 2:
@@ -31,7 +32,7 @@ from .events import *
 from .exceptions import *
 from .filters import *
 from .objects import *
-from .queue import *
 from .player import *
 from .pool import *
+from .queue import *
 from .routeplanner import *
