@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-import re
 import time
 from base64 import b64encode
 from typing import Dict
@@ -13,18 +12,15 @@ from urllib.parse import quote
 import aiohttp
 import orjson as json
 
-from .exceptions import InvalidSpotifyURL
-from .exceptions import SpotifyRequestException
-from .objects import *
+from pomice.enums import URLRegex
+from pomice.spotify.exceptions import *
+from pomice.spotify.models import *
 
 __all__ = ("Client",)
 
 
 GRANT_URL = "https://accounts.spotify.com/api/token"
 REQUEST_URL = "https://api.spotify.com/v1/{type}s/{id}"
-SPOTIFY_URL_REGEX = re.compile(
-    r"https?://open.spotify.com/(?P<type>album|playlist|track|artist)/(?P<id>[a-zA-Z0-9]+)",
-)
 
 
 class Client:
@@ -34,15 +30,12 @@ class Client:
     """
 
     def __init__(self, client_id: str, client_secret: str) -> None:
-        self._client_id: str = client_id
-        self._client_secret: str = client_secret
-
         self.session: aiohttp.ClientSession = None  # type: ignore
 
         self._bearer_token: Optional[str] = None
         self._expiry: float = 0.0
         self._auth_token = b64encode(
-            f"{self._client_id}:{self._client_secret}".encode(),
+            f"{client_id}:{client_secret}".encode(),
         )
         self._grant_headers = {
             "Authorization": f"Basic {self._auth_token.decode()}",
@@ -77,7 +70,7 @@ class Client:
         if not self._bearer_token or time.time() >= self._expiry:
             await self._fetch_bearer_token()
 
-        result = SPOTIFY_URL_REGEX.match(query)
+        result = URLRegex.SPOTIFY_URL.match(query)
         if not result:
             raise InvalidSpotifyURL("The Spotify link provided is not valid.")
 
@@ -151,7 +144,7 @@ class Client:
         if not self._bearer_token or time.time() >= self._expiry:
             await self._fetch_bearer_token()
 
-        result = SPOTIFY_URL_REGEX.match(query)
+        result = URLRegex.SPOTIFY_URL.match(query)
         if not result:
             raise InvalidSpotifyURL("The Spotify link provided is not valid.")
 

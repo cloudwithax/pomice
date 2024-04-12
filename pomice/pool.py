@@ -20,35 +20,34 @@ import aiohttp
 import orjson as json
 from discord import Client
 from discord.ext import commands
-from discord.utils import MISSING
 from websockets import client
 from websockets import exceptions
-from websockets import typing as wstype
 
-from . import __version__
-from . import applemusic
-from . import spotify
-from .enums import *
-from .enums import LogLevel
-from .exceptions import InvalidSpotifyClientAuthorization
-from .exceptions import LavalinkVersionIncompatible
-from .exceptions import NodeConnectionFailure
-from .exceptions import NodeCreationError
-from .exceptions import NodeNotAvailable
-from .exceptions import NodeRestException
-from .exceptions import NoNodesAvailable
-from .exceptions import TrackLoadError
-from .filters import Filter
-from .objects import Playlist
-from .objects import Track
-from .routeplanner import RoutePlanner
-from .utils import ExponentialBackoff
-from .utils import LavalinkVersion
-from .utils import NodeStats
-from .utils import Ping
+from pomice import __version__
+from pomice import applemusic
+from pomice import spotify
+from pomice.enums import *
+from pomice.exceptions import InvalidSpotifyClientAuthorization
+from pomice.exceptions import LavalinkVersionIncompatible
+from pomice.exceptions import NodeConnectionFailure
+from pomice.exceptions import NodeCreationError
+from pomice.exceptions import NodeNotAvailable
+from pomice.exceptions import NodeRestException
+from pomice.exceptions import NoNodesAvailable
+from pomice.exceptions import TrackLoadError
+from pomice.filters import Filter
+from pomice.models.music import Playlist
+from pomice.models.music import Track
+from pomice.models.payloads import ResumePayloadTypeAdapter
+from pomice.models.payloads import ResumePayloadV4
+from pomice.models.version import LavalinkVersion
+from pomice.routeplanner import RoutePlanner
+from pomice.utils import ExponentialBackoff
+from pomice.utils import NodeStats
+from pomice.utils import Ping
 
 if TYPE_CHECKING:
-    from .player import Player
+    from pomice.player import Player
 
 __all__ = (
     "Node",
@@ -167,19 +166,13 @@ class Node:
         self._spotify_client: Optional[spotify.Client] = None
         self._apple_music_client: Optional[applemusic.Client] = None
 
-        self._spotify_client_id: Optional[str] = spotify_client_id
-        self._spotify_client_secret: Optional[str] = spotify_client_secret
-
-        if self._spotify_client_id and self._spotify_client_secret:
+        if spotify_client_id and spotify_client_secret:
             self._spotify_client = spotify.Client(
-                self._spotify_client_id,
-                self._spotify_client_secret,
+                spotify_client_id,
+                spotify_client_secret,
             )
-
         if apple_music:
             self._apple_music_client = applemusic.Client()
-
-        self._bot.add_listener(self._update_handler, "on_socket_response")
 
     def __repr__(self) -> str:
         return (
@@ -265,31 +258,6 @@ class Node:
         if self._apple_music_client:
             await self._apple_music_client._set_session(session=session)
 
-    async def _update_handler(self, data: dict) -> None:
-        await self._bot.wait_until_ready()
-
-        if not data:
-            return
-
-        if data["t"] == "VOICE_SERVER_UPDATE":
-            guild_id = int(data["d"]["guild_id"])
-            try:
-                player = self._players[guild_id]
-                await player.on_voice_server_update(data["d"])
-            except KeyError:
-                return
-
-        elif data["t"] == "VOICE_STATE_UPDATE":
-            if int(data["d"]["user_id"]) != self._bot_user.id:
-                return
-
-            guild_id = int(data["d"]["guild_id"])
-            try:
-                player = self._players[guild_id]
-                await player.on_voice_state_update(data["d"])
-            except KeyError:
-                return
-
     async def _handle_node_switch(self) -> None:
         nodes = [node for node in self.pool._nodes.copy().values() if node.is_connected]
         new_node = random.choice(nodes)
@@ -303,14 +271,15 @@ class Node:
         if not self._resume_key:
             return
 
-        data = {"timeout": self._resume_timeout}
+        data = ResumePayloadTypeAdapter(
+            version=self._version,
+            timeout=self._resume_timeout,
+            resuming_key=self._resume_key,
+        ).model_dump()
 
-        if self._version.major == 3:
-            data["resumingKey"] = self._resume_key
-        elif self._version.major == 4:
+        if isinstance(data, ResumePayloadV4):
             if self._log:
                 self._log.warning("Using a resume key with Lavalink v4 is deprecated.")
-            data["resuming"] = True
 
         await self.send(
             method="PATCH",
@@ -560,7 +529,7 @@ class Node:
         query: str,
         *,
         ctx: Optional[commands.Context] = None,
-        search_type: SearchType = SearchType.ytsearch,
+        search_type: SearchType = SearchType.YTSEARCH,
         filters: Optional[List[Filter]] = None,
     ) -> Optional[Union[Playlist, List[Track]]]:
         """Fetches tracks from the node's REST api to parse into Lavalink.

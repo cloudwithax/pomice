@@ -8,11 +8,10 @@ from typing import Any
 from typing import Callable
 from typing import Dict
 from typing import Iterable
-from typing import NamedTuple
 from typing import Optional
 
-from .enums import RouteIPType
-from .enums import RouteStrategy
+from pomice.enums import RouteIPType
+from pomice.enums import RouteStrategy
 
 __all__ = (
     "ExponentialBackoff",
@@ -20,7 +19,6 @@ __all__ = (
     "FailingIPBlock",
     "RouteStats",
     "Ping",
-    "LavalinkVersion",
 )
 
 
@@ -226,53 +224,3 @@ class Ping:
         s_runtime = 1000 * (cost_time)
 
         return s_runtime
-
-
-class LavalinkVersion(NamedTuple):
-    major: int
-    minor: int
-    fix: int
-
-    def __eq__(self, other: object) -> bool:
-        if not isinstance(other, LavalinkVersion):
-            return False
-
-        return (
-            (self.major == other.major) and (self.minor == other.minor) and (self.fix == other.fix)
-        )
-
-    def __ne__(self, other: object) -> bool:
-        if not isinstance(other, LavalinkVersion):
-            return False
-
-        return not (self == other)
-
-    def __lt__(self, other: object) -> bool:
-        if not isinstance(other, LavalinkVersion):
-            return False
-
-        if self.major > other.major:
-            return False
-        if self.minor > other.minor:
-            return False
-        if self.fix > other.fix:
-            return False
-        return True
-
-    def __gt__(self, other: object) -> bool:
-        if not isinstance(other, LavalinkVersion):
-            return False
-
-        return not (self < other)
-
-    def __le__(self, other: object) -> bool:
-        if not isinstance(other, LavalinkVersion):
-            return False
-
-        return (self < other) or (self == other)
-
-    def __ge__(self, other: object) -> bool:
-        if not isinstance(other, LavalinkVersion):
-            return False
-
-        return (self > other) or (self == other)

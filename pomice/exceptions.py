@@ -61,7 +61,7 @@ class NoNodesAvailable(PomiceException):
     pass
 
 
-class TrackInvalidPosition(PomiceException):
+class TrackInvalidPosition(PomiceException, ValueError):
     """An invalid position was chosen for a track."""
 
     pass
@@ -73,19 +73,19 @@ class TrackLoadError(PomiceException):
     pass
 
 
-class FilterInvalidArgument(PomiceException):
+class FilterInvalidArgument(PomiceException, ValueError):
     """An invalid argument was passed to a filter."""
 
     pass
 
 
-class FilterTagInvalid(PomiceException):
+class FilterTagInvalid(PomiceException, ValueError):
     """An invalid tag was passed or Pomice was unable to find a filter tag"""
 
     pass
 
 
-class FilterTagAlreadyInUse(PomiceException):
+class FilterTagAlreadyInUse(PomiceException, ValueError):
     """A filter with a tag is already in use by another filter"""
 
     pass
@@ -97,7 +97,7 @@ class InvalidSpotifyClientAuthorization(PomiceException):
     pass
 
 
-class AppleMusicNotEnabled(PomiceException):
+class AppleMusicNotEnabled(PomiceException, ValueError):
     """An Apple Music Link was passed in when Apple Music functionality was not enabled."""
 
     pass
