@@ -560,7 +560,7 @@ class Node:
         query: str,
         *,
         ctx: Optional[commands.Context] = None,
-        search_type: SearchType = SearchType.ytsearch,
+        search_type: SearchType | None = SearchType.ytsearch,
         filters: Optional[List[Filter]] = None,
     ) -> Optional[Union[Playlist, List[Track]]]:
         """Fetches tracks from the node's REST api to parse into Lavalink.
@@ -707,7 +707,11 @@ class Node:
             )
 
         else:
-            if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:[a-z]+?)search:.", query):
+            if (
+                search_type
+                and not URLRegex.BASE_URL.match(query)
+                and not re.match(r"(?:[a-z]+?)search:.", query)
+            ):
                 query = f"{search_type}:{query}"
 
             # If YouTube url contains a timestamp, capture it for use later.
