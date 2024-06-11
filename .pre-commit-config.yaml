@@ -14,7 +14,7 @@ repos:
     rev: 23.10.1
     hooks:
     - id: black
-      language_version: python3.11
+      language_version: python3.12
 -   repo: https://github.com/asottile/pyupgrade
     rev: v3.15.0
     hooks:
@@ -28,10 +28,6 @@ repos:
     rev: v3.1.0
     hooks:
     -   id: add-trailing-comma
--   repo: https://github.com/hadialqattan/pycln
-    rev: v2.3.0
-    hooks:
-    -   id: pycln
 
 default_language_version:
-    python: python3.11
+    python: python3.12

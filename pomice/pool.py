@@ -704,7 +704,7 @@ class Node:
             )
 
         else:
-            if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:ytm?|sc)search:.", query):
+            if not URLRegex.BASE_URL.match(query) and not re.match(r"(?:[a-z]+?)search:.", query):
                 query = f"{search_type}:{query}"
 
             # If YouTube url contains a timestamp, capture it for use later.
