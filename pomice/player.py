@@ -504,6 +504,9 @@ class Player(VoiceProtocol):
     ) -> Track:
         """Plays a track. If a Spotify track is passed in, it will be handled accordingly."""
 
+        if not track._search_type:
+            track.original = track
+
         # Make sure we've never searched the track before
         if track._search_type and track.original is None:
             # First lets try using the tracks ISRC, every track has one (hopefully)
