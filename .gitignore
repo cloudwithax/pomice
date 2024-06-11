@@ -10,6 +10,7 @@ build/
 Pipfile.lock
 .mypy_cache/
 .vscode/
+.idea/
 .venv/
 *.code-workspace
 *.ini

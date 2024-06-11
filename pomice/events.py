@@ -128,7 +128,6 @@ class TrackExceptionEvent(PomiceEvent):
 
     def __init__(self, data: dict, player: Player):
         self.player: Player = player
-        assert self.player._ending_track is not None
         self.track: Optional[Track] = self.player._ending_track
         # Error is for Lavalink <= 3.3
         self.exception: str = data.get(
