@@ -86,6 +86,8 @@ class PlaylistType(Enum):
     PlaylistType.SPOTIFY defines that the playlist is from Spotify
 
     PlaylistType.APPLE_MUSIC defines that the playlist is from Apple Music.
+
+    PlaylistType.OTHER defines that the playlist is from an unknown source (possible from 3rd-party plugins).
     """
 
     # We don't have to define anything special for these, since these just serve as flags
@@ -93,6 +95,11 @@ class PlaylistType(Enum):
     SOUNDCLOUD = "soundcloud"
     SPOTIFY = "spotify"
     APPLE_MUSIC = "apple_music"
+    OTHER = "other"
+
+    @classmethod
+    def _missing_(cls, value):
+        return cls.OTHER
 
     def __str__(self) -> str:
         return self.value
