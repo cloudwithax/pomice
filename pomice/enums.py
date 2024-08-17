@@ -65,7 +65,7 @@ class TrackType(Enum):
     APPLE_MUSIC = "apple_music"
     HTTP = "http"
     LOCAL = "local"
-    OTHER = 'other'
+    OTHER = "other"
 
     @classmethod
     def _missing_(cls, value):
