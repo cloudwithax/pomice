@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 orjson = "*"
 "discord.py" = {extras = ["voice"], version = "*"}
+websockets = "*"
 
 [dev-packages]
 mypy = "*"
