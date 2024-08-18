@@ -68,7 +68,7 @@ class TrackType(Enum):
     OTHER = "other"
 
     @classmethod
-    def _missing_(cls, value):
+    def _missing_(cls, _: object) -> "TrackType":
         return cls.OTHER
 
     def __str__(self) -> str:
