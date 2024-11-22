@@ -3,7 +3,7 @@ Pomice
 ~~~~~~
 The modern Lavalink wrapper designed for discord.py.
 
-Copyright (c) 2023, cloudwithax
+Copyright (c) 2024, cloudwithax
 
 Licensed under GPL-3.0
 """
@@ -20,7 +20,7 @@ if not discord.version_info.major >= 2:
         "using 'pip install discord.py'",
     )
 
-__version__ = "2.9.1"
+__version__ = "2.9.2"
 __title__ = "pomice"
 __author__ = "cloudwithax"
 __license__ = "GPL-3.0"
