@@ -203,9 +203,13 @@ class Queue(Iterable[Track]):
             raise QueueEmpty("No items in the queue.")
 
         if self._loop_mode == LoopMode.QUEUE:
-            # recurse if the item isnt in the queue
-            if self._current_item not in self._queue:
-                self.get()
+            # set current item to first track in queue if not set already
+            # otherwise exception will be raised
+            if not self._current_item or self._current_item not in self._queue:
+                if self._queue:
+                    item = self._queue[0]
+                else:
+                    raise QueueEmpty("No items in the queue.")
 
             # set current item to first track in queue if not set already
             if not self._current_item:

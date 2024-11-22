@@ -711,6 +711,8 @@ class Node:
                 search_type
                 and not URLRegex.BASE_URL.match(query)
                 and not re.match(r"(?:[a-z]+?)search:.", query)
+                and not URLRegex.DISCORD_MP3_URL.match(query)
+                and not path.exists(path.dirname(query))
             ):
                 query = f"{search_type}:{query}"
 
@@ -778,7 +780,7 @@ class Node:
 
                 return [
                     Track(
-                        track_id=track["track"],
+                        track_id=track["encoded"],
                         info={
                             "title": local_file.name,
                             "author": "Unknown",
