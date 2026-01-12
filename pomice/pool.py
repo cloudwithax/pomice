@@ -887,7 +887,7 @@ class Node:
 
         elif track.track_type == TrackType.YOUTUBE:
             return await self.get_tracks(
-                query=f"ytsearch:https://www.youtube.com/watch?v={track.identifier}&list=RD{track.identifier}",
+                query=f"https://www.youtube.com/watch?v={track.identifier}&list=RD{track.identifier}",
                 ctx=ctx,
             )
 
