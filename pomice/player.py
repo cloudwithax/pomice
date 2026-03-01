@@ -313,6 +313,9 @@ class Player(VoiceProtocol):
             "sessionId": state["sessionId"],
         }
 
+        if self._node._version >= LavalinkVersion(4, 2, 0) and self.channel:
+            data["channelId"] = str(self.channel.id)
+
         await self._node.send(
             method="PATCH",
             path=self._player_endpoint_uri,
