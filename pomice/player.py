@@ -26,11 +26,11 @@ from .exceptions import TrackInvalidPosition
 from .exceptions import TrackLoadError
 from .filters import Filter
 from .filters import Timescale
+from .history import TrackHistory
 from .objects import Playlist
 from .objects import Track
-from .pool import Node
-from .pool import NodePool
-from pomice.utils import LavalinkVersion
+from .queue import Queue
+from .queue_stats import QueueStats
 
 if TYPE_CHECKING:
     from discord.types.voice import VoiceServerUpdate
@@ -154,6 +154,9 @@ class Player(VoiceProtocol):
         "_log",
         "_voice_state",
         "_player_endpoint_uri",
+        "queue",
+        "history",
+        "autoplay",
     )
 
     def __call__(self, client: Client, channel: VoiceChannel) -> Player:
@@ -190,6 +193,10 @@ class Player(VoiceProtocol):
         self._voice_state: dict = {}
 
         self._player_endpoint_uri: str = f"sessions/{self._node._session_id}/players"
+
+        self.queue: Queue = Queue()
+        self.history: TrackHistory = TrackHistory()
+        self.autoplay: bool = False
 
     def __repr__(self) -> str:
         return (
@@ -247,7 +254,7 @@ class Player(VoiceProtocol):
 
     @property
     def is_paused(self) -> bool:
-        """Property which returns whether or not the player has a track which is paused or not."""
+        """Returns True if the music is currently paused."""
         return self._is_connected and self._paused
 
     @property
@@ -361,6 +368,8 @@ class Player(VoiceProtocol):
         event: PomiceEvent = getattr(events, event_type)(data, self)
 
         if isinstance(event, TrackEndEvent) and event.reason not in ("REPLACED", "replaced"):
+            if self._current:
+                self.history.add(self._current)
             self._current = None
 
         event.dispatch(self._bot)
@@ -766,3 +775,39 @@ class Player(VoiceProtocol):
             if self._log:
                 self._log.debug(f"Fast apply passed, now removing all filters instantly.")
             await self.seek(self.position)
+
+    async def do_next(self) -> Optional[Track]:
+        """Automatically picks the next track from the queue and plays it.
+        If the queue is empty and autoplay is on, it will search for recommended tracks.
+
+        Returns
+        -------
+        Optional[Track]
+            The track that's now playing, or None if we've run out of music.
+        """
+        if self.queue.is_empty:
+            if self.autoplay and self._current:
+                recommendations = await self.get_recommendations(track=self._current)
+                if recommendations:
+                    if isinstance(recommendations, Playlist):
+                        track = recommendations.tracks[0]
+                    else:
+                        track = recommendations[0]
+
+                    await self.play(track)
+                    return track
+            return None
+
+        track = self.queue.get()
+        await self.play(track)
+        return track
+
+    def get_stats(self) -> QueueStats:
+        """Get detailed statistics for the current player and queue.
+
+        Returns
+        -------
+        QueueStats
+            A QueueStats object containing detailed analytics.
+        """
+        return QueueStats(self.queue)

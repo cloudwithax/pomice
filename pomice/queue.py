@@ -310,8 +310,8 @@ class Queue(Iterable[Track]):
         return new_queue
 
     def clear(self) -> None:
-        """Remove all items from the queue."""
-        self._queue.clear()
+        """Wipes the entire queue clean, removing all tracks."""
+        self._queue = []
 
     def set_loop_mode(self, mode: LoopMode) -> None:
         """
@@ -343,8 +343,40 @@ class Queue(Iterable[Track]):
         self._loop_mode = None
 
     def shuffle(self) -> None:
-        """Shuffles the queue."""
-        return random.shuffle(self._queue)
+        """Mixes up the entire queue in a random order."""
+        random.shuffle(self._queue)
+
+    def move(self, from_index: int, to_index: int) -> None:
+        """Moves a track from one spot in the queue to another.
+
+        Parameters
+        ----------
+        from_index: int
+            The current position of the track (0-indexed).
+        to_index: int
+            Where you want to put the track.
+        """
+        if from_index == to_index:
+            return
+
+        track = self._queue.pop(from_index)
+        self._queue.insert(to_index, track)
+
+    def remove_duplicates(self) -> int:
+        """Looks through the queue and removes any tracks that appear more than once.
+        Returns the number of duplicate tracks removed.
+        """
+        initial_count = len(self._queue)
+        seen_ids = set()
+        unique_queue = []
+
+        for track in self._queue:
+            if track.track_id not in seen_ids:
+                unique_queue.append(track)
+                seen_ids.add(track.track_id)
+
+        self._queue = unique_queue
+        return initial_count - len(self._queue)
 
     def clear_track_filters(self) -> None:
         """Clears all filters applied to tracks"""
@@ -372,3 +404,15 @@ class Queue(Iterable[Track]):
         else:
             new_queue = self._queue[index : self.size]
             self._queue = new_queue
+
+    def get_stats(self) -> pomice.QueueStats:
+        """Get detailed statistics for this queue.
+
+        Returns
+        -------
+        QueueStats
+            A QueueStats object containing detailed analytics.
+        """
+        from .queue_stats import QueueStats
+
+        return QueueStats(self)

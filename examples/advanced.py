@@ -302,6 +302,85 @@ class Music(commands.Cog):
             )
 
     @commands.command()
+    async def loop(self, ctx: commands.Context, mode: str = "off"):
+        """Sets the loop mode: off, track, queue."""
+        player: Player = ctx.voice_client
+        if not player:
+            return
+
+        mode = mode.lower()
+        if mode == "track":
+            player.loop_mode = pomice.LoopMode.TRACK
+        elif mode == "queue":
+            player.loop_mode = pomice.LoopMode.QUEUE
+        else:
+            player.loop_mode = None
+
+        await ctx.send(f"Loop mode set to **{mode}**")
+
+    @commands.command()
+    async def autoplay(self, ctx: commands.Context):
+        """Toggles autoplay to keep the music going with recommendations when the queue is empty."""
+        player: Player = ctx.voice_client
+        if not player:
+            return
+
+        player.autoplay = not player.autoplay
+        await ctx.send(f"Autoplay is now **{'on' if player.autoplay else 'off'}**")
+
+    @commands.command()
+    async def move(self, ctx: commands.Context, from_index: int, to_index: int):
+        """Moves a track's position in the queue (e.g., !move 5 1)."""
+        player: Player = ctx.voice_client
+        if not player or player.queue.is_empty:
+            return await ctx.send("The queue is empty.")
+
+        try:
+            player.queue.move(from_index - 1, to_index - 1)
+            await ctx.send(f"Moved track from #{from_index} to #{to_index}.")
+        except IndexError:
+            await ctx.send("Sorry, I couldn't find a track at that position.")
+
+    @commands.command(aliases=["clean"])
+    async def deduplicate(self, ctx: commands.Context):
+        """Removes any double-posted songs from your queue."""
+        player: Player = ctx.voice_client
+        if not player:
+            return
+
+        removed = player.queue.remove_duplicates()
+        await ctx.send(f"All cleaned up! Removed **{removed}** duplicate tracks.")
+
+    @commands.command()
+    async def filter(self, ctx: commands.Context, preset: str = "off"):
+        """Apply a sound preset: pop, soft, metal, boost, nightcore, vaporwave, off."""
+        player: Player = ctx.voice_client
+        if not player:
+            return
+
+        preset = preset.lower()
+        await player.reset_filters()
+
+        if preset == "off":
+            return await ctx.send("Filters cleared.")
+
+        presets = {
+            "pop": pomice.Equalizer.pop(),
+            "soft": pomice.Equalizer.soft(),
+            "metal": pomice.Equalizer.metal(),
+            "boost": pomice.Equalizer.boost(),
+            "nightcore": pomice.Timescale.nightcore(),
+            "vaporwave": pomice.Timescale.vaporwave(),
+            "bass": pomice.Equalizer.bass_boost_light(),
+        }
+
+        if preset not in presets:
+            return await ctx.send(f"Available presets: {', '.join(presets.keys())}")
+
+        await player.add_filter(presets[preset])
+        await ctx.send(f"Applied the **{preset}** sound preset!")
+
+    @commands.command()
     async def stop(self, ctx: commands.Context):
         """Stop the player and clear all internal states."""
         if not (player := ctx.voice_client):

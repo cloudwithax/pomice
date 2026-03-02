@@ -110,10 +110,7 @@ class Equalizer(Filter):
 
     @classmethod
     def boost(cls) -> "Equalizer":
-        """Equalizer preset which boosts the sound of a track,
-        making it sound fun and energetic by increasing the bass
-        and the highs.
-        """
+        """A lively preset that boosts both bass and highs, making the music feel more energetic and fun."""
 
         levels = [
             (0, -0.075),
@@ -135,10 +132,15 @@ class Equalizer(Filter):
         return cls(tag="boost", levels=levels)
 
     @classmethod
+    def bass_boost_light(cls) -> "Equalizer":
+        """A light touch for people who want a bit more bass without it becoming overwhelming."""
+        levels = [(0, 0.15), (1, 0.1), (2, 0.05)]
+        return cls(tag="bass_boost_light", levels=levels)
+
+    @classmethod
     def metal(cls) -> "Equalizer":
-        """Equalizer preset which increases the mids of a track,
-        preferably one of the metal genre, to make it sound
-        more full and concert-like.
+        """A heavy preset designed to bring out the intensity of metal and rock.
+        It boosts the mids and highs to create a fuller, stage-like sound experience.
         """
 
         levels = [
@@ -160,6 +162,54 @@ class Equalizer(Filter):
         ]
 
         return cls(tag="metal", levels=levels)
+
+    @classmethod
+    def pop(cls) -> "Equalizer":
+        """A balanced preset that enhances vocals and adds a bit of 'pop' to the rhythm.
+        Perfect for mainstream hits.
+        """
+        levels = [
+            (0, -0.02),
+            (1, -0.01),
+            (2, 0.08),
+            (3, 0.1),
+            (4, 0.15),
+            (5, 0.1),
+            (6, 0.05),
+            (7, 0.0),
+            (8, 0.0),
+            (9, 0.0),
+            (10, 0.05),
+            (11, 0.1),
+            (12, 0.15),
+            (13, 0.1),
+            (14, 0.05),
+        ]
+        return cls(tag="pop", levels=levels)
+
+    @classmethod
+    def soft(cls) -> "Equalizer":
+        """A gentle preset that smooths out harsh frequencies.
+        Ideal for acoustic tracks or when you just want a more relaxed listening experience.
+        """
+        levels = [
+            (0, 0.0),
+            (1, 0.0),
+            (2, 0.0),
+            (3, -0.05),
+            (4, -0.1),
+            (5, -0.1),
+            (6, -0.05),
+            (7, 0.0),
+            (8, 0.05),
+            (9, 0.1),
+            (10, 0.1),
+            (11, 0.05),
+            (12, 0.0),
+            (13, 0.0),
+            (14, 0.0),
+        ]
+        return cls(tag="soft", levels=levels)
 
     @classmethod
     def piano(cls) -> "Equalizer":

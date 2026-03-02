@@ -286,25 +286,16 @@ class Client:
 
         # Fetch pages in rolling waves; yield promptly as soon as a wave completes.
         wave_size = self._playlist_concurrency * 2
-        for i, offset in enumerate(remaining_offsets):
-            # Build wave
-            if i % wave_size == 0:
-                wave_offsets = list(
-                    o for o in remaining_offsets if o >= offset and o < offset + wave_size
-                )
-                results = await asyncio.gather(*[fetch(o) for o in wave_offsets])
-                for page_tracks in results:
-                    if not page_tracks:
-                        continue
-                    for j in range(0, len(page_tracks), batch_size):
-                        yield page_tracks[j : j + batch_size]
-                # Skip ahead in iterator by adjusting enumerate drive (consume extras)
-                # Fast-forward the generator manually
-                for _ in range(len(wave_offsets) - 1):
-                    try:
-                        next(remaining_offsets)  # type: ignore
-                    except StopIteration:
-                        break
+        remaining_offsets_list = list(remaining_offsets)
+
+        for i in range(0, len(remaining_offsets_list), wave_size):
+            wave_offsets = remaining_offsets_list[i : i + wave_size]
+            results = await asyncio.gather(*[fetch(o) for o in wave_offsets])
+            for page_tracks in results:
+                if not page_tracks:
+                    continue
+                for j in range(0, len(page_tracks), batch_size):
+                    yield page_tracks[j : j + batch_size]
 
     async def get_recommendations(self, *, query: str) -> List[Track]:
         if not self._bearer_token or time.time() >= self._expiry:

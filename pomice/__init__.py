@@ -35,3 +35,7 @@ from .queue import *
 from .player import *
 from .pool import *
 from .routeplanner import *
+from .history import *
+from .queue_stats import *
+from .playlist_manager import *
+from .track_utils import *
