@@ -26,7 +26,7 @@ AM_SINGLE_IN_ALBUM_REGEX = re.compile(
     r"https?://music\.apple\.com/(?P<country>[a-zA-Z]{2})/(?P<type>album|playlist|song|artist)/(?P<name>.+)/(?P<id>[^/?]+)(\?i=)(?P<id2>[^&]+)(?:&.*)?$",
 )
 
-AM_SCRIPT_REGEX = re.compile(r'<script.*?src="(/assets/index-.*?)"')
+AM_SCRIPT_REGEX = re.compile(r'<script.*?src="(/assets/index[-~].*?)"')
 
 AM_REQ_URL = "https://api.music.apple.com/v1/catalog/{country}/{type}s/{id}"
 AM_BASE_URL = "https://api.music.apple.com"
