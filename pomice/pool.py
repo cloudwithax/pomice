@@ -19,8 +19,8 @@ from urllib.parse import quote
 import aiohttp
 import orjson as json
 from discord import Client
+from discord import VoiceChannel
 from discord.ext import commands
-from discord.utils import MISSING
 
 try:
     from websockets.legacy import client  # websockets >= 10.0
@@ -28,13 +28,11 @@ except ImportError:
     import websockets.client as client  # websockets < 10.0  # type: ignore
 
 from websockets import exceptions
-from websockets import typing as wstype
 
 from . import __version__
 from . import applemusic
 from . import spotify
-from .enums import *
-from .enums import LogLevel
+from .enums import TrackType, NodeAlgorithm, PlaylistType, SearchType, URLRegex
 from .exceptions import InvalidSpotifyClientAuthorization
 from .exceptions import LavalinkVersionIncompatible
 from .exceptions import NodeConnectionFailure
@@ -78,6 +76,7 @@ class Node:
         "_pool",
         "_password",
         "_identifier",
+        "_location",
         "_heartbeat",
         "_resume_key",
         "_resume_timeout",
@@ -109,11 +108,12 @@ class Node:
         self,
         *,
         pool: Type[NodePool],
-        bot: commands.Bot,
+        bot: commands.Bot | commands.AutoShardedBot,
         host: str,
         port: int,
         password: str,
         identifier: str,
+        location: str = "us-east",
         secure: bool = False,
         heartbeat: int = 120,
         resume_key: Optional[str] = None,
@@ -129,7 +129,7 @@ class Node:
         if not isinstance(port, int):
             raise TypeError("Port must be an integer")
 
-        self._bot: commands.Bot = bot
+        self._bot: commands.Bot | commands.AutoShardedBot = bot
         self._host: str = host
         self._port: int = port
         self._pool: Type[NodePool] = pool
@@ -140,6 +140,8 @@ class Node:
         self._resume_timeout: int = resume_timeout
         self._secure: bool = secure
         self._fallback: bool = fallback
+
+        self._location = location
 
         self._websocket_uri: str = f"{'wss' if self._secure else 'ws'}://{self._host}:{self._port}"
         self._rest_uri: str = f"{'https' if self._secure else 'http'}://{self._host}:{self._port}"
@@ -211,6 +213,14 @@ class Node:
     def bot(self) -> Client:
         """Property which returns the discord.py client linked to this node"""
         return self._bot
+
+    @property
+    def location(self) -> str:
+        """
+        Property which returns the default region unless set specifically
+        """
+
+        return self._location
 
     @property
     def player_count(self) -> int:
@@ -366,7 +376,7 @@ class Node:
             self._session_id = data["sessionId"]
             await self._configure_resuming()
 
-        if not "guildId" in data:
+        if "guildId" not in data:
             return
 
         player: Optional[Player] = self._players.get(int(data["guildId"]))
@@ -969,7 +979,12 @@ class NodePool:
         return len(self._nodes.values())
 
     @classmethod
-    def get_best_node(cls, *, algorithm: NodeAlgorithm) -> Node:
+    def get_best_node(
+        cls,
+        *,
+        algorithm: NodeAlgorithm,
+        channel: Optional[VoiceChannel] = None,
+    ) -> Node:
         """Fetches the best node based on an NodeAlgorithm.
         This option is preferred if you want to choose the best node
         from a multi-node setup using either the node's latency
@@ -983,6 +998,7 @@ class NodePool:
         based on how players it has. This method will return a node with
         the least amount of players
         """
+
         available_nodes: List[Node] = [node for node in cls._nodes.values() if node._available]
 
         if not available_nodes:
@@ -996,6 +1012,20 @@ class NodePool:
             tested_nodes = {node: len(node.players.keys()) for node in available_nodes}
             return min(tested_nodes, key=tested_nodes.get)  # type: ignore
 
+        elif algorithm == NodeAlgorithm.by_location and isinstance(channel, VoiceChannel):
+            tested_nodes = {}
+            chosen_region = channel.rtc_region
+
+            if not chosen_region:
+                return cls.get_best_node(algorithm=NodeAlgorithm.by_ping)
+
+            if node := next(
+                (node for node in available_nodes if node.location == chosen_region),
+                None,
+            ):
+                return node
+
+            return random.choice(available_nodes)
         else:
             raise ValueError(
                 "The algorithm provided is not a valid NodeAlgorithm.",
@@ -1022,11 +1052,12 @@ class NodePool:
     async def create_node(
         cls,
         *,
-        bot: commands.Bot,
+        bot: commands.Bot | commands.AutoShardedBot,
         host: str,
         port: int,
         password: str,
         identifier: str,
+        location: str = "us-east",
         secure: bool = False,
         heartbeat: int = 120,
         resume_key: Optional[str] = None,
@@ -1054,6 +1085,7 @@ class NodePool:
             port=port,
             password=password,
             identifier=identifier,
+            location=location,
             secure=secure,
             heartbeat=heartbeat,
             resume_key=resume_key,

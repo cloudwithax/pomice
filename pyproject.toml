@@ -1,3 +1,16 @@
+[project]
+name = "pomice"
+version = "2.10.0"
+description = "The modern Lavalink wrapper designed for Discord.py"
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "aiohttp>=3.7.4,<4",
+    "discord>=2.3.2",
+    "orjson",
+    "websockets",
+]
+
 [build-system]
 requires = [
     "setuptools>=42",
@@ -17,3 +30,11 @@ no_implicit_optional = true
 check_untyped_defs = true
 warn_unused_ignores = true
 show_error_codes = true
+
+[tool.pyright]
+typeCheckingMode = "standard"
+
+[dependency-groups]
+dev = [
+    "black>=24.8.0",
+]

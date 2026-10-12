@@ -129,6 +129,7 @@ class NodeAlgorithm(Enum):
     # We don't have to define anything special for these, since these just serve as flags
     by_ping = "BY_PING"
     by_players = "BY_PLAYERS"
+    by_location = "BY_LOCATION"
 
     def __str__(self) -> str:
         return self.value
