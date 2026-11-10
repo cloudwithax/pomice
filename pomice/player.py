@@ -375,8 +375,9 @@ class Player(VoiceProtocol):
         self._player_endpoint_uri = f"sessions/{session_id}/players"
 
     async def _swap_node(self, *, new_node: Node) -> None:
+        data: Optional[dict] = None
         if self.current:
-            data: dict = {"position": self.position, "encodedTrack": self.current.track_id}
+            data = {"position": self.position, "encodedTrack": self.current.track_id}
 
         del self._node._players[self._guild.id]
         self._node = new_node
